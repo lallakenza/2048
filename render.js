@@ -392,7 +392,8 @@ function renderBadre2026() {
 
   html += `<div class="cards">
     <div class="card"><div class="l">Report 2025</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
-    <div class="card"><div class="l">Majalis payé 2026 (DH)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
+    <div class="card"><div class="l">Majalis payé 2026 (brut)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
+    <div class="card"><div class="l">Majalis payé 2026 (net −10%)</div><div class="v blue">${fmtPlain(totalNetBadrePaid)} DH</div></div>
     <div class="card"><div class="l">Payé DH 2026</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
     <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde2026 > 0 ? 'yellow' : solde2026 < 0 ? 'green' : 'green'}">${fmtSigned(solde2026, 'DH')}</div></div>
   </div>`;
