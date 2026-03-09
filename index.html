@@ -61,155 +61,124 @@
 <!-- ==================== AZARKAN 2025 ==================== -->
 <div id="az25" class="panel active">
 
-<h2 style="font-size:1.05rem;margin-bottom:6px">Clôture Azarkan 2025 — 5 catégories</h2>
-<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Tout ce qu'Azarkan met dans son Excel est classé en 5 catégories. Pour chacune on vérifie avec les EBS/banque.</p>
+<h2 style="font-size:1.05rem;margin-bottom:6px">Clôture Azarkan 2025 — Réconciliation mois par mois</h2>
+<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Basé sur le fichier Excel Azarkan v2 (mis à jour). Pour chaque mois : revenus RTL, dépenses déclarées (B+Y+M, Maroc, Divers), virements réels, et commentaires.</p>
 
 <div class="cards">
-  <div class="card"><div class="l">Actuals Fév-Déc</div><div class="v blue">179 775 €</div></div>
-  <div class="card"><div class="l">Total dépenses Excel</div><div class="v yellow">180 958 €</div></div>
-  <div class="card"><div class="l">Solde Excel</div><div class="v red">−1 183 €</div></div>
-  <div class="card"><div class="l">Solde corrigé (MAD réel)</div><div class="v green">+7 817 €</div></div>
+  <div class="card"><div class="l">Actuals Jan-Déc</div><div class="v blue">198 475 €</div></div>
+  <div class="card"><div class="l">Total dépenses Excel</div><div class="v yellow">181 458 €</div></div>
+  <div class="card"><div class="l">Solde Excel (Fév-Déc)</div><div class="v red">−1 683 €</div></div>
+  <div class="card"><div class="l">Solde corrigé (MAD réel)</div><div class="v yellow">−683 €</div></div>
 </div>
 
 <!-- SYNTHESE 5 CATEGORIES -->
 <div class="s">
-  <div class="st">Synthèse des 5 catégories</div>
+  <div class="st">Synthèse des 5 catégories (Excel v2)</div>
   <table>
-    <thead><tr><th>Catégorie</th><th style="text-align:right">Excel Azarkan (€)</th><th style="text-align:right">Vérifié EBS/Banque (€)</th><th style="text-align:right">Écart (€)</th><th>Statut</th></tr></thead>
+    <thead><tr><th>Catégorie</th><th style="text-align:right">Excel v2 (€)</th><th style="text-align:right">Vérifié EBS/Banque (€)</th><th style="text-align:right">Écart (€)</th><th>Statut</th></tr></thead>
     <tbody>
       <tr><td><strong>1. Ysquare (Kenza)</strong></td><td class="a">54 300</td><td class="a">54 300</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓ 6/6 match</span></td></tr>
-      <tr><td><strong>2. Majalis HT (Badre)</strong></td><td class="a">29 688</td><td class="a">30 188</td><td class="a" style="color:var(--yellow)">+500</td><td><span class="b w">⚠ 5/6 + écart</span></td></tr>
+      <tr><td><strong>2. Majalis HT (Badre)</strong></td><td class="a">30 188</td><td class="a">30 188</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓ 6/6 corrigé</span></td></tr>
       <tr><td><strong>3. Bairok (→ Azarkan EUR)</strong></td><td class="a">72 800</td><td class="a">72 800</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓ 6/6 match</span></td></tr>
-      <tr><td><strong>4. Virements Maroc (→ Azarkan DH)</strong></td><td class="a">13 000</td><td class="a">22 000</td><td class="a" style="color:var(--red)">+9 000</td><td><span class="b e">🔴 Trop payé</span></td></tr>
-      <tr><td><strong>5. Autre (Divers)</strong></td><td class="a">11 170</td><td class="a">?</td><td class="a">?</td><td><span class="b e">Pas de preuve</span></td></tr>
-      <tr class="tr"><td><strong>Total dépenses</strong></td><td class="a"><strong>180 958</strong></td><td class="a"><strong>179 288</strong></td><td class="a" style="color:var(--yellow)"><strong>−1 670</strong></td><td></td></tr>
+      <tr><td><strong>4. Virements Maroc (→ Azarkan DH)</strong></td><td class="a">23 000</td><td class="a">24 000</td><td class="a" style="color:var(--yellow)">+1 000</td><td><span class="b w">⚠ Jan pas dans Excel</span></td></tr>
+      <tr><td><strong>5. Autre (Divers)</strong></td><td class="a">1 170</td><td class="a">?</td><td class="a">?</td><td><span class="b w">⚠ Pas de preuve</span></td></tr>
+      <tr class="tr"><td><strong>Total dépenses</strong></td><td class="a"><strong>181 458</strong></td><td class="a"><strong>180 288</strong></td><td class="a" style="color:var(--yellow)"><strong>−1 170</strong></td><td></td></tr>
     </tbody>
   </table>
-  <div class="n e">
-    <strong>Résultat :</strong> Azarkan comptabilise 180 958€ de dépenses, mais les preuves bancaires montrent <strong>179 288€</strong> réellement payés (hors Divers). Tu as payé <strong>9 000€ de plus</strong> en MAD que ce qu'Azarkan déclare en "Maroc".<br><br>
-    Solde Excel : <strong>−1 183€</strong> (tu dois).<br>
-    Solde corrigé avec MAD réel : <strong>+7 817€</strong> (Azarkan te doit).<br>
-    Si on conteste aussi les Divers (11 170€) : <strong>+18 987€</strong> en ta faveur.
+  <div class="n">
+    <strong>Résultat (Excel v2) :</strong> Azarkan a largement corrigé son fichier. Les 3 catégories EBS (Ysquare, Majalis, Bairok) matchent à 100%. Le Maroc Fév-Déc est parfaitement aligné (23 000€). Mais tu as aussi envoyé <strong>1 000€ en Janvier</strong> qui n'est compté nulle part dans l'Excel. Il reste <strong>1 170€ de Divers sans preuve</strong>.<br><br>
+    Solde Excel : <strong>−1 683€</strong> (tu dois).<br>
+    Solde corrigé (+1k Janvier) : <strong>−683€</strong> (tu dois encore un peu).<br>
+    Si Divers contestés (1 170€) : <strong>+488€ en ta faveur</strong>.
   </div>
 </div>
 
-<!-- ===== CAT 1: YSQUARE ===== -->
+<!-- ===== MOIS PAR MOIS ===== -->
 <div class="s">
-  <div class="st">1. Ysquare (Kenza) — 54 300€ ✓</div>
+  <div class="st">Réconciliation mois par mois (Janvier → Décembre 2025)</div>
   <table>
-    <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">Excel (€)</th><th style="text-align:right">EBS (€)</th><th style="text-align:right">Écart</th><th></th></tr></thead>
+    <thead><tr><th>Mois</th><th style="text-align:right">Actuals (€)</th><th style="text-align:right">B+Y+M (€)</th><th style="text-align:right">Maroc (€)</th><th style="text-align:right">Divers (€)</th><th style="text-align:right">Total dép. (€)</th><th style="text-align:right">Solde mois (€)</th><th>Commentaire</th></tr></thead>
     <tbody>
-      <tr><td>1</td><td>02/06/2025</td><td class="a">5 400</td><td class="a">5 400</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>2</td><td>18/06/2025</td><td class="a">10 800</td><td class="a">10 800</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>3</td><td>06/08/2025</td><td class="a">12 000</td><td class="a">12 000</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>4</td><td>11/11/2025</td><td class="a">6 900</td><td class="a">6 900</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>5</td><td>04/12/2025</td><td class="a">9 600</td><td class="a">9 600</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>6</td><td>31/12/2025</td><td class="a">9 600</td><td class="a">9 600</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>54 300</strong></td><td class="a"><strong>54 300</strong></td><td class="a"><strong>0</strong></td><td></td></tr>
+      <tr><td><strong>Janvier</strong></td><td class="a">18 700</td><td class="a">—</td><td class="a">—</td><td class="a">—</td><td class="a">0</td><td class="a" style="color:var(--green)">+18 700</td><td style="font-size:.7rem;color:var(--muted)"><span class="b w">⚠</span> Actuals comptabilisés mais aucune dépense dans l'Excel. Pourtant <strong>10 000 DH (1 000€) envoyés à Azarkan</strong> ce mois-ci (confirmé mais hors historique banque). Ce virement n'est compté nulle part dans le fichier d'Azarkan.</td></tr>
+
+      <tr><td><strong>Février</strong></td><td class="a">17 000</td><td class="a">16 000</td><td class="a">1 000</td><td class="a">400</td><td class="a">17 400</td><td class="a" style="color:var(--red)">−400</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> Maroc 1 000€ ✓ (10 000 DH envoyés, confirmé mais hors historique banque). B+Y+M = 16 000 (Bairok 10k+6k EBS). Divers 400€ sans preuve.</td></tr>
+
+      <tr><td><strong>Mars</strong></td><td class="a">17 850</td><td class="a">17 600</td><td class="a">1 000</td><td class="a">—</td><td class="a">18 600</td><td class="a" style="color:var(--red)">−750</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> B+Y+M = 17 600 (Bairok 17.6k EBS). Maroc = 1 000€ ✓ (mère Jamila → Azarkan 10k DH le 28/03). Mois légèrement déficitaire.</td></tr>
+
+      <tr><td><strong>Avril</strong></td><td class="a">16 150</td><td class="a" style="color:var(--yellow)">39 200</td><td class="a">1 000</td><td class="a">—</td><td class="a">40 200</td><td class="a" style="color:var(--red)">−24 050</td><td style="font-size:.7rem;color:var(--muted)"><span class="b i">⚡ Gros mois</span> B+Y+M = 39 200 (Bairok 16.8k+3.2k+19.2k EBS). C'est un rattrapage de plusieurs factures Bairok payées en même temps. Maroc ✓ (mère 10k DH le 14/04). Gros déficit mensuel compensé par Jan+Mai.</td></tr>
+
+      <tr><td><strong>Mai</strong></td><td class="a">16 150</td><td class="a">5 400</td><td class="a">1 000</td><td class="a">—</td><td class="a">6 400</td><td class="a" style="color:var(--green)">+9 750</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> B+Y+M = 5 400 (Ysquare 5.4k EBS). Maroc ✓ (mère 10k DH le 20/05). Mois excédentaire, compense Avril.</td></tr>
+
+      <tr><td><strong>Juin</strong></td><td class="a">16 150</td><td class="a">10 800</td><td class="a">1 000</td><td class="a">1 240</td><td class="a">13 040</td><td class="a" style="color:var(--green)">+3 110</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> B+Y+M = 10 800 (Ysquare 5.4k+5.4k EBS remboursé en 2 paiements). Maroc ✓ (mère 10k DH le 13/06). Divers 1 240€ sans preuve.</td></tr>
+
+      <tr><td><strong>Juillet</strong></td><td class="a">12 750</td><td class="a">12 000</td><td class="a">1 000</td><td class="a">—</td><td class="a">13 000</td><td class="a" style="color:var(--red)">−250</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> B+Y+M = 12 000 (Ysquare 12k EBS). Maroc ✓ (perso 10k DH le 03/07). Léger déficit.</td></tr>
+
+      <tr><td><strong>Août</strong></td><td class="a">11 050</td><td class="a">11 250</td><td class="a" style="color:var(--green)">3 000</td><td class="a">—</td><td class="a">14 250</td><td class="a" style="color:var(--red)">−3 200</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ Corrigé v2</span> Azarkan a corrigé Maroc de 1k→3k. Matche les 30k DH (10k le 01/08 + 20k le 15/08). B+Y+M = 11 250 (Majalis 5.625k×2 EBS).</td></tr>
+
+      <tr><td><strong>Septembre</strong></td><td class="a">18 700</td><td class="a">5 313</td><td class="a" style="color:var(--green)">1 000</td><td class="a">1 130</td><td class="a">7 443</td><td class="a" style="color:var(--green)">+11 258</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ Corrigé v2</span> Azarkan a corrigé Maroc de 3k→1k. Matche les 10k DH (05/09). B+Y+M = 5 312.5 (Majalis 5.3125k EBS). Divers 1 130€ sans preuve. Gros excédent.</td></tr>
+
+      <tr><td><strong>Octobre</strong></td><td class="a">19 550</td><td class="a">11 900</td><td class="a" style="color:var(--green)">6 000</td><td class="a">—</td><td class="a">17 900</td><td class="a" style="color:var(--green)">+1 650</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ Corrigé v2</span> Azarkan a reclassé les 2×5k Divers → Maroc (1k→6k). Matche les 60k DH (10k le 03/10 + 50k le 15/10). B+Y+M = 11 900 (Majalis 5k + Ysquare 6.9k EBS).</td></tr>
+
+      <tr><td><strong>Novembre</strong></td><td class="a">17 000</td><td class="a">14 600</td><td class="a">1 000</td><td class="a">300</td><td class="a">15 900</td><td class="a" style="color:var(--green)">+1 100</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ OK</span> B+Y+M = 14 600 (Majalis 5k + Ysquare 9.6k EBS). Maroc ✓ (10k DH le 03/11). Divers net 300€ (1 800 − 1 500) sans preuve.</td></tr>
+
+      <tr><td><strong>Décembre</strong></td><td class="a">17 425</td><td class="a">13 225</td><td class="a" style="color:var(--green)">6 000</td><td class="a">−1 900</td><td class="a">17 325</td><td class="a" style="color:var(--green)">+100</td><td style="font-size:.7rem;color:var(--muted)"><span class="b ok">✓ Corrigé v2</span> Azarkan a corrigé Maroc 1k→6k et B+Y+M 12 725→13 225 (+500€ Majalis). Matche les 60k DH (10k le 03/12 + 50k le 19/12). Divers net −1 900€ (crédits). Mois quasi-équilibré.</td></tr>
+
+      <tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>198 475</strong></td><td class="a"><strong>157 288</strong></td><td class="a"><strong>24 000</strong></td><td class="a"><strong>1 170</strong></td><td class="a"><strong>182 458</strong></td><td class="a"><strong>+16 018</strong></td><td style="font-size:.7rem;color:var(--muted)">Maroc réel inclut Jan+Fév (confirmés)</td></tr>
     </tbody>
   </table>
-  <div class="insight pass"><div class="t">✅ 100% vérifié</div><div class="d">Les 6 paiements Ysquare matchent exactement l'Excel et l'EBS. Ysquare arrêté en 2026.</div></div>
+  <div class="n">
+    <strong>Note :</strong> Le solde cumulé (+17 018€) inclut Janvier (18 700€ sans dépenses). Le solde "Balance" d'Azarkan (−1 683€) est calculé <strong>sans Janvier</strong> (Fév-Déc uniquement) : 179 775 − 181 458 = −1 683€. Avec Janvier, le flux total est positif.
+  </div>
 </div>
 
-<!-- ===== CAT 2: MAJALIS ===== -->
+<!-- INSIGHTS CLES -->
 <div class="s">
-  <div class="st">2. Majalis HT (Badre) — 30 188€ ⚠</div>
-  <table>
-    <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">Excel HT (€)</th><th style="text-align:right">EBS HT (€)</th><th style="text-align:right">Écart</th><th></th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>18/08/2025</td><td class="a">5 625</td><td class="a">5 625</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>2</td><td>12/09/2025</td><td class="a">5 625</td><td class="a">5 625</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>3</td><td>29/09/2025</td><td class="a">5 313</td><td class="a">5 313</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>4</td><td>13/11/2025</td><td class="a">5 000</td><td class="a">5 000</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>5</td><td>11/12/2025</td><td class="a">5 000</td><td class="a">5 000</td><td class="a">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>6</td><td>31/12/2025</td><td class="a" style="color:var(--red)">3 125</td><td class="a" style="color:var(--red)">3 625</td><td class="a" style="color:var(--red)">+500</td><td><span class="b e">✗</span></td></tr>
-      <tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>29 688</strong></td><td class="a"><strong>30 188</strong></td><td class="a" style="color:var(--red)"><strong>+500</strong></td><td></td></tr>
-    </tbody>
-  </table>
-  <div class="insight warn"><div class="t">⚠ Écart 500€ HT le 31/12</div><div class="d">Azarkan déclare 3 125€ mais l'EBS montre 3 625€. Il a payé 500€ de plus que déclaré.</div></div>
-</div>
+  <div class="st">Insights clés — Fichier v2 vs v1</div>
 
-<!-- ===== CAT 3: BAIROK ===== -->
-<div class="s">
-  <div class="st">3. Bairok EUR (→ Azarkan) — 72 800€</div>
-  <table>
-    <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">Montant (€)</th><th></th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>14/03/2025</td><td class="a">10 000</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr><td>2</td><td>27/03/2025</td><td class="a">6 000</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr><td>3</td><td>30/03/2025</td><td class="a">17 600</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr><td>4</td><td>04/05/2025</td><td class="a">16 800</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr><td>5</td><td>12/05/2025</td><td class="a">3 200</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr><td>6</td><td>19/05/2025</td><td class="a">19 200</td><td><span class="b ok">✓ EBS</span></td></tr>
-      <tr class="tr"><td></td><td><strong>Total 2025</strong></td><td class="a"><strong>72 800</strong></td><td></td></tr>
-    </tbody>
-  </table>
-  <div class="insight pass"><div class="t">✅ 6/6 paiements 2025 vérifiés</div><div class="d">Les 6 paiements Bairok 2025 matchent l'EBS (72 800€). Les 4 autres résultats affichés dans l'EBS sont de 2024, hors périmètre.</div></div>
-</div>
-
-<!-- ===== CAT 4: VIREMENTS MAROC ===== -->
-<div class="s">
-  <div class="st">4. Virements Maroc → Azarkan (DH) — 22 000€ réel vs 13 000€ Excel</div>
-  <table>
-    <thead><tr><th>Mois</th><th style="text-align:right">Excel Azarkan (€)</th><th>Virements réels</th><th style="text-align:right">Total DH</th><th style="text-align:right">= EUR (÷10)</th><th style="text-align:right">Écart (€)</th><th></th></tr></thead>
-    <tbody>
-      <tr><td><strong>Mars</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">28/03 — Mère (Jamila) → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Avril</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">14/04 — Mère (Jamila) → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Mai</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">20/05 — Mère (Jamila) → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Juin</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">13/06 — Mère (Jamila) → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Juillet</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">03/07 → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Août</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">01/08 → Azarkan 10k<br>15/08 → Azarkan 20k</td><td class="a">30 000</td><td class="a">3 000</td><td class="a" style="color:var(--red)">+2 000</td><td><span class="b e">🔴</span></td></tr>
-      <tr><td><strong>Septembre</strong></td><td class="a">3 000</td><td style="font-size:.72rem;color:var(--muted)">05/09 → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--yellow)">−2 000</td><td><span class="b w">⚠ Excel > réel</span></td></tr>
-      <tr><td><strong>Octobre</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">03/10 → Azarkan 10k<br>15/10 → Azarkan 50k</td><td class="a">60 000</td><td class="a">6 000</td><td class="a" style="color:var(--red)">+5 000</td><td><span class="b e">🔴</span></td></tr>
-      <tr><td><strong>Novembre</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">03/11 → Azarkan</td><td class="a">10 000</td><td class="a">1 000</td><td class="a" style="color:var(--green)">0</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td><strong>Décembre</strong></td><td class="a">1 000</td><td style="font-size:.72rem;color:var(--muted)">03/12 → Azarkan 10k<br>19/12 → Azarkan 50k</td><td class="a">60 000</td><td class="a">6 000</td><td class="a" style="color:var(--red)">+5 000</td><td><span class="b e">🔴</span></td></tr>
-      <tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>13 000</strong></td><td></td><td class="a"><strong>220 000</strong></td><td class="a"><strong>22 000</strong></td><td class="a" style="color:var(--red)"><strong>+9 000</strong></td><td></td></tr>
-    </tbody>
-  </table>
-  <div class="insight fail"><div class="t">🔴 Écart de 9 000€ — Azarkan sous-déclare les virements MAD</div><div class="d">
-    Sur 10 mois, <strong>6 matchent</strong> (Mars→Juillet + Novembre = 1 000€/mois). <strong>3 sont sous-déclarés</strong> : Août (+2 000€), Octobre (+5 000€), Décembre (+5 000€). Septembre est sur-déclaré (Excel 3 000€ vs réel 1 000€, −2 000€).<br><br>
-    Total Excel : <strong>13 000€</strong>. Total réel envoyé : <strong>22 000€</strong> (220 000 DH au taux 10:1). Écart : <strong>+9 000€ en ta faveur</strong>.
+  <div class="insight pass"><div class="t">✅ Azarkan a corrigé 4 erreurs MAD entre v1 et v2</div><div class="d">
+    Août (1k→3k ✓), Septembre (3k→1k ✓), Octobre (1k→6k + suppression 2×5k Divers ✓), Décembre (1k→6k ✓). Cela montre qu'Azarkan reconnaît les écarts quand confronté aux preuves bancaires. Le Maroc passe de 13 000€ → 23 000€, beaucoup plus proche des 22 000€ réels.
   </div></div>
-</div>
 
-<!-- ===== CAT 5: AUTRE / DIVERS ===== -->
-<div class="s">
-  <div class="st">5. Autre (Divers Supplement) — 11 170€ sans preuve</div>
-  <table>
-    <thead><tr><th>Mois</th><th style="text-align:right">Divers 1 (€)</th><th style="text-align:right">Divers 2 (€)</th><th style="text-align:right">Total (€)</th><th>Preuve</th></tr></thead>
-    <tbody>
-      <tr><td>Février</td><td class="a">400</td><td class="a">—</td><td class="a">400</td><td><span class="b e">Aucune</span></td></tr>
-      <tr><td>Juin</td><td class="a">1 240</td><td class="a">—</td><td class="a">1 240</td><td><span class="b e">Aucune</span></td></tr>
-      <tr><td>Septembre</td><td class="a">1 130</td><td class="a">—</td><td class="a">1 130</td><td><span class="b e">Aucune</span></td></tr>
-      <tr><td>Octobre</td><td class="a">5 000</td><td class="a">5 000</td><td class="a">10 000</td><td><span class="b e">Aucune</span></td></tr>
-      <tr><td>Novembre</td><td class="a">1 800</td><td class="a">−1 500</td><td class="a">300</td><td><span class="b e">Aucune</span></td></tr>
-      <tr><td>Décembre</td><td class="a">600</td><td class="a">−2 500</td><td class="a">−1 900</td><td><span class="b e">Aucune</span></td></tr>
-      <tr class="tr"><td><strong>Total</strong></td><td></td><td></td><td class="a"><strong>11 170</strong></td><td></td></tr>
-    </tbody>
-  </table>
-  <div class="insight fail"><div class="t">🔴 Aucune preuve EBS</div><div class="d">11 170€ déclarés par Azarkan sans aucun justificatif bancaire. Le poste d'Octobre (2×5 000€) est particulièrement suspect. Si contesté, le solde en ta faveur passe de 7 817€ à <strong>18 987€</strong>.</div></div>
+  <div class="insight pass"><div class="t">✅ Majalis HT : écart de 500€ corrigé (v1 → v2)</div><div class="d">
+    Azarkan a corrigé le B+Y+M de Décembre de 12 725€ → 13 225€, intégrant les 500€ Majalis HT manquants du 31/12. Les 6 paiements Majalis matchent désormais 100% l'EBS.
+  </div></div>
+
+  <div class="insight warn"><div class="t">⚠ Janvier : 1 000€ envoyé mais absent de l'Excel Azarkan</div><div class="d">
+    Tu as envoyé 10 000 DH (= 1 000€) en Janvier, mais Azarkan n'a aucune ligne de dépense pour Janvier dans son Excel. Ce virement n'est compté nulle part. Février en revanche matche (1 000€ Excel = 1 000€ réel).
+  </div></div>
+
+  <div class="insight warn"><div class="t">⚠ Divers réduits de 11 170€ → 1 170€ — mais toujours sans preuve</div><div class="d">
+    Azarkan a reclassé 10 000€ de Divers d'Octobre en Maroc (ce qui est correct). Il reste 1 170€ de Divers (Fév 400€, Juin 1 240€, Sep 1 130€, Nov 300€, Déc −1 900€) sans justificatif bancaire. Montant faible mais non vérifié.
+  </div></div>
+
+  <div class="insight"><div class="t">📊 Ysquare + Bairok + Majalis : 157 288€ — 100% vérifié EBS</div><div class="d">
+    Les 3 catégories avec preuves EBS (18 paiements au total) matchent parfaitement. Ysquare 54 300€ (6/6), Bairok 72 800€ (6/6), Majalis HT 30 188€ (6/6 après correction v2).
+  </div></div>
+
+  <div class="insight pass"><div class="t">✅ Factures RTL 2025 : 198 475€ — 12/12 rapprochées, 0€ d'écart</div><div class="d">
+    Les 12 factures RTL (INVRTL001 à INVRTL012) sont toutes confirmées dans le CSV IFX. Les paiements combinés (INVRTL004+005 en Juillet, INVRTL010+011 en Janvier 2026) sont correctement identifiés. Aucun revenu manquant.
+  </div></div>
 </div>
 
 <!-- FACTURES RTL -->
 <div class="s">
   <div class="st">Factures RTL 2025 — Revenus (198 475€ ✓)</div>
   <table>
-    <thead><tr><th>Facture</th><th>Période</th><th>Jours</th><th style="text-align:right">Facturé (€)</th><th>Date EBS</th><th style="text-align:right">Reçu (€)</th><th></th></tr></thead>
+    <thead><tr><th>Facture</th><th>Période</th><th>Jours</th><th style="text-align:right">Facturé (€)</th><th>Date paiement</th><th style="text-align:right">Reçu (€)</th><th></th></tr></thead>
     <tbody>
-      <tr><td>INVRTL001</td><td>Jan</td><td>12</td><td class="a">10 200</td><td>20/03</td><td class="a">10 200</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL002</td><td>Fév</td><td>20</td><td class="a">17 000</td><td>17/04</td><td class="a">17 000</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL003</td><td>Mar</td><td>20</td><td class="a">17 000</td><td>22/05</td><td class="a">17 000</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL004+5</td><td>Avr+Mai</td><td>40</td><td class="a">34 000</td><td>17/07</td><td class="a">34 000</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL006</td><td>Jun</td><td>18</td><td class="a">15 300</td><td>07/08</td><td class="a">15 300</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL007</td><td>Jul</td><td>11</td><td class="a">9 350</td><td>18/09</td><td class="a">9 350</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL008</td><td>Aoû</td><td>24</td><td class="a">20 400</td><td>23/10</td><td class="a">20 400</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL009</td><td>Sep</td><td>13</td><td class="a">11 050</td><td>27/11</td><td class="a">11 050</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL010+11</td><td>Oct+Nov</td><td>45</td><td class="a">38 250</td><td>08/01/26</td><td class="a">38 250</td><td><span class="b ok">✓</span></td></tr>
-      <tr><td>INVRTL012</td><td>Déc</td><td>30.5</td><td class="a">25 925</td><td>29/01/26</td><td class="a">25 925</td><td><span class="b ok">✓</span></td></tr>
+      <tr><td>INVRTL001</td><td>Jan</td><td>12</td><td class="a">10 200</td><td>20/03</td><td class="a">10 200</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL002</td><td>Fév</td><td>20</td><td class="a">17 000</td><td>17/04</td><td class="a">17 000</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL003</td><td>Mar</td><td>20</td><td class="a">17 000</td><td>22/05</td><td class="a">17 000</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL004+5</td><td>Avr+Mai</td><td>40</td><td class="a">34 000</td><td>17/07</td><td class="a">34 000</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL006</td><td>Jun</td><td>18</td><td class="a">15 300</td><td>07/08</td><td class="a">15 300</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL007</td><td>Jul</td><td>11</td><td class="a">9 350</td><td>18/09</td><td class="a">9 350</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL008</td><td>Aoû</td><td>24</td><td class="a">20 400</td><td>23/10</td><td class="a">20 400</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL009</td><td>Sep</td><td>13</td><td class="a">11 050</td><td>27/11</td><td class="a">11 050</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL010+11</td><td>Oct+Nov</td><td>45</td><td class="a">38 250</td><td>08/01/26</td><td class="a">38 250</td><td><span class="b ok">✓ EBS</span></td></tr>
+      <tr><td>INVRTL012</td><td>Déc</td><td>30.5</td><td class="a">25 925</td><td>29/01/26</td><td class="a">25 925</td><td><span class="b ok">✓ EBS</span></td></tr>
       <tr class="tr"><td colspan="3"><strong>Total 2025</strong></td><td class="a"><strong>198 475</strong></td><td></td><td class="a"><strong>198 475</strong></td><td></td></tr>
     </tbody>
   </table>
-  <div class="insight pass"><div class="t">✅ 12/12 factures rapprochées, 0€ d'écart</div></div>
 </div>
 
 </div>
@@ -219,7 +188,7 @@
 <h2 style="font-size:1.05rem;margin-bottom:16px">Azarkan 2026 — En cours</h2>
 <div class="cards">
   <div class="card"><div class="l">Actuals à date</div><div class="v blue">39 100 €</div></div>
-  <div class="card"><div class="l">Report 2025</div><div class="v red">−1 183 €</div></div>
+  <div class="card"><div class="l">Report 2025</div><div class="v red">−1 683 €</div></div>
   <div class="card"><div class="l">Facturé RTL 2026</div><div class="v yellow">26 350 €</div></div>
   <div class="card"><div class="l">MAD → Azarkan 2026</div><div class="v blue">50 000 DH</div></div>
 </div>
@@ -246,7 +215,7 @@
     </tbody>
   </table>
 </div>
-<div class="n">Clôture 2026 à faire une fois les données complètes. Le report 2025 (−1 183€ selon Excel, ou +7 817€ corrigé) reste à résoudre d'abord.</div>
+<div class="n">Clôture 2026 à faire une fois les données complètes. Le report 2025 (−1 683€ selon Excel, ou −683€ corrigé) reste à résoudre d'abord.</div>
 </div>
 
 <!-- ==================== BADRE 2025 ==================== -->
