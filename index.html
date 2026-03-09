@@ -100,8 +100,9 @@
     <div class="binga-line bot"></div>
   </div>
 </div>
-<script src="data.js?v=11"></script>
-<script src="render.js?v=11"></script>
+<script src="data.js?v=12"></script>
+<script src="data-priv.enc.js?v=12"></script>
+<script src="render.js?v=12"></script>
 <script>
 // ---- Tab switching ----
 function showTab(id){
@@ -129,22 +130,85 @@ function switchBaYear(y){
   });
 }
 
+// ---- Crypto: Decrypt private data with Web Crypto API ----
+async function decryptPrivData(password) {
+  const SALT = 'facturation-azarkan-2025';
+  const enc = new TextEncoder();
+
+  // Derive key from password using PBKDF2 (same params as Node script)
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const derivedBits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(SALT), iterations: 100000, hash: 'SHA-256' }, keyMaterial, 256);
+  const key = await crypto.subtle.importKey('raw', derivedBits, { name: 'AES-GCM' }, false, ['decrypt']);
+
+  // Decode base64
+  const raw = Uint8Array.from(atob(ENCRYPTED_PRIV), c => c.charCodeAt(0));
+  const iv = raw.slice(0, 12);
+  const tag = raw.slice(12, 28);
+  const ciphertext = raw.slice(28);
+
+  // AES-GCM expects tag appended to ciphertext
+  const combined = new Uint8Array(ciphertext.length + tag.length);
+  combined.set(ciphertext);
+  combined.set(tag, ciphertext.length);
+
+  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, combined);
+  return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+function injectPrivData(priv) {
+  // Inject commission rate and taux marché into Badre 2025
+  DATA.badre2025.commissionRate = priv.badre2025.commissionRate;
+  priv.badre2025.majalisTaux.forEach((t, i) => {
+    if (DATA.badre2025.majalis[i]) {
+      DATA.badre2025.majalis[i].tauxMarche = t.tauxMarche;
+    }
+  });
+
+  // Inject Badre 2026 private fields
+  DATA.badre2026.tauxApplique = priv.badre2026.tauxApplique;
+  DATA.badre2026.commissionRate = priv.badre2026.commissionRate;
+  priv.badre2026.majalisTauxMarche.forEach((t, i) => {
+    if (DATA.badre2026.majalis[i]) {
+      DATA.badre2026.majalis[i].tauxMarche = t.tauxMarche;
+    }
+  });
+
+  // Inject full FX P2P data
+  DATA.fxP2P = priv.fxP2P;
+
+  // Inject Ysquare commission info
+  DATA._ysquareCommission = priv.ysquareCommission;
+  DATA._ysquareTotal = priv.ysquareTotal;
+}
+
 // ---- Binga ----
-document.getElementById('dref').addEventListener('input', function(){
+document.getElementById('dref').addEventListener('input', async function(){
   const v = this.value.trim();
   if(v === 'BINGA' && !window.PRIV){
-    window.PRIV = true;
-    const ovl = document.getElementById('bingaOvl');
-    ovl.classList.add('show');
-    setTimeout(()=>{ document.body.classList.add('dark'); }, 400);
-    setTimeout(()=>{
-      document.getElementById('tab-fxp2p').style.display = '';
-      document.getElementById('tab-gains').style.display = '';
-      renderAll();
-      ovl.classList.remove('show');
-    }, 1900);
     this.value = '';
-    this.placeholder = '✓';
+    this.placeholder = '...';
+
+    try {
+      // Decrypt private data
+      const priv = await decryptPrivData('BINGA');
+      injectPrivData(priv);
+
+      window.PRIV = true;
+      const ovl = document.getElementById('bingaOvl');
+      ovl.classList.add('show');
+      setTimeout(()=>{ document.body.classList.add('dark'); }, 400);
+      setTimeout(()=>{
+        document.getElementById('tab-fxp2p').style.display = '';
+        document.getElementById('tab-gains').style.display = '';
+        renderAll();
+        ovl.classList.remove('show');
+        this.placeholder = '✓';
+      }, 1900);
+    } catch(e) {
+      console.error('Decryption failed:', e);
+      this.placeholder = '✗';
+      setTimeout(() => { this.placeholder = 'Réf. dossier'; }, 2000);
+    }
   }
 });
 </script>

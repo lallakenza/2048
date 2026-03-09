@@ -1,6 +1,7 @@
 // ============================================================
-// DATA.JS — Toutes les données de réconciliation
-// Modifier uniquement ce fichier pour mettre à jour les chiffres
+// DATA.JS — Données publiques de réconciliation
+// Les données privées (commissions, spreads, FX P2P) sont chiffrées
+// dans data-priv.enc.js et déchiffrées uniquement avec le bon mot de passe.
 // ============================================================
 
 const DATA = {
@@ -9,9 +10,8 @@ const DATA = {
   azarkan2025: {
     title: "Clôture Azarkan 2025 — Réconciliation mois par mois",
     subtitle: "Basé sur le fichier Excel Azarkan v2 (mis à jour). Pour chaque mois : revenus RTL, dépenses déclarées (B+Y+M, Maroc, Divers), virements réels, et commentaires.",
-    tauxMaroc: 10, // 10 000 DH = 1 000€
+    tauxMaroc: 10,
 
-    // Factures RTL 2025
     rtl: [
       { ref: "INVRTL001", periode: "Jan", jours: 12, montant: 10200, datePaiement: "20/03", recu: 10200 },
       { ref: "INVRTL002", periode: "Fév", jours: 20, montant: 17000, datePaiement: "17/04", recu: 17000 },
@@ -25,7 +25,6 @@ const DATA = {
       { ref: "INVRTL012", periode: "Déc", jours: 30.5, montant: 25925, datePaiement: "29/01/26", recu: 25925 },
     ],
 
-    // Mois par mois (Jan exclut du calcul balance)
     mois: [
       { nom: "Janvier", actuals: 18700, bym: 0, maroc: 0, divers: 0, commentaire: "Actuals comptabilisés (facture RTL Janvier) mais aucune dépense dans l'Excel. Pas de virement Maroc ce mois-ci. Excédent reporté.", badge: "i", badgeText: "ℹ" },
       { nom: "Février", actuals: 17000, bym: 16000, maroc: 1000, divers: 400, commentaire: "Maroc 1 000€ ✓ (10 000 DH envoyés, confirmé). B+Y+M = 16 000 (Bairok 10k+6k EBS). <strong>Divers 400€ = vol pour Azarkan ✓</strong>.", badge: "ok", badgeText: "✓ OK", diversVerifie: true },
@@ -41,7 +40,6 @@ const DATA = {
       { nom: "Décembre", actuals: 17425, bym: 13225, maroc: 6000, divers: -1900, commentaire: "Azarkan a corrigé Maroc 1k→6k et B+Y+M 12 725→13 225 (+500€ Majalis). Matche les 60k DH (10k le 03/12 + 50k le 19/12). Divers net −1 900€ (crédits). Mois quasi-équilibré.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
     ],
 
-    // Ysquare (Kenza) payments
     ysquare: [
       { date: "02/06/2025", montant: 5400 },
       { date: "18/06/2025", montant: 10800 },
@@ -51,7 +49,6 @@ const DATA = {
       { date: "31/12/2025", montant: 9600 },
     ],
 
-    // Majalis (Badre) HT payments — Azarkan view
     majalis: [
       { date: "18/08/2025", excelHT: 5625, ebsHT: 5625 },
       { date: "12/09/2025", excelHT: 5625, ebsHT: 5625 },
@@ -61,7 +58,6 @@ const DATA = {
       { date: "31/12/2025", excelHT: 3625, ebsHT: 3625, note: "corrigé v2" },
     ],
 
-    // Bairok EUR payments
     bairok: [
       { date: "14/03/2025", montant: 10000 },
       { date: "27/03/2025", montant: 6000 },
@@ -71,7 +67,6 @@ const DATA = {
       { date: "19/05/2025", montant: 19200 },
     ],
 
-    // Virements Maroc
     virementsMaroc: [
       { mois: "Février", excelEUR: 1000, detail: "Confirmé (hors historique)", totalDH: 10000 },
       { mois: "Mars", excelEUR: 1000, detail: "28/03 — Mère (Jamila) → Azarkan", totalDH: 10000 },
@@ -86,7 +81,6 @@ const DATA = {
       { mois: "Décembre", excelEUR: 6000, detail: "03/12 → 10k + 19/12 → 50k", totalDH: 60000, corrige: true },
     ],
 
-    // Divers
     divers: [
       { mois: "Février", d1: 400, d2: 0, preuve: "ok", preuveText: "✓ Vol pour Azarkan" },
       { mois: "Juin", d1: 1240, d2: 0, preuve: "ok", preuveText: "✓ Vol pour Azarkan" },
@@ -94,10 +88,9 @@ const DATA = {
       { mois: "Novembre", d1: 1800, d2: -1500, preuve: "w", preuveText: "Aucune" },
       { mois: "Décembre", d1: 600, d2: -2500, preuve: "w", preuveText: "Aucune" },
     ],
-    diversVerifie: 2770, // 400 + 1240 + 1130
-    diversNonVerifie: -1600, // 300 + (-1900)
+    diversVerifie: 2770,
+    diversNonVerifie: -1600,
 
-    // Insights
     insights: [
       { type: "pass", titre: "✅ Azarkan a corrigé 4 erreurs MAD entre v1 et v2", desc: "Août (1k→3k ✓), Septembre (3k→1k ✓), Octobre (1k→6k + suppression 2×5k Divers ✓), Décembre (1k→6k ✓). Cela montre qu'Azarkan reconnaît les écarts quand confronté aux preuves bancaires. Le Maroc passe de 13 000€ → 23 000€, match parfait avec les virements réels (23 000€ Fév-Déc)." },
       { type: "pass", titre: "✅ Majalis HT : écart de 500€ corrigé (v1 → v2)", desc: "Azarkan a corrigé le B+Y+M de Décembre de 12 725€ → 13 225€, intégrant les 500€ Majalis HT manquants du 31/12. Les 6 paiements Majalis matchent désormais 100% l'EBS." },
@@ -127,23 +120,22 @@ const DATA = {
     ],
   },
 
-  // ==================== BADRE 2025 ====================
+  // ==================== BADRE 2025 (PUBLIC — sans taux marché ni commission) ====================
   badre2025: {
     title: "Clôture Badre 2025 — Tracking en DH",
     subtitle: "Tout est comptabilisé en DH. Les paiements Majalis (en EUR) sont convertis en DH au taux EUR/MAD du jour de chaque transaction.",
-    commissionRate: 0.10, // 10%
+    // commissionRate: ENCRYPTED — injected at runtime
+    // tauxMarche per transaction: ENCRYPTED — injected at runtime
 
-    // Paiements Majalis — taux appliqué par Amine vs taux marché
     majalis: [
-      { date: "18/08/2025", htEUR: 5625, tauxApplique: 10.500, tauxMarche: 10.505 },
-      { date: "12/09/2025", htEUR: 5625, tauxApplique: 10.500, tauxMarche: 10.577 },
-      { date: "29/09/2025", htEUR: 5313, tauxApplique: 10.500, tauxMarche: 10.530 },
-      { date: "13/11/2025", htEUR: 5000, tauxApplique: 10.600, tauxMarche: 10.768 },
-      { date: "11/12/2025", htEUR: 5000, tauxApplique: 10.600, tauxMarche: 10.797 },
-      { date: "31/12/2025", htEUR: 3625, tauxApplique: 10.600, tauxMarche: 10.706 },
+      { date: "18/08/2025", htEUR: 5625, tauxApplique: 10.500 },
+      { date: "12/09/2025", htEUR: 5625, tauxApplique: 10.500 },
+      { date: "29/09/2025", htEUR: 5313, tauxApplique: 10.500 },
+      { date: "13/11/2025", htEUR: 5000, tauxApplique: 10.600 },
+      { date: "11/12/2025", htEUR: 5000, tauxApplique: 10.600 },
+      { date: "31/12/2025", htEUR: 3625, tauxApplique: 10.600 },
     ],
 
-    // Virements DH
     virements: [
       { date: "28/07/2025", beneficiaire: "Badre Cheikh El Mouksit", dh: 50000, motif: "Prêt personnel" },
       { date: "28/07/2025", beneficiaire: "Badre Cheikh El Mouksit", dh: 50000, motif: "Prêt perso 2" },
@@ -154,15 +146,15 @@ const DATA = {
     ],
   },
 
-  // ==================== BADRE 2026 ====================
+  // ==================== BADRE 2026 (PUBLIC — sans taux ni commission) ====================
   badre2026: {
     title: "Badre 2026 — En cours (tracking en DH)",
-    tauxApplique: 10.700, // Fixed for 2026
-    commissionRate: 0.10,
+    // tauxApplique: ENCRYPTED
+    // commissionRate: ENCRYPTED
 
     majalis: [
-      { mois: "Janvier", htEUR: 5000, tauxMarche: 10.836, statut: "ok", statutText: "Paid 11/02" },
-      { mois: "Février", htEUR: 5000, tauxMarche: null, statut: "w", statutText: "Invoiced" },
+      { mois: "Janvier", htEUR: 5000, statut: "ok", statutText: "Paid 11/02" },
+      { mois: "Février", htEUR: 5000, statut: "w", statutText: "Invoiced" },
     ],
 
     virements: [
@@ -170,129 +162,6 @@ const DATA = {
     ],
   },
 
-  // ==================== FX P2P — Analyse par Spread (3 legs) ====================
-  fxP2P: {
-    title: "Analyse FX — Spreads par étape (EUR → AED → USDT → MAD)",
-    subtitle: "Chaque conversion a un spread par rapport au taux marché. L'analyse isole le coût/gain de chaque étape pour quantifier l'avantage du P2P crypto.",
-
-    // Leg 1: EUR → AED (IFX bank conversion)
-    // Spread = taux marché − taux IFX (perte car IFX donne moins d'AED)
-    leg1: {
-      label: "EUR → AED (IFX)",
-      description: "Conversion bancaire IFX. Spread = taux marché EUR/AED − taux IFX (perte).",
-      transactions: [
-        { date: "2025-03-28", eur: 10200, aed: 39949.32, tauxIFX: 3.91660, tauxMarche: 3.96465, source: "RTL" },
-        { date: "2025-04-17", eur: 17000, aed: 70176.00, tauxIFX: 4.12800, tauxMarche: 4.17329, source: "RTL" },
-        { date: "2025-05-23", eur: 17000, aed: 69844.50, tauxIFX: 4.10850, tauxMarche: 4.15630, source: "RTL" },
-        { date: "2025-06-16", eur: 19479.78, aed: 81939.75, tauxIFX: 4.20640, tauxMarche: 4.23479, source: "Malt" },
-        { date: "2025-07-16", eur: 19479.78, aed: 82265.06, tauxIFX: 4.22310, tauxMarche: 4.26430, source: "Malt" },
-        { date: "2025-07-17", eur: 34000, aed: 142922.40, tauxIFX: 4.20360, tauxMarche: 4.26901, source: "RTL" },
-        { date: "2025-08-11", eur: 15300, aed: 64605.78, tauxIFX: 4.22260, tauxMarche: 4.28388, source: "RTL" },
-        { date: "2025-09-18", eur: 27916.83, aed: 119789.56, tauxIFX: 4.29094, tauxMarche: 4.33766, source: "RTL+Malt" },
-        { date: "2025-10-30", eur: 20400, aed: 86167.56, tauxIFX: 4.22390, tauxMarche: 4.26540, source: "RTL" },
-        { date: "2025-11-10", eur: 18552.17, aed: 78143.60, tauxIFX: 4.21210, tauxMarche: 4.24469, source: "RTL+Malt" },
-        { date: "2025-11-27", eur: 11050, aed: 46585.70, tauxIFX: 4.21590, tauxMarche: 4.26428, source: "RTL" },
-        { date: "2025-12-08", eur: 20407.39, aed: 86739.57, tauxIFX: 4.25040, tauxMarche: 4.27929, source: "RTL+Malt" },
-        { date: "2025-12-15", eur: 21335, aed: 91313.80, tauxIFX: 4.28000, tauxMarche: 4.31153, source: "RTL" },
-        { date: "2026-01-09", eur: 38250, aed: 162658.13, tauxIFX: 4.25250, tauxMarche: 4.27819, source: "RTL" },
-        { date: "2026-01-30", eur: 25925, aed: 113185.17, tauxIFX: 4.36587, tauxMarche: 4.37293, source: "RTL" },
-        { date: "2026-02-10", eur: 33393.91, aed: 145147.54, tauxIFX: 4.34653, tauxMarche: 4.37533, source: "Malt" },
-      ],
-    },
-
-    // Leg 2: AED → USDT (Binance P2P Buy)
-    // Marché: AED/USD peg = 3.6725. USDT ≈ USD.
-    // Spread = prix P2P − 3.6725 (perte car on paie plus cher)
-    leg2: {
-      label: "AED → USDT",
-      description: "Achat USDT sur Binance P2P. Spread = premium P2P sur le peg AED/USD.",
-      tauxMarche: 3.6725, // AED/USD peg officiel
-      transactions: [
-        { date: "2025-06-15", aed: 184.68, usdt: 50.05, prix: 3.690 },
-        { date: "2025-06-15", aed: 1000.00, usdt: 271.96, prix: 3.677 },
-        { date: "2025-06-16", aed: 372.19, usdt: 100.05, prix: 3.720 },
-        { date: "2025-06-16", aed: 2482.00, usdt: 672.62, prix: 3.690 },
-        { date: "2025-06-16", aed: 10000.00, usdt: 2710.02, prix: 3.690 },
-        { date: "2025-06-16", aed: 5000.00, usdt: 1359.80, prix: 3.677 },
-        { date: "2025-06-16", aed: 9000.00, usdt: 2446.98, prix: 3.678 },
-        { date: "2025-06-16", aed: 1600.00, usdt: 433.60, prix: 3.690 },
-        { date: "2025-06-16", aed: 7500.00, usdt: 2032.52, prix: 3.690 },
-        { date: "2025-06-16", aed: 10000.00, usdt: 2717.39, prix: 3.680 },
-        { date: "2025-06-18", aed: 7800.00, usdt: 2113.82, prix: 3.690 },
-        { date: "2025-06-18", aed: 4500.00, usdt: 1223.49, prix: 3.678 },
-        { date: "2025-06-19", aed: 7451.00, usdt: 2019.24, prix: 3.690 },
-        { date: "2025-06-20", aed: 6112.00, usdt: 1663.58, prix: 3.674 },
-        { date: "2025-06-28", aed: 10000.00, usdt: 2710.76, prix: 3.689 },
-        { date: "2025-06-28", aed: 40000.00, usdt: 10843.04, prix: 3.689 },
-        { date: "2025-08-09", aed: 2500.00, usdt: 678.05, prix: 3.687 },
-        { date: "2025-08-10", aed: 2000.00, usdt: 542.88, prix: 3.684 },
-        { date: "2025-12-11", aed: 9334.00, usdt: 2546.09, prix: 3.666 },
-        { date: "2026-01-22", aed: 40000.00, usdt: 10893.24, prix: 3.672 },
-        { date: "2026-01-22", aed: 30000.00, usdt: 8172.16, prix: 3.671 },
-      ],
-    },
-
-    // Leg 3: USDT → MAD (Binance P2P Sell)
-    // Marché: USD/MAD officiel du jour
-    // Spread = prix P2P − taux marché (gain car on vend plus cher)
-    leg3: {
-      label: "USDT → MAD",
-      description: "Vente USDT sur Binance P2P Maroc. Spread = premium P2P sur le cours USD/MAD.",
-      // Taux marché USD/MAD par date
-      tauxMarche: {
-        "2025-06-16": 9.1228, "2025-06-24": 9.1170, "2025-06-29": 9.0334,
-        "2025-07-12": 9.0094, "2025-07-14": 9.0069, "2025-07-20": 9.0458,
-        "2025-07-26": 8.9970, "2025-08-09": 9.0337, "2025-11-02": 9.2893,
-        "2026-01-04": 9.1345, "2026-01-22": 9.1864, "2026-01-23": 9.1710,
-        "2026-01-27": 9.0794, "2026-01-31": 9.1155,
-      },
-      transactions: [
-        { date: "2025-06-16", usdt: 104.49, mad: 1000.00, prix: 9.570 },
-        { date: "2025-06-16", usdt: 939.45, mad: 9000.00, prix: 9.580 },
-        { date: "2025-06-16", usdt: 2502.60, mad: 24000.00, prix: 9.590 },
-        { date: "2025-06-16", usdt: 521.92, mad: 5000.00, prix: 9.580 },
-        { date: "2025-06-16", usdt: 1094.89, mad: 10500.00, prix: 9.590 },
-        { date: "2025-06-16", usdt: 1356.99, mad: 13000.00, prix: 9.580 },
-        { date: "2025-06-16", usdt: 104.82, mad: 1000.00, prix: 9.540 },
-        { date: "2025-06-16", usdt: 62.89, mad: 600.00, prix: 9.540 },
-        { date: "2025-06-16", usdt: 157.06, mad: 1500.00, prix: 9.550 },
-        { date: "2025-06-16", usdt: 1048.21, mad: 10000.00, prix: 9.540 },
-        { date: "2025-06-16", usdt: 521.37, mad: 5000.00, prix: 9.590 },
-        { date: "2025-06-16", usdt: 1042.75, mad: 10000.00, prix: 9.590 },
-        { date: "2025-06-16", usdt: 631.05, mad: 6051.76, prix: 9.590 },
-        { date: "2025-06-16", usdt: 521.37, mad: 5000.00, prix: 9.590 },
-        { date: "2025-06-24", usdt: 2105.26, mad: 20000.00, prix: 9.500 },
-        { date: "2025-06-29", usdt: 710.49, mad: 6700.00, prix: 9.430 },
-        { date: "2025-07-12", usdt: 647.24, mad: 6000.00, prix: 9.270 },
-        { date: "2025-07-12", usdt: 1510.24, mad: 14000.00, prix: 9.270 },
-        { date: "2025-07-14", usdt: 1377.15, mad: 12780.00, prix: 9.280 },
-        { date: "2025-07-14", usdt: 2155.17, mad: 20000.00, prix: 9.280 },
-        { date: "2025-07-14", usdt: 1400.86, mad: 13000.00, prix: 9.280 },
-        { date: "2025-07-20", usdt: 2575.10, mad: 24000.00, prix: 9.320 },
-        { date: "2025-07-26", usdt: 2580.64, mad: 24000.00, prix: 9.300 },
-        { date: "2025-08-09", usdt: 1072.96, mad: 10000.00, prix: 9.320 },
-        { date: "2025-11-02", usdt: 527.42, mad: 5000.00, prix: 9.480 },
-        { date: "2025-11-02", usdt: 527.42, mad: 5000.00, prix: 9.480 },
-        { date: "2025-11-02", usdt: 1101.78, mad: 10500.00, prix: 9.530 },
-        { date: "2025-11-02", usdt: 550.05, mad: 5241.97, prix: 9.530 },
-        { date: "2025-11-02", usdt: 1888.77, mad: 18000.00, prix: 9.530 },
-        { date: "2026-01-04", usdt: 1546.39, mad: 15000.00, prix: 9.700 },
-        { date: "2026-01-04", usdt: 1030.92, mad: 10000.00, prix: 9.700 },
-        { date: "2026-01-22", usdt: 2481.90, mad: 24000.00, prix: 9.670 },
-        { date: "2026-01-22", usdt: 2068.25, mad: 20000.00, prix: 9.670 },
-        { date: "2026-01-23", usdt: 2061.85, mad: 20000.00, prix: 9.700 },
-        { date: "2026-01-23", usdt: 1381.44, mad: 13400.00, prix: 9.700 },
-        { date: "2026-01-23", usdt: 1134.02, mad: 11000.00, prix: 9.700 },
-        { date: "2026-01-23", usdt: 1853.75, mad: 18000.00, prix: 9.710 },
-        { date: "2026-01-27", usdt: 1380.08, mad: 13304.00, prix: 9.640 },
-        { date: "2026-01-31", usdt: 1948.71, mad: 19000.00, prix: 9.750 },
-        { date: "2026-01-31", usdt: 2051.28, mad: 20000.00, prix: 9.750 },
-        { date: "2026-01-31", usdt: 1641.02, mad: 16000.00, prix: 9.750 },
-        { date: "2026-01-31", usdt: 2461.53, mad: 24000.00, prix: 9.750 },
-        { date: "2026-01-31", usdt: 1500.08, mad: 14625.78, prix: 9.750 },
-      ],
-    },
-
-    usdtRemaining: 319.71,
-  },
+  // ==================== FX P2P — ENCRYPTED ====================
+  // fxP2P: entirely encrypted — only available in BINGA mode
 };

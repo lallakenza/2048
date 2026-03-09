@@ -307,13 +307,13 @@ function renderAzarkan2026() {
 // ---- BADRE 2025 ----
 function renderBadre2025() {
   const d = DATA.badre2025;
-  const rate = d.commissionRate;
+  const rate = d.commissionRate || 0; // 0 in public mode (encrypted)
 
   // Computed per transaction
   const transactions = d.majalis.map(m => {
     const dh = Math.round(m.htEUR * m.tauxApplique);
-    const delta = m.tauxApplique - m.tauxMarche;
-    const gainFX = Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique));
+    const delta = m.tauxMarche ? m.tauxApplique - m.tauxMarche : null;
+    const gainFX = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)) : 0;
     const commission = Math.round(dh * rate);
     const netBadre = dh - commission;
     return { ...m, dh, delta, gainFX, commission, netBadre };
@@ -333,12 +333,19 @@ function renderBadre2025() {
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${d.subtitle}</p>`;
 
   // Cards
-  html += `<div class="cards">
-    <div class="card"><div class="l">Dû à Badre (90% Majalis)</div><div class="v blue">${fmtPlain(totalNetBadre)} DH</div></div>
-    <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-    <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
-    ${window.PRIV ? `<div class="card"><div class="l">Total gains (FX + Commission)</div><div class="v green">${fmtPlain(totalGains)} DH</div></div>` : ''}
-  </div>`;
+  if (window.PRIV) {
+    html += `<div class="cards">
+      <div class="card"><div class="l">Dû à Badre (90% Majalis)</div><div class="v blue">${fmtPlain(totalNetBadre)} DH</div></div>
+      <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+      <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
+      <div class="card"><div class="l">Total gains (FX + Commission)</div><div class="v green">${fmtPlain(totalGains)} DH</div></div>
+    </div>`;
+  } else {
+    html += `<div class="cards">
+      <div class="card"><div class="l">Total Majalis HT</div><div class="v blue">${fmtPlain(totalDH)} DH</div></div>
+      <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+    </div>`;
+  }
 
   // Majalis table
   if (window.PRIV) {
@@ -350,11 +357,11 @@ function renderBadre2025() {
     html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalGainFX, '')}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBadre)}</strong></td><td></td></tr></tbody></table></div>`;
   } else {
     html += `<div class="s"><div class="st">Paiements Majalis HT 2025 — convertis en DH</div><table>
-      <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Badre (DH)</th><th></th></tr></thead><tbody>`;
+      <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
-      html += `<tr><td>${i+1}</td><td>${t.date}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBadre)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
+      html += `<tr><td>${i+1}</td><td>${t.date}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
     });
-    html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBadre)}</strong></td><td></td></tr></tbody></table></div>`;
+    html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td></td></tr></tbody></table></div>`;
   }
 
   // Virements
@@ -366,14 +373,16 @@ function renderBadre2025() {
   html += `<tr class="tr"><td></td><td colspan="2"><strong>Total payé 2025</strong></td><td class="a"><strong>${fmtPlain(totalPaye)}</strong></td><td></td></tr></tbody></table></div>`;
 
   // Réconciliation
-  html += `<div class="s"><div class="st">Réconciliation Badre 2025</div><table>
-    <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
-    <tr><td>Majalis HT total (taux appliqué)</td><td class="a">${fmtPlain(totalDH)}</td><td>${transactions.length} paiements EBS × taux Amine</td></tr>
-    <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
-    <tr><td><strong>Net dû à Badre</strong></td><td class="a"><strong>${fmtPlain(totalNetBadre)}</strong></td><td></td></tr>
-    <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virements (Jul-Mar)</td></tr>
-    <tr class="tr"><td><strong>Solde restant dû</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(solde, '')}</strong></td><td>Amine doit encore ${fmtPlain(solde)} DH à Badre</td></tr>
-    </tbody></table></div>`;
+  if (window.PRIV) {
+    html += `<div class="s"><div class="st">Réconciliation Badre 2025</div><table>
+      <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
+      <tr><td>Majalis HT total (taux appliqué)</td><td class="a">${fmtPlain(totalDH)}</td><td>${transactions.length} paiements EBS × taux Amine</td></tr>
+      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
+      <tr><td><strong>Net dû à Badre</strong></td><td class="a"><strong>${fmtPlain(totalNetBadre)}</strong></td><td></td></tr>
+      <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virements (Jul-Mar)</td></tr>
+      <tr class="tr"><td><strong>Solde restant dû</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(solde, '')}</strong></td><td>Amine doit encore ${fmtPlain(solde)} DH à Badre</td></tr>
+      </tbody></table></div>`;
+  }
 
   // Consolidation gains (private only)
   if (window.PRIV) {
@@ -394,14 +403,15 @@ function renderBadre2025() {
 // ---- BADRE 2026 ----
 function renderBadre2026() {
   const d = DATA.badre2026;
-  const taux = d.tauxApplique;
-  const rate = d.commissionRate;
+  const taux = d.tauxApplique || 0;
+  const rate = d.commissionRate || 0;
 
-  // Get report from Badre 2025 computed
+  // Get report from Badre 2025 computed (only if PRIV data available)
   const b25 = DATA.badre2025;
+  const b25rate = b25.commissionRate || 0;
   const tx25 = b25.majalis.map(m => {
     const dh = Math.round(m.htEUR * m.tauxApplique);
-    const commission = Math.round(dh * b25.commissionRate);
+    const commission = Math.round(dh * b25rate);
     return dh - commission;
   });
   const netBadre25 = tx25.reduce((s, n) => s + n, 0);
@@ -410,9 +420,9 @@ function renderBadre2026() {
 
   // Compute 2026 transactions
   const transactions = d.majalis.map(m => {
-    const dh = Math.round(m.htEUR * taux);
-    const delta = m.tauxMarche ? taux - m.tauxMarche : null;
-    const gainFX = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - taux)) : null;
+    const dh = taux ? Math.round(m.htEUR * taux) : 0;
+    const delta = m.tauxMarche && taux ? taux - m.tauxMarche : null;
+    const gainFX = m.tauxMarche && taux ? Math.round(m.htEUR * (m.tauxMarche - taux)) : null;
     const commission = Math.round(dh * rate);
     const netBadre = dh - commission;
     return { ...m, dh, delta, gainFX, commission, netBadre };
@@ -432,15 +442,22 @@ function renderBadre2026() {
 
   let html = yearToggle('Ba', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
-  html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report 2025 : ${fmtSigned(report, 'DH')} (dû à Badre). Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong>. Réconciliation sur paiements Majalis reçus uniquement.</p>`;
-
-  html += `<div class="cards">
-    <div class="card"><div class="l">Report 2025</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
-    <div class="card"><div class="l">Majalis payé 2026 (brut)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
-    <div class="card"><div class="l">Majalis payé 2026 (net −10%)</div><div class="v blue">${fmtPlain(totalNetBadrePaid)} DH</div></div>
-    <div class="card"><div class="l">Payé DH 2026</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-    <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde2026 > 0 ? 'yellow' : solde2026 < 0 ? 'green' : 'green'}">${fmtSigned(solde2026, 'DH')}</div></div>
-  </div>`;
+  if (window.PRIV) {
+    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report 2025 : ${fmtSigned(report, 'DH')} (dû à Badre). Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong>. Réconciliation sur paiements Majalis reçus uniquement.</p>`;
+    html += `<div class="cards">
+      <div class="card"><div class="l">Report 2025</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
+      <div class="card"><div class="l">Majalis payé 2026 (brut)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
+      <div class="card"><div class="l">Majalis payé 2026 (net −10%)</div><div class="v blue">${fmtPlain(totalNetBadrePaid)} DH</div></div>
+      <div class="card"><div class="l">Payé DH 2026</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+      <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde2026 > 0 ? 'yellow' : solde2026 < 0 ? 'green' : 'green'}">${fmtSigned(solde2026, 'DH')}</div></div>
+    </div>`;
+  } else {
+    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Paiements Majalis 2026 en cours.</p>`;
+    html += `<div class="cards">
+      <div class="card"><div class="l">Paiements Majalis</div><div class="v blue">${d.majalis.length} factures</div></div>
+      <div class="card"><div class="l">Payé DH 2026</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+    </div>`;
+  }
 
   // Majalis table
   if (window.PRIV) {
@@ -451,10 +468,10 @@ function renderBadre2026() {
     });
     html += `</tbody></table></div>`;
   } else {
-    html += `<div class="s"><div class="st">Paiements Majalis 2026 — convertis en DH (taux ${fmtRate(taux)})</div><table>
-      <thead><tr><th>Mois</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Badre (DH)</th><th>Statut</th></tr></thead><tbody>`;
+    html += `<div class="s"><div class="st">Paiements Majalis 2026</div><table>
+      <thead><tr><th>Mois</th><th style="text-align:right">HT (€)</th><th>Statut</th></tr></thead><tbody>`;
     transactions.forEach(t => {
-      html += `<tr><td>${t.mois}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(taux)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBadre)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
+      html += `<tr><td>${t.mois}</td><td class="a">${fmtPlain(t.htEUR)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
     });
     html += `</tbody></table></div>`;
   }
@@ -469,18 +486,19 @@ function renderBadre2026() {
     html += `<tr class="tr"><td></td><td colspan="2"><strong>Total payé 2026</strong></td><td class="a"><strong>${fmtPlain(totalPaye)}</strong></td><td></td></tr></tbody></table></div>`;
   }
 
-  // Réconciliation 2026
-  html += `<div class="s"><div class="st">Réconciliation Badre 2026 (payé uniquement)</div><table>
-    <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
-    <tr><td>Report 2025</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Solde clôture 2025 (dû à Badre)</td></tr>
-    <tr><td>Majalis HT payé 2026 (taux ${fmtRate(taux)})</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paidTransactions.length} paiement(s) reçu(s)</td></tr>
-    <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommissionPaid)}</td><td>Retenue par Amine</td></tr>
-    <tr><td><strong>Total dû à Badre</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Report + net Majalis payé</td></tr>
-    <tr><td>Virements DH 2026</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
-    <tr class="tr"><td><strong>Solde 2026</strong></td><td class="a" style="color:${solde2026 > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde2026, '')}</strong></td><td>${solde2026 > 0 ? 'Amine doit encore ' + fmtPlain(solde2026) + ' DH à Badre' : solde2026 < 0 ? 'Badre a un excédent de ' + fmtPlain(Math.abs(solde2026)) + ' DH' : 'Soldé'}</td></tr>
-    </tbody></table></div>`;
-
-  html += `<div class="n">Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong> (fixe). La réconciliation ne prend en compte que les Majalis effectivement payés.</div>`;
+  // Réconciliation 2026 (PRIV only)
+  if (window.PRIV) {
+    html += `<div class="s"><div class="st">Réconciliation Badre 2026 (payé uniquement)</div><table>
+      <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
+      <tr><td>Report 2025</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Solde clôture 2025 (dû à Badre)</td></tr>
+      <tr><td>Majalis HT payé 2026 (taux ${fmtRate(taux)})</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paidTransactions.length} paiement(s) reçu(s)</td></tr>
+      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommissionPaid)}</td><td>Retenue par Amine</td></tr>
+      <tr><td><strong>Total dû à Badre</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Report + net Majalis payé</td></tr>
+      <tr><td>Virements DH 2026</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
+      <tr class="tr"><td><strong>Solde 2026</strong></td><td class="a" style="color:${solde2026 > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde2026, '')}</strong></td><td>${solde2026 > 0 ? 'Amine doit encore ' + fmtPlain(solde2026) + ' DH à Badre' : solde2026 < 0 ? 'Badre a un excédent de ' + fmtPlain(Math.abs(solde2026)) + ' DH' : 'Soldé'}</td></tr>
+      </tbody></table></div>`;
+    html += `<div class="n">Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong> (fixe). La réconciliation ne prend en compte que les Majalis effectivement payés.</div>`;
+  }
 
   return html;
 }
@@ -866,11 +884,11 @@ function renderMesGains() {
 
   const totalGainAz = gainMAD_az25 + gainMAD_az26;
 
-  // ===== 2. COMMISSION YSQUARE (Kenza) 8% =====
-  const ysquareTotal = sum(az25.ysquare, 'montant'); // 54300 EUR
-  const ysquareCommRate = 0.08;
-  const commYsquareEUR = Math.round(ysquareTotal * ysquareCommRate); // in EUR
-  const commYsquareMAD = Math.round(commYsquareEUR * mktEURMAD); // convert to MAD at market rate
+  // ===== 2. COMMISSION YSQUARE (Kenza) =====
+  const ysquareTotal = DATA._ysquareTotal || sum(az25.ysquare, 'montant');
+  const ysquareCommRate = DATA._ysquareCommission || 0;
+  const commYsquareEUR = Math.round(ysquareTotal * ysquareCommRate);
+  const commYsquareMAD = Math.round(commYsquareEUR * mktEURMAD);
 
   // ===== 3. COMMISSION BADRE 10% =====
   const b25 = DATA.badre2025;
