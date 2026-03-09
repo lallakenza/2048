@@ -69,9 +69,36 @@
   .year-btn:hover{color:var(--text)}
   .year-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
   @media(max-width:768px){.content{padding:14px}.tabs{padding:0 10px}.tab{padding:10px 12px;font-size:.72rem}table{font-size:.72rem}thead th,tbody td{padding:6px 7px}.cards{grid-template-columns:repeat(2,1fr)}}
+  /* ---- GATE OVERLAY ---- */
+  .gate-overlay{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .6s ease,transform .6s ease}
+  .gate-overlay.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+  .gate-box{text-align:center;max-width:380px;width:90%}
+  .gate-logo{font-size:1.1rem;font-weight:800;letter-spacing:.18em;color:#3b82f6;text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 30px rgba(59,130,246,.3)}
+  .gate-sub{font-size:.72rem;color:#64748b;margin-bottom:32px;letter-spacing:.04em}
+  .gate-input{width:100%;background:rgba(30,41,59,.8);border:1px solid #334155;border-radius:10px;padding:14px 18px;color:#e2e8f0;font-size:.92rem;font-weight:500;letter-spacing:.12em;text-align:center;outline:none;transition:border-color .3s,box-shadow .3s}
+  .gate-input:focus{border-color:#3b82f6;box-shadow:0 0 20px rgba(59,130,246,.15)}
+  .gate-input::placeholder{color:#475569;letter-spacing:.06em;font-weight:400}
+  .gate-error{color:#ef4444;font-size:.72rem;margin-top:10px;opacity:0;transition:opacity .3s}
+  .gate-error.show{opacity:1}
+  .gate-hint{color:#334155;font-size:.62rem;margin-top:28px;letter-spacing:.03em}
+  /* Hide site content until gate is passed */
+  .site-wrap{display:none}
+  .site-wrap.visible{display:block}
 </style>
 </head>
 <body>
+<!-- GATE: Access code required -->
+<div class="gate-overlay" id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">Réconciliation</div>
+    <div class="gate-sub">Facturation 2025–2026</div>
+    <input class="gate-input" id="gateInput" type="password" placeholder="Code d'accès" autocomplete="off" spellcheck="false">
+    <div class="gate-error" id="gateErr">Code incorrect</div>
+    <div class="gate-hint">Accès restreint</div>
+  </div>
+</div>
+<!-- Site content (hidden until gate passed) -->
+<div class="site-wrap" id="siteWrap">
 <div class="header">
   <h1>Réconciliation Facturation 2025-2026</h1>
   <p>Audit croisé : Excel Azarkan × EBS × Attijariwafa — Taux Azarkan : 10 000 DH = 1 000€</p>
@@ -100,10 +127,49 @@
     <div class="binga-line bot"></div>
   </div>
 </div>
-<script src="data.js?v=12"></script>
-<script src="data-priv.enc.js?v=12"></script>
-<script src="render.js?v=12"></script>
+</div><!-- /site-wrap -->
+<script src="data.js?v=13"></script>
+<script src="data-priv.enc.js?v=13"></script>
+<script src="render.js?v=13"></script>
 <script>
+// ---- GATE: BRIDGEVALE access code ----
+(function(){
+  const gate = document.getElementById('gate');
+  const gateInput = document.getElementById('gateInput');
+  const gateErr = document.getElementById('gateErr');
+  const siteWrap = document.getElementById('siteWrap');
+  let attempts = 0;
+
+  gateInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      const v = this.value.trim();
+      if(v === 'BRIDGEVALE'){
+        gate.classList.add('hide');
+        setTimeout(()=>{ gate.style.display='none'; }, 700);
+        siteWrap.classList.add('visible');
+        renderAll();
+      } else {
+        attempts++;
+        gateErr.classList.add('show');
+        this.value = '';
+        this.style.borderColor = '#ef4444';
+        setTimeout(()=>{
+          gateErr.classList.remove('show');
+          this.style.borderColor = '';
+        }, 2000);
+        if(attempts >= 5){
+          this.disabled = true;
+          gateErr.textContent = 'Trop de tentatives';
+          gateErr.classList.add('show');
+        }
+      }
+    }
+  });
+
+  // Focus on load
+  gateInput.focus();
+})();
+
 // ---- Tab switching ----
 function showTab(id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));

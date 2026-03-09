@@ -1038,4 +1038,4 @@ function renderAll() {
   document.getElementById('gains').innerHTML = renderMesGains();
 }
 
-document.addEventListener('DOMContentLoaded', renderAll);
+// renderAll() is called after gate validation in index.html
