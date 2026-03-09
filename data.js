@@ -6,7 +6,7 @@
 
 const DATA = {
 
-  // ==================== AZARKAN 2025 ====================
+  // ==================== AUGUSTIN 2025 ====================
   augustin2025: {
     title: "Clôture Augustin 2025 — Réconciliation mois par mois",
     subtitle: "Basé sur le fichier Excel Augustin v2 (mis à jour). Pour chaque mois : revenus RTL, dépenses déclarées (B+Y+M, Maroc, Divers), virements réels, et commentaires.",
@@ -27,20 +27,20 @@ const DATA = {
 
     mois: [
       { nom: "Janvier", actuals: 18700, bym: 0, maroc: 0, divers: 0, commentaire: "Actuals comptabilisés (facture RTL Janvier) mais aucune dépense dans l'Excel. Pas de virement Maroc ce mois-ci. Excédent reporté.", badge: "i", badgeText: "ℹ" },
-      { nom: "Février", actuals: 17000, bym: 16000, maroc: 1000, divers: 400, commentaire: "Maroc 1 000€ ✓ (10 000 DH envoyés, confirmé). B+Y+M = 16 000 (Bairok 10k+6k EBS). <strong>Divers 400€ = vol pour Augustin ✓</strong>.", badge: "ok", badgeText: "✓ OK", diversVerifie: true },
-      { nom: "Mars", actuals: 17850, bym: 17600, maroc: 1000, divers: 0, commentaire: "B+Y+M = 17 600 (Bairok 17.6k EBS). Maroc = 1 000€ ✓ (mère Jamila → Augustin 10k DH le 28/03). Mois légèrement déficitaire.", badge: "ok", badgeText: "✓ OK" },
-      { nom: "Avril", actuals: 16150, bym: 39200, maroc: 1000, divers: 0, commentaire: "B+Y+M = 39 200 (Bairok 16.8k+3.2k+19.2k EBS). C'est un rattrapage de plusieurs factures Bairok payées en même temps. Maroc ✓ (mère 10k DH le 14/04). Gros déficit mensuel compensé par Jan+Mai.", badge: "i", badgeText: "⚡ Gros mois", bymHighlight: true },
-      { nom: "Mai", actuals: 16150, bym: 5400, maroc: 1000, divers: 0, commentaire: "B+Y+M = 5 400 (Ysquare 5.4k EBS). Maroc ✓ (mère 10k DH le 20/05). Mois excédentaire, compense Avril.", badge: "ok", badgeText: "✓ OK" },
-      { nom: "Juin", actuals: 16150, bym: 10800, maroc: 1000, divers: 1240, commentaire: "B+Y+M = 10 800 (Ysquare 5.4k+5.4k EBS remboursé en 2 paiements). Maroc ✓ (mère 10k DH le 13/06). <strong>Divers 1 240€ = vol pour Augustin ✓</strong>.", badge: "ok", badgeText: "✓ OK", diversVerifie: true },
-      { nom: "Juillet", actuals: 12750, bym: 12000, maroc: 1000, divers: 0, commentaire: "B+Y+M = 12 000 (Ysquare 12k EBS). Maroc ✓ (perso 10k DH le 03/07). Léger déficit.", badge: "ok", badgeText: "✓ OK" },
+      { nom: "Février", actuals: 17000, bym: 16000, maroc: 1000, divers: 400, commentaire: "Maroc 1 000€ ✓ (10 000 DH envoyés, confirmé). B+Y+M = 16 000 (Baraka 10k+6k EBS). <strong>Divers 400€ = vol pour Augustin ✓</strong>.", badge: "ok", badgeText: "✓ OK", diversVerifie: true },
+      { nom: "Mars", actuals: 17850, bym: 17600, maroc: 1000, divers: 0, commentaire: "B+Y+M = 17 600 (Baraka 17.6k EBS). Maroc = 1 000€ ✓ (mère L'Hajja → Augustin 10k DH le 28/03). Mois légèrement déficitaire.", badge: "ok", badgeText: "✓ OK" },
+      { nom: "Avril", actuals: 16150, bym: 39200, maroc: 1000, divers: 0, commentaire: "B+Y+M = 39 200 (Baraka 16.8k+3.2k+19.2k EBS). C'est un rattrapage de plusieurs factures Baraka payées en même temps. Maroc ✓ (mère 10k DH le 14/04). Gros déficit mensuel compensé par Jan+Mai.", badge: "i", badgeText: "⚡ Gros mois", bymHighlight: true },
+      { nom: "Mai", actuals: 16150, bym: 5400, maroc: 1000, divers: 0, commentaire: "B+Y+M = 5 400 (Ycarré 5.4k EBS). Maroc ✓ (mère 10k DH le 20/05). Mois excédentaire, compense Avril.", badge: "ok", badgeText: "✓ OK" },
+      { nom: "Juin", actuals: 16150, bym: 10800, maroc: 1000, divers: 1240, commentaire: "B+Y+M = 10 800 (Ycarré 5.4k+5.4k EBS remboursé en 2 paiements). Maroc ✓ (mère 10k DH le 13/06). <strong>Divers 1 240€ = vol pour Augustin ✓</strong>.", badge: "ok", badgeText: "✓ OK", diversVerifie: true },
+      { nom: "Juillet", actuals: 12750, bym: 12000, maroc: 1000, divers: 0, commentaire: "B+Y+M = 12 000 (Ycarré 12k EBS). Maroc ✓ (perso 10k DH le 03/07). Léger déficit.", badge: "ok", badgeText: "✓ OK" },
       { nom: "Août", actuals: 11050, bym: 11250, maroc: 3000, divers: 0, commentaire: "Augustin a corrigé Maroc de 1k→3k. Matche les 30k DH (10k le 01/08 + 20k le 15/08). B+Y+M = 11 250 (Councils 5.625k×2 EBS).", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
       { nom: "Septembre", actuals: 18700, bym: 5313, maroc: 1000, divers: 1130, commentaire: "Augustin a corrigé Maroc de 3k→1k. Matche les 10k DH (05/09). B+Y+M = 5 312.5 (Councils 5.3125k EBS). <strong>Divers 1 130€ = iPhone 1 305,41 USD (09/10 EBS) au taux 0,8648 ✓</strong>. Gros excédent.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true, diversVerifie: true },
-      { nom: "Octobre", actuals: 19550, bym: 11900, maroc: 6000, divers: 0, commentaire: "Augustin a reclassé les 2×5k Divers → Maroc (1k→6k). Matche les 60k DH (10k le 03/10 + 50k le 15/10). B+Y+M = 11 900 (Councils 5k + Ysquare 6.9k EBS).", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
-      { nom: "Novembre", actuals: 17000, bym: 14600, maroc: 1000, divers: 300, commentaire: "B+Y+M = 14 600 (Councils 5k + Ysquare 9.6k EBS). Maroc ✓ (10k DH le 03/11). Divers net 300€ (1 800 − 1 500) sans preuve.", badge: "ok", badgeText: "✓ OK" },
+      { nom: "Octobre", actuals: 19550, bym: 11900, maroc: 6000, divers: 0, commentaire: "Augustin a reclassé les 2×5k Divers → Maroc (1k→6k). Matche les 60k DH (10k le 03/10 + 50k le 15/10). B+Y+M = 11 900 (Councils 5k + Ycarré 6.9k EBS).", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
+      { nom: "Novembre", actuals: 17000, bym: 14600, maroc: 1000, divers: 300, commentaire: "B+Y+M = 14 600 (Councils 5k + Ycarré 9.6k EBS). Maroc ✓ (10k DH le 03/11). Divers net 300€ (1 800 − 1 500) sans preuve.", badge: "ok", badgeText: "✓ OK" },
       { nom: "Décembre", actuals: 17425, bym: 13225, maroc: 6000, divers: -1900, commentaire: "Augustin a corrigé Maroc 1k→6k et B+Y+M 12 725→13 225 (+500€ Councils). Matche les 60k DH (10k le 03/12 + 50k le 19/12). Divers net −1 900€ (crédits). Mois quasi-équilibré.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
     ],
 
-    ysquare: [
+    ycarre: [
       { date: "02/06/2025", montant: 5400 },
       { date: "18/06/2025", montant: 10800 },
       { date: "06/08/2025", montant: 12000 },
@@ -58,7 +58,7 @@ const DATA = {
       { date: "31/12/2025", excelHT: 3625, ebsHT: 3625, note: "corrigé v2" },
     ],
 
-    bairok: [
+    baraka: [
       { date: "14/03/2025", montant: 10000 },
       { date: "27/03/2025", montant: 6000 },
       { date: "30/03/2025", montant: 17600 },
@@ -69,10 +69,10 @@ const DATA = {
 
     virementsMaroc: [
       { mois: "Février", excelEUR: 1000, detail: "Confirmé (hors historique)", totalDH: 10000 },
-      { mois: "Mars", excelEUR: 1000, detail: "28/03 — Mère (Jamila) → Augustin", totalDH: 10000 },
-      { mois: "Avril", excelEUR: 1000, detail: "14/04 — Mère (Jamila) → Augustin", totalDH: 10000 },
-      { mois: "Mai", excelEUR: 1000, detail: "20/05 — Mère (Jamila) → Augustin", totalDH: 10000 },
-      { mois: "Juin", excelEUR: 1000, detail: "13/06 — Mère (Jamila) → Augustin", totalDH: 10000 },
+      { mois: "Mars", excelEUR: 1000, detail: "28/03 — Mère (L'Hajja) → Augustin", totalDH: 10000 },
+      { mois: "Avril", excelEUR: 1000, detail: "14/04 — Mère (L'Hajja) → Augustin", totalDH: 10000 },
+      { mois: "Mai", excelEUR: 1000, detail: "20/05 — Mère (L'Hajja) → Augustin", totalDH: 10000 },
+      { mois: "Juin", excelEUR: 1000, detail: "13/06 — Mère (L'Hajja) → Augustin", totalDH: 10000 },
       { mois: "Juillet", excelEUR: 1000, detail: "03/07 → Augustin", totalDH: 10000 },
       { mois: "Août", excelEUR: 3000, detail: "01/08 → 10k + 15/08 → 20k", totalDH: 30000, corrige: true },
       { mois: "Septembre", excelEUR: 1000, detail: "05/09 → Augustin", totalDH: 10000, corrige: true },
@@ -96,12 +96,12 @@ const DATA = {
       { type: "pass", titre: "✅ Councils HT : écart de 500€ corrigé (v1 → v2)", desc: "Augustin a corrigé le B+Y+M de Décembre de 12 725€ → 13 225€, intégrant les 500€ Councils HT manquants du 31/12. Les 6 paiements Councils matchent désormais 100% l'EBS." },
       { type: "pass", titre: "✅ Virements Maroc : 23 000€ — match parfait Excel = Réel", desc: "Tous les virements Maroc Fév-Déc matchent parfaitement l'Excel (23 000€). Pas de virement en Janvier. 11 mois sur 11 vérifiés, 0€ d'écart." },
       { type: "pass", titre: "✅ Divers : 2 770€ vérifiés sur 1 170€ total (vols + iPhone)", desc: "<strong>Fév 400€</strong> = vol pour Augustin ✓. <strong>Juin 1 240€</strong> = vol pour Augustin ✓. <strong>Sep 1 130€</strong> = iPhone 1 305,41 USD (EBS 09/10, taux 0,8648). Total vérifié : 2 770€. Restent Nov 300€ et Déc −1 900€ sans preuve (net −1 600€). Le crédit Déc (−1 900€) est en ta faveur." },
-      { type: "neutral", titre: "📊 Ysquare + Bairok + Councils : 157 288€ — 100% vérifié EBS", desc: "Les 3 catégories avec preuves EBS (18 paiements au total) matchent parfaitement. Ysquare 54 300€ (6/6), Bairok 72 800€ (6/6), Councils HT 30 188€ (6/6 après correction v2)." },
+      { type: "neutral", titre: "📊 Ycarré + Baraka + Councils : 157 288€ — 100% vérifié EBS", desc: "Les 3 catégories avec preuves EBS (18 paiements au total) matchent parfaitement. Ycarré 54 300€ (6/6), Baraka 72 800€ (6/6), Councils HT 30 188€ (6/6 après correction v2)." },
       { type: "pass", titre: "✅ Factures RTL 2025 : 198 475€ — 12/12 rapprochées, 0€ d'écart", desc: "Les 12 factures RTL (INVRTL001 à INVRTL012) sont toutes confirmées dans le CSV IFX. Les paiements combinés (INVRTL004+005 en Juillet, INVRTL010+011 en Janvier 2026) sont correctement identifiés. Aucun revenu manquant." },
     ],
   },
 
-  // ==================== AZARKAN 2026 ====================
+  // ==================== AUGUSTIN 2026 ====================
   augustin2026: {
     title: "Augustin 2026 — En cours",
     report2025: -1683,
@@ -120,7 +120,7 @@ const DATA = {
     ],
   },
 
-  // ==================== BADRE 2025 (PUBLIC — sans taux marché ni commission) ====================
+  // ==================== BENOIT 2025 (PUBLIC — sans taux marché ni commission) ====================
   benoit2025: {
     title: "Clôture Benoit 2025 — Tracking en DH",
     subtitle: "Tout est comptabilisé en DH. Les paiements Councils (en EUR) sont convertis en DH au taux EUR/MAD du jour de chaque transaction.",
@@ -146,7 +146,7 @@ const DATA = {
     ],
   },
 
-  // ==================== BADRE 2026 (PUBLIC — sans taux ni commission) ====================
+  // ==================== BENOIT 2026 (PUBLIC — sans taux ni commission) ====================
   benoit2026: {
     title: "Benoit 2026 — En cours (tracking en DH)",
     // tauxApplique: ENCRYPTED

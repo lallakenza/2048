@@ -147,9 +147,9 @@ const PRIV_DATA = {
     usdtRemaining: 319.71,
   },
 
-  // Ysquare commission info (for Mes Gains)
-  ysquareCommission: 0.08,
-  ysquareTotal: 54300,
+  // Ycarré commission info (for Mes Gains)
+  ycarreCommission: 0.08,
+  ycarreTotal: 54300,
 };
 
 // ---- Encrypt with AES-256-GCM ----

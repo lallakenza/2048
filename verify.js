@@ -18,9 +18,9 @@ function check(label, actual, expected) {
 
 const sum = (arr, key) => arr.reduce((s, x) => s + (typeof key === 'function' ? key(x) : (x[key] || 0)), 0);
 
-// ===== AZARKAN 2025 =====
-console.log('\n=== AZARKAN 2025 ===');
-const az = DATA.azarkan2025;
+// ===== AUGUSTIN 2025 =====
+console.log('\n=== AUGUSTIN 2025 ===');
+const az = DATA.augustin2025;
 
 // Actuals
 const totalActuals = sum(az.mois, 'actuals');
@@ -51,17 +51,17 @@ check('Actuals Fév-Déc', actualsFevDec, 179775);
 check('Dépenses Fév-Déc', depFevDec, 181458);
 check('Solde (balance)', solde, -1683);
 
-// Ysquare
-const totalYsquare = sum(az.ysquare, 'montant');
-check('Total Ysquare', totalYsquare, 54300);
+// Ycarré
+const totalYcarré = sum(az.ycarre, 'montant');
+check('Total Ycarré', totalYcarré, 54300);
 
-// Majalis (Azarkan view)
-const totalMajalis = sum(az.majalis, 'ebsHT');
-check('Total Majalis HT', totalMajalis, 30188);
+// Councils (Augustin view)
+const totalCouncils = sum(az.councils, 'ebsHT');
+check('Total Councils HT', totalCouncils, 30188);
 
-// Bairok
-const totalBairok = sum(az.bairok, 'montant');
-check('Total Bairok', totalBairok, 72800);
+// Baraka
+const totalBaraka = sum(az.baraka, 'montant');
+check('Total Baraka', totalBaraka, 72800);
 
 // Virements Maroc
 const totalMarocExcel = sum(az.virementsMaroc, 'excelEUR');
@@ -79,26 +79,26 @@ check('Divers vérifié', az.diversVerifie, 2770);
 const totalRTL = sum(az.rtl, 'montant');
 check('Total RTL', totalRTL, 198475);
 
-// ===== AZARKAN 2026 =====
-console.log('\n=== AZARKAN 2026 ===');
-const az26 = DATA.azarkan2026;
+// ===== AUGUSTIN 2026 =====
+console.log('\n=== AUGUSTIN 2026 ===');
+const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
 check('Total MAD 2026', totalMAD26, 50000);
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 26350);
 
-// ===== BADRE 2025 =====
-console.log('\n=== BADRE 2025 ===');
-const ba = DATA.badre2025;
+// ===== BENOIT 2025 =====
+console.log('\n=== BENOIT 2025 ===');
+const ba = DATA.benoit2025;
 
 // Per-transaction verification
-const tx = ba.majalis.map(m => {
+const tx = ba.councils.map(m => {
   const dh = Math.round(m.htEUR * m.tauxApplique);
   const gainFX = Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique));
   const commission = Math.round(dh * ba.commissionRate);
-  const netBadre = dh - commission;
-  return { ...m, dh, gainFX, commission, netBadre };
+  const netBenoit = dh - commission;
+  return { ...m, dh, gainFX, commission, netBenoit };
 });
 
 // Check individual DH amounts
@@ -110,7 +110,7 @@ check('Tx5 DH (5000×10.6)', tx[4].dh, 53000);
 check('Tx6 DH (3625×10.6)', tx[5].dh, 38425);
 
 const totalDH = sum(tx, 'dh');
-check('Total DH Majalis', totalDH, 318338);
+check('Total DH Councils', totalDH, 318338);
 
 // Gain FX per transaction
 check('GainFX #1', tx[0].gainFX, 28);
@@ -127,25 +127,25 @@ check('Total Gain FX', totalGainFX, 2829);
 const totalCommission = sum(tx, 'commission');
 check('Total Commission', totalCommission, 31834);
 
-// Net Badre
-const totalNetBadre = sum(tx, 'netBadre');
-check('Net dû Badre', totalNetBadre, 286504);
+// Net Benoit
+const totalNetBenoit = sum(tx, 'netBenoit');
+check('Net dû Benoit', totalNetBenoit, 286504);
 
 // Virements
 const totalPaye = sum(ba.virements, 'dh');
 check('Total payé DH', totalPaye, 281750);
 
 // Solde
-const soldeBadre = totalNetBadre - totalPaye;
-check('Solde Badre', soldeBadre, 4754);
+const soldeBenoit = totalNetBenoit - totalPaye;
+check('Solde Benoit', soldeBenoit, 4754);
 
 // Total gains
 const totalGains = totalCommission + totalGainFX;
 check('Total gains', totalGains, 34663);
 
-// ===== BADRE 2026 =====
-console.log('\n=== BADRE 2026 ===');
-const ba26 = DATA.badre2026;
+// ===== BENOIT 2026 =====
+console.log('\n=== BENOIT 2026 ===');
+const ba26 = DATA.benoit2026;
 check('Taux appliqué 2026', ba26.tauxApplique, 10.7);
 
 const tx26_jan = Math.round(5000 * 10.7);
@@ -154,7 +154,7 @@ const gainFX_jan = Math.round(5000 * (10.836 - 10.7));
 check('Jan 2026 Gain FX', gainFX_jan, 680);
 
 // Report
-check('Report 2025 (computed)', soldeBadre, 4754);
+check('Report 2025 (computed)', soldeBenoit, 4754);
 
 // Summary
 console.log(`\n=============================`);

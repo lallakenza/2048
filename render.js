@@ -55,7 +55,7 @@ function yearToggle(section, activeYear) {
   </div>`;
 }
 
-// ---- AZARKAN 2025 ----
+// ---- AUGUSTIN 2025 ----
 function renderAugustin2025() {
   const d = DATA.augustin2025;
   const mois = d.mois;
@@ -74,12 +74,12 @@ function renderAugustin2025() {
   const soldeExcel = actualsFevDec - depFevDec;
   const soldeCorrige = soldeExcel; // Same since Maroc matches
 
-  // Ysquare total
-  const totalYsquare = sum(d.ysquare, 'montant');
+  // Ycarré total
+  const totalYcarré = sum(d.ycarre, 'montant');
   // Councils total
   const totalCouncils = sum(d.councils, 'ebsHT');
-  // Bairok total
-  const totalBairok = sum(d.bairok, 'montant');
+  // Baraka total
+  const totalBaraka = sum(d.baraka, 'montant');
   // Maroc total (from virements)
   const totalMarocExcel = sum(d.virementsMaroc, 'excelEUR');
   const totalMarocDH = sum(d.virementsMaroc, 'totalDH');
@@ -106,9 +106,9 @@ function renderAugustin2025() {
 
   // Synthèse 5 catégories
   const categories = [
-    { nom: "1. Ysquare (Kenza)", excel: totalYsquare, verifie: totalYsquare, statut: `✓ ${d.ysquare.length}/${d.ysquare.length} match` },
+    { nom: "1. Ycarré (Oum Yakout)", excel: totalYcarré, verifie: totalYcarré, statut: `✓ ${d.ycarre.length}/${d.ycarre.length} match` },
     { nom: "2. Councils HT (Benoit)", excel: totalCouncils, verifie: totalCouncils, statut: `✓ ${d.councils.length}/${d.councils.length} corrigé` },
-    { nom: "3. Bairok (→ Augustin EUR)", excel: totalBairok, verifie: totalBairok, statut: `✓ ${d.bairok.length}/${d.bairok.length} match` },
+    { nom: "3. Baraka (→ Augustin EUR)", excel: totalBaraka, verifie: totalBaraka, statut: `✓ ${d.baraka.length}/${d.baraka.length} match` },
     { nom: "4. Virements Maroc (→ Augustin DH)", excel: totalMarocExcel, verifie: totalMarocReel, statut: `✓ ${d.virementsMaroc.length}/${d.virementsMaroc.length} match` },
     { nom: "5. Autre (Divers)", excel: totalDiversCalc, verifie: d.diversVerifie, ecartOverride: -(d.diversVerifie - totalDiversCalc) < 0 ? totalDiversCalc - d.diversVerifie : -(d.diversVerifie - totalDiversCalc), statut: "✓ Vols + iPhone EBS" },
   ];
@@ -131,7 +131,7 @@ function renderAugustin2025() {
 
   // Note synthèse
   html += `<div class="n">
-    <strong>Résultat (Excel v2) :</strong> Augustin a largement corrigé son fichier. Les 3 catégories EBS (Ysquare, Councils, Bairok) matchent à 100%. Le Maroc Fév-Déc matche parfaitement (${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel). Les Divers sont maintenant largement vérifiés : <strong>Fév 400€ + Juin 1 240€ = vols pour Augustin</strong>, <strong>Sep 1 130€ = iPhone 1 305,41 USD (EBS)</strong>. Il reste seulement Nov 300€ et Déc −1 900€ sans preuve (net ${fmtSigned(d.diversNonVerifie, '€')}).<br><br>
+    <strong>Résultat (Excel v2) :</strong> Augustin a largement corrigé son fichier. Les 3 catégories EBS (Ycarré, Councils, Baraka) matchent à 100%. Le Maroc Fév-Déc matche parfaitement (${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel). Les Divers sont maintenant largement vérifiés : <strong>Fév 400€ + Juin 1 240€ = vols pour Augustin</strong>, <strong>Sep 1 130€ = iPhone 1 305,41 USD (EBS)</strong>. Il reste seulement Nov 300€ et Déc −1 900€ sans preuve (net ${fmtSigned(d.diversNonVerifie, '€')}).<br><br>
     Solde Excel = Solde corrigé : <strong>${fmtSigned(soldeExcel)}</strong> (Augustin te doit).<br>
     Divers vérifiés : <strong>${fmtPlain(d.diversVerifie)}€</strong> sur ${fmtPlain(totalDiversCalc)}€ total (vols + iPhone).<br>
     Divers non vérifiés : Nov 300€ et Déc −1 900€ (net ${fmtSigned(d.diversNonVerifie, '€')}, dont le crédit Déc est en ta faveur).
@@ -180,13 +180,13 @@ function renderAugustin2025() {
   });
   html += `</div>`;
 
-  // Cat 1: Ysquare
-  html += `<div class="s"><div class="st">1. Ysquare (Kenza) — ${fmtPlain(totalYsquare)}€ ✓</div><table>
+  // Cat 1: Ycarré
+  html += `<div class="s"><div class="st">1. Ycarré (Oum Yakout) — ${fmtPlain(totalYcarré)}€ ✓</div><table>
     <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">EBS (€)</th><th></th></tr></thead><tbody>`;
-  d.ysquare.forEach((y, i) => {
+  d.ycarre.forEach((y, i) => {
     html += `<tr><td>${i+1}</td><td>${y.date}</td><td class="a">${fmtPlain(y.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
   });
-  html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalYsquare)}</strong></td><td></td></tr></tbody></table></div>`;
+  html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalYcarré)}</strong></td><td></td></tr></tbody></table></div>`;
 
   // Cat 2: Councils
   html += `<div class="s"><div class="st">2. Councils HT (Benoit) — ${fmtPlain(totalCouncils)}€ ✓ (corrigé v2)</div><table>
@@ -198,14 +198,14 @@ function renderAugustin2025() {
   const totalMajExcel = sum(d.councils, 'excelHT');
   html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalMajExcel)}</strong></td><td class="a"><strong>${fmtPlain(totalCouncils)}</strong></td><td class="a" style="color:var(--green)"><strong>0</strong></td><td></td></tr></tbody></table></div>`;
 
-  // Cat 3: Bairok
-  html += `<div class="s"><div class="st">3. Bairok EUR (→ Augustin) — ${fmtPlain(totalBairok)}€ ✓</div><table>
+  // Cat 3: Baraka
+  html += `<div class="s"><div class="st">3. Baraka EUR (→ Augustin) — ${fmtPlain(totalBaraka)}€ ✓</div><table>
     <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">Montant (€)</th><th></th></tr></thead><tbody>`;
-  d.bairok.forEach((b, i) => {
+  d.baraka.forEach((b, i) => {
     html += `<tr><td>${i+1}</td><td>${b.date}</td><td class="a">${fmtPlain(b.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
   });
-  html += `<tr class="tr"><td></td><td><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalBairok)}</strong></td><td></td></tr></tbody></table>`;
-  html += `<div class="n ok">${d.bairok.length}/${d.bairok.length} paiements 2025 vérifiés. Les 4 autres résultats EBS sont de 2024, hors périmètre.</div></div>`;
+  html += `<tr class="tr"><td></td><td><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalBaraka)}</strong></td><td></td></tr></tbody></table>`;
+  html += `<div class="n ok">${d.baraka.length}/${d.baraka.length} paiements 2025 vérifiés. Les 4 autres résultats EBS sont de 2024, hors périmètre.</div></div>`;
 
   // Cat 4: Virements Maroc
   html += `<div class="s"><div class="st">4. Virements Maroc → Augustin (DH) — ${fmtPlain(totalMarocExcel)}€ ✓ match parfait</div><table>
@@ -241,7 +241,7 @@ function renderAugustin2025() {
   return html;
 }
 
-// ---- AZARKAN 2026 ----
+// ---- AUGUSTIN 2026 ----
 function renderAugustin2026() {
   const d = DATA.augustin2026;
 
@@ -304,7 +304,7 @@ function renderAugustin2026() {
   return html;
 }
 
-// ---- BADRE 2025 ----
+// ---- BENOIT 2025 ----
 function renderBenoit2025() {
   const d = DATA.benoit2025;
   const rate = d.commissionRate || 0; // 0 in public mode (encrypted)
@@ -400,7 +400,7 @@ function renderBenoit2025() {
   return html;
 }
 
-// ---- BADRE 2026 ----
+// ---- BENOIT 2026 ----
 function renderBenoit2026() {
   const d = DATA.benoit2026;
   const taux = d.tauxApplique || 0;
@@ -854,7 +854,7 @@ function renderMesGains() {
   const effEURMAD = wavgTauxIFX * wavgPrixSell / wavgPrixBuy;
   const mktEURMAD = wavgTauxMkt1 * wavgMktSell / peg;
 
-  // ===== 1. VIREMENTS AZARKAN — Rate arbitrage + P2P spread =====
+  // ===== 1. VIREMENTS AUGUSTIN — Rate arbitrage + P2P spread =====
   const az25 = DATA.augustin2025;
   const az26 = DATA.augustin2026;
   const tauxAz = az25.tauxMaroc; // 10
@@ -884,13 +884,13 @@ function renderMesGains() {
 
   const totalGainAz = gainMAD_az25 + gainMAD_az26;
 
-  // ===== 2. COMMISSION YSQUARE (Kenza) =====
-  const ysquareTotal = DATA._ysquareTotal || sum(az25.ysquare, 'montant');
-  const ysquareCommRate = DATA._ysquareCommission || 0;
-  const commYsquareEUR = Math.round(ysquareTotal * ysquareCommRate);
-  const commYsquareMAD = Math.round(commYsquareEUR * mktEURMAD);
+  // ===== 2. COMMISSION YCARRÉ (Oum Yakout) =====
+  const ycarreTotal = DATA._ycarreTotal || sum(az25.ycarre, 'montant');
+  const ycarreCommRate = DATA._ycarreCommission || 0;
+  const commYcarréEUR = Math.round(ycarreTotal * ycarreCommRate);
+  const commYcarréMAD = Math.round(commYcarréEUR * mktEURMAD);
 
-  // ===== 3. COMMISSION BADRE 10% =====
+  // ===== 3. COMMISSION BENOIT 10% =====
   const b25 = DATA.benoit2025;
   const b26 = DATA.benoit2026;
 
@@ -898,7 +898,7 @@ function renderMesGains() {
   const commBenoit26 = b26.councils.filter(m => m.statut === 'ok').reduce((s, m) => s + Math.round(m.htEUR * b26.tauxApplique * b26.commissionRate), 0);
   const totalComm = commBenoit25 + commBenoit26;
 
-  // ===== 4. ÉCART TAUX BADRE (appliqué vs marché) =====
+  // ===== 4. ÉCART TAUX BENOIT (appliqué vs marché) =====
   const fxBenoit25 = b25.councils.reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)), 0);
   const fxBenoit26 = b26.councils.filter(m => m.statut === 'ok' && m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)), 0);
   const totalFxBenoit = fxBenoit25 + fxBenoit26;
@@ -918,7 +918,7 @@ function renderMesGains() {
   const p2pSavingBenoit = totalNetBenoitDH * (1 - mktEURMAD / effEURMAD);
 
   // ===== GRAND TOTAL =====
-  const grandTotal = totalGainAz + commYsquareMAD + totalComm + totalFxBenoit + p2pSavingBenoit;
+  const grandTotal = totalGainAz + commYcarréMAD + totalComm + totalFxBenoit + p2pSavingBenoit;
 
   // ===== BUILD HTML =====
   let html = `<h2 style="font-size:1.05rem;margin-bottom:6px">Mes Gains — Synthèse complète</h2>`;
@@ -942,8 +942,8 @@ function renderMesGains() {
   // Augustin 2026
   html += `<tr><td><strong>Virements Augustin 2026</strong></td><td>${fmtPlain(totalDH26)} DH envoyés, crédités ${fmtPlain(eurCredite26)} € (taux ${az26.tauxMaroc}), coût réel ${fmtPlain(Math.round(eurCoutP2P26))} € via P2P</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td></tr>`;
 
-  // Commission Ysquare
-  html += `<tr><td><strong>Commission Ysquare (Kenza) 8%</strong></td><td>${fmtPlain(ysquareTotal)} € × 8% = ${fmtPlain(commYsquareEUR)} € (≈ ${fmtPlain(commYsquareMAD)} DH au taux marché)</td><td class="a" style="color:var(--green)">${fmtSigned(commYsquareMAD, '')}</td></tr>`;
+  // Commission Ycarré
+  html += `<tr><td><strong>Commission Ycarré (Oum Yakout) 8%</strong></td><td>${fmtPlain(ycarreTotal)} € × 8% = ${fmtPlain(commYcarréEUR)} € (≈ ${fmtPlain(commYcarréMAD)} DH au taux marché)</td><td class="a" style="color:var(--green)">${fmtSigned(commYcarréMAD, '')}</td></tr>`;
 
   // Commission Benoit
   html += `<tr><td><strong>Commission Benoit 10%</strong></td><td>2025 : ${fmtPlain(commBenoit25)} DH · 2026 : ${fmtPlain(commBenoit26)} DH</td><td class="a" style="color:var(--green)">${fmtSigned(totalComm, '')}</td></tr>`;
@@ -958,7 +958,7 @@ function renderMesGains() {
   html += `<tr class="tr"><td><strong>TOTAL GAINS</strong></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(grandTotal), ' DH')}</strong></td></tr>`;
   html += `</tbody></table></div>`;
 
-  // ===== BREAKDOWN AZARKAN =====
+  // ===== BREAKDOWN AUGUSTIN =====
   html += `<div class="s"><div class="st">Détail — Virements Augustin (Maroc)</div>`;
   html += `<div class="n ok">Quand tu envoies des MAD à Augustin via Binance P2P, le taux appliqué par Augustin est <strong>${tauxAz} MAD/EUR</strong>. Ton taux effectif P2P est <strong>${effEURMAD.toFixed(3).replace('.',',')} MAD/EUR</strong>. La différence (${(effEURMAD - tauxAz).toFixed(3).replace('.',',')} MAD/EUR) est ton gain pour chaque EUR crédité.</div>`;
 
@@ -968,7 +968,7 @@ function renderMesGains() {
   html += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDH25 + totalDH26)}</strong></td><td class="a"><strong>${fmtPlain(eurCredite25 + eurCredite26)}</strong></td><td class="a"><strong>${fmtPlain(Math.round(eurCoutP2P25 + eurCoutP2P26))}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainEUR_az25 + gainEUR_az26), '')}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainMAD_az25 + gainMAD_az26), '')}</strong></td></tr>`;
   html += `</tbody></table></div>`;
 
-  // ===== BREAKDOWN BADRE =====
+  // ===== BREAKDOWN BENOIT =====
   html += `<div class="s"><div class="st">Détail — Gains Benoit (Commission + Taux + P2P)</div>`;
 
   // Per-transaction table for Benoit 2025
@@ -1003,8 +1003,8 @@ function renderMesGains() {
   const p2pAdvantage = effEURMAD - mktEURMAD;
   html += `<div class="insight pass"><div class="t">📈 Avantage P2P : +${p2pAdvantage.toFixed(3).replace('.',',')} MAD/EUR vs marché</div><div class="d">Le taux marché EUR/MAD moyen est ${mktEURMAD.toFixed(3).replace('.',',')}. Le P2P te donne ${effEURMAD.toFixed(3).replace('.',',')}. Ce premium de ${((p2pAdvantage/mktEURMAD)*100).toFixed(2).replace('.',',')}% vient de la vente USDT→MAD sur Binance (marché parallèle).</div></div>`;
 
-  // Insight 3: Ysquare commission
-  html += `<div class="insight pass"><div class="t">👩 Ysquare (Kenza) : ${fmtPlain(commYsquareEUR)} € de commission</div><div class="d">${fmtPlain(ysquareTotal)} € payés à Kenza en 2025 (6 paiements EBS). Commission moyenne de 8% retenue = <strong>${fmtPlain(commYsquareEUR)} €</strong> (≈ ${fmtPlain(commYsquareMAD)} DH).</div></div>`;
+  // Insight 3: Ycarré commission
+  html += `<div class="insight pass"><div class="t">👩 Ycarré (Oum Yakout) : ${fmtPlain(commYcarréEUR)} € de commission</div><div class="d">${fmtPlain(ycarreTotal)} € payés à Oum Yakout en 2025 (6 paiements EBS). Commission moyenne de 8% retenue = <strong>${fmtPlain(commYcarréEUR)} €</strong> (≈ ${fmtPlain(commYcarréMAD)} DH).</div></div>`;
 
   // Insight 4: Benoit commission total
   const totalGainsBenoit = totalComm + totalFxBenoit + Math.round(p2pSavingBenoit);
@@ -1012,11 +1012,11 @@ function renderMesGains() {
 
   // Insight 5: breakdown percentage
   const pctAz = (totalGainAz / grandTotal * 100).toFixed(1);
-  const pctYsq = (commYsquareMAD / grandTotal * 100).toFixed(1);
+  const pctYsq = (commYcarréMAD / grandTotal * 100).toFixed(1);
   const pctComm = (totalComm / grandTotal * 100).toFixed(1);
   const pctFx = (totalFxBenoit / grandTotal * 100).toFixed(1);
   const pctP2P = (p2pSavingBenoit / grandTotal * 100).toFixed(1);
-  html += `<div class="insight"><div class="t">📊 Répartition des gains</div><div class="d">Virements Augustin : <strong>${pctAz}%</strong> · Ysquare 8% : <strong>${pctYsq}%</strong> · Commission Benoit : <strong>${pctComm}%</strong> · Écart taux Benoit : <strong>${pctFx}%</strong> · Spread P2P Benoit : <strong>${pctP2P}%</strong></div></div>`;
+  html += `<div class="insight"><div class="t">📊 Répartition des gains</div><div class="d">Virements Augustin : <strong>${pctAz}%</strong> · Ycarré 8% : <strong>${pctYsq}%</strong> · Commission Benoit : <strong>${pctComm}%</strong> · Écart taux Benoit : <strong>${pctFx}%</strong> · Spread P2P Benoit : <strong>${pctP2P}%</strong></div></div>`;
 
   // Insight 6: monthly average
   const months = 13; // Feb 2025 to Mar 2026
