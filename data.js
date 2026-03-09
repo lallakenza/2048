@@ -36,8 +36,8 @@ const DATA = {
       { nom: "Août", actuals: 11050, bym: 11250, maroc: 3000, divers: 0, commentaire: "Augustin a corrigé Maroc de 1k→3k. Matche les 30k DH (10k le 01/08 + 20k le 15/08). B+Y+M = 11 250 (Councils 5.625k×2 EBS).", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
       { nom: "Septembre", actuals: 18700, bym: 5313, maroc: 1000, divers: 1130, commentaire: "Augustin a corrigé Maroc de 3k→1k. Matche les 10k DH (05/09). B+Y+M = 5 312.5 (Councils 5.3125k EBS). <strong>Divers 1 130€ = iPhone 1 305,41 USD (09/10 EBS) au taux 0,8648 ✓</strong>. Gros excédent.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true, diversVerifie: true },
       { nom: "Octobre", actuals: 19550, bym: 11900, maroc: 6000, divers: 0, commentaire: "Augustin a reclassé les 2×5k Divers → Maroc (1k→6k). Matche les 60k DH (10k le 03/10 + 50k le 15/10). B+Y+M = 11 900 (Councils 5k + Ycarré 6.9k EBS).", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
-      { nom: "Novembre", actuals: 17000, bym: 14600, maroc: 1000, divers: 300, commentaire: "B+Y+M = 14 600 (Councils 5k + Ycarré 9.6k EBS). Maroc ✓ (10k DH le 03/11). Divers net 300€ (1 800 − 1 500) sans preuve.", badge: "ok", badgeText: "✓ OK" },
-      { nom: "Décembre", actuals: 17425, bym: 13225, maroc: 6000, divers: -1900, commentaire: "Augustin a corrigé Maroc 1k→6k et B+Y+M 12 725→13 225 (+500€ Councils). Matche les 60k DH (10k le 03/12 + 50k le 19/12). Divers net −1 900€ (crédits). Mois quasi-équilibré.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
+      { nom: "Novembre", actuals: 17000, bym: 14600, maroc: 1000, divers: 300, commentaire: "B+Y+M = 14 600 (Councils 5k + Ycarré 9.6k EBS). Maroc ✓ (10k DH le 03/11). Divers net 300€ (1 800 − 1 500). <strong>−1 500€ = Prêt EBS 15/12 ✓</strong>. Reste 1 800€ sans preuve.", badge: "ok", badgeText: "✓ OK" },
+      { nom: "Décembre", actuals: 17425, bym: 13225, maroc: 6000, divers: -1900, commentaire: "Augustin a corrigé Maroc 1k→6k et B+Y+M 12 725→13 225 (+500€ Councils). Matche les 60k DH (10k le 03/12 + 50k le 19/12). Divers net −1 900€ (600 − 2 500). <strong>−2 500€ = Prêt EBS 04/12 ✓</strong>. Reste 600€ sans preuve.", badge: "ok", badgeText: "✓ Corrigé v2", marocCorrige: true },
     ],
 
     ycarre: [
@@ -82,20 +82,22 @@ const DATA = {
     ],
 
     divers: [
-      { mois: "Février", d1: 400, d2: 0, preuve: "ok", preuveText: "✓ Vol pour Augustin" },
-      { mois: "Juin", d1: 1240, d2: 0, preuve: "ok", preuveText: "✓ Vol pour Augustin" },
-      { mois: "Septembre", d1: 1130, d2: 0, preuve: "ok", preuveText: "✓ iPhone 1 305,41 USD (EBS 09/10)" },
-      { mois: "Novembre", d1: 1800, d2: -1500, preuve: "w", preuveText: "Aucune" },
-      { mois: "Décembre", d1: 600, d2: -2500, preuve: "w", preuveText: "Aucune" },
+      { mois: "Février", montant: 400, label: "Vol pour Augustin", preuve: "ok", preuveText: "✓ EBS" },
+      { mois: "Juin", montant: 1240, label: "Vol pour Augustin", preuve: "ok", preuveText: "✓ EBS" },
+      { mois: "Septembre", montant: 1130, label: "iPhone 1 305,41 USD", preuve: "ok", preuveText: "✓ EBS 09/10" },
+      { mois: "Novembre", montant: 1800, label: "Divers", preuve: "w", preuveText: "Aucune" },
+      { mois: "Novembre", montant: -1500, label: "Prêt (Seq.1404)", preuve: "ok", preuveText: "✓ EBS 15/12" },
+      { mois: "Décembre", montant: 600, label: "Divers", preuve: "w", preuveText: "Aucune" },
+      { mois: "Décembre", montant: -2500, label: "Prêt (Seq.1362)", preuve: "ok", preuveText: "✓ EBS 04/12" },
     ],
-    diversVerifie: 2770,
-    diversNonVerifie: -1600,
+    diversVerifie: 6770,
+    diversNonVerifie: 2400,
 
     insights: [
       { type: "pass", titre: "✅ Augustin a corrigé 4 erreurs MAD entre v1 et v2", desc: "Août (1k→3k ✓), Septembre (3k→1k ✓), Octobre (1k→6k + suppression 2×5k Divers ✓), Décembre (1k→6k ✓). Cela montre qu'Augustin reconnaît les écarts quand confronté aux preuves bancaires. Le Maroc passe de 13 000€ → 23 000€, match parfait avec les virements réels (23 000€ Fév-Déc)." },
       { type: "pass", titre: "✅ Councils HT : écart de 500€ corrigé (v1 → v2)", desc: "Augustin a corrigé le B+Y+M de Décembre de 12 725€ → 13 225€, intégrant les 500€ Councils HT manquants du 31/12. Les 6 paiements Councils matchent désormais 100% l'EBS." },
       { type: "pass", titre: "✅ Virements Maroc : 23 000€ — match parfait Excel = Réel", desc: "Tous les virements Maroc Fév-Déc matchent parfaitement l'Excel (23 000€). Pas de virement en Janvier. 11 mois sur 11 vérifiés, 0€ d'écart." },
-      { type: "pass", titre: "✅ Divers : 2 770€ vérifiés sur 1 170€ total (vols + iPhone)", desc: "<strong>Fév 400€</strong> = vol pour Augustin ✓. <strong>Juin 1 240€</strong> = vol pour Augustin ✓. <strong>Sep 1 130€</strong> = iPhone 1 305,41 USD (EBS 09/10, taux 0,8648). Total vérifié : 2 770€. Restent Nov 300€ et Déc −1 900€ sans preuve (net −1 600€). Le crédit Déc (−1 900€) est en ta faveur." },
+      { type: "pass", titre: "✅ Divers : 6 770€ de transactions EBS vérifiées (vols + iPhone + prêts)", desc: "<strong>Fév 400€</strong> = vol ✓. <strong>Juin 1 240€</strong> = vol ✓. <strong>Sep 1 130€</strong> = iPhone ✓. <strong>Nov −1 500€</strong> = Prêt EBS 15/12 ✓. <strong>Déc −2 500€</strong> = Prêt EBS 04/12 ✓. Total vérifié EBS : 6 770€ (en valeur absolue). Restent seulement Nov 1 800€ et Déc 600€ sans preuve (net 2 400€)." },
       { type: "neutral", titre: "📊 Ycarré + Baraka + Councils : 157 288€ — 100% vérifié EBS", desc: "Les 3 catégories avec preuves EBS (18 paiements au total) matchent parfaitement. Ycarré 54 300€ (6/6), Baraka 72 800€ (6/6), Councils HT 30 188€ (6/6 après correction v2)." },
       { type: "pass", titre: "✅ Factures RTL 2025 : 198 475€ — 12/12 rapprochées, 0€ d'écart", desc: "Les 12 factures RTL (INVRTL001 à INVRTL012) sont toutes confirmées dans le CSV IFX. Les paiements combinés (INVRTL004+005 en Juillet, INVRTL010+011 en Janvier 2026) sont correctement identifiés. Aucun revenu manquant." },
     ],

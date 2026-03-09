@@ -85,7 +85,7 @@ function renderAugustin2025() {
   const totalMarocDH = sum(d.virementsMaroc, 'totalDH');
   const totalMarocReel = totalMarocDH / d.tauxMaroc;
   // Divers total
-  const totalDiversCalc = sum(d.divers, x => (x.d1 || 0) + (x.d2 || 0));
+  const totalDiversCalc = sum(d.divers, x => x.montant);
   // RTL total
   const totalRTL = sum(d.rtl, 'montant');
   const totalRecuRTL = sum(d.rtl, 'recu');
@@ -110,7 +110,7 @@ function renderAugustin2025() {
     { nom: "2. Councils HT (Benoit)", excel: totalCouncils, verifie: totalCouncils, statut: `✓ ${d.councils.length}/${d.councils.length} corrigé` },
     { nom: "3. Baraka (→ Augustin EUR)", excel: totalBaraka, verifie: totalBaraka, statut: `✓ ${d.baraka.length}/${d.baraka.length} match` },
     { nom: "4. Virements Maroc (→ Augustin DH)", excel: totalMarocExcel, verifie: totalMarocReel, statut: `✓ ${d.virementsMaroc.length}/${d.virementsMaroc.length} match` },
-    { nom: "5. Autre (Divers)", excel: totalDiversCalc, verifie: d.diversVerifie, ecartOverride: -(d.diversVerifie - totalDiversCalc) < 0 ? totalDiversCalc - d.diversVerifie : -(d.diversVerifie - totalDiversCalc), statut: "✓ Vols + iPhone EBS" },
+    { nom: "5. Autre (Divers)", excel: totalDiversCalc, verifie: totalDiversCalc - d.diversNonVerifie, ecartOverride: d.diversNonVerifie, statut: "✓ Vols + iPhone + Prêts EBS" },
   ];
 
   const totalExcelCat = categories.reduce((s, c) => s + c.excel, 0);
@@ -131,10 +131,10 @@ function renderAugustin2025() {
 
   // Note synthèse
   html += `<div class="n">
-    <strong>Résultat (Excel v2) :</strong> Augustin a largement corrigé son fichier. Les 3 catégories EBS (Ycarré, Councils, Baraka) matchent à 100%. Le Maroc Fév-Déc matche parfaitement (${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel). Les Divers sont maintenant largement vérifiés : <strong>Fév 400€ + Juin 1 240€ = vols pour Augustin</strong>, <strong>Sep 1 130€ = iPhone 1 305,41 USD (EBS)</strong>. Il reste seulement Nov 300€ et Déc −1 900€ sans preuve (net ${fmtSigned(d.diversNonVerifie, '€')}).<br><br>
+    <strong>Résultat (Excel v2) :</strong> Augustin a largement corrigé son fichier. Les 3 catégories EBS (Ycarré, Councils, Baraka) matchent à 100%. Le Maroc Fév-Déc matche parfaitement (${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel). Les Divers sont très largement vérifiés : vols ✓, iPhone ✓, et les 2 prêts (−1 500€ + −2 500€) confirmés par EBS. Il reste seulement ${fmtPlain(d.diversNonVerifie)}€ sans preuve (Nov 1 800€ + Déc 600€).<br><br>
     Solde Excel = Solde corrigé : <strong>${fmtSigned(soldeExcel)}</strong> (Augustin te doit).<br>
-    Divers vérifiés : <strong>${fmtPlain(d.diversVerifie)}€</strong> sur ${fmtPlain(totalDiversCalc)}€ total (vols + iPhone).<br>
-    Divers non vérifiés : Nov 300€ et Déc −1 900€ (net ${fmtSigned(d.diversNonVerifie, '€')}, dont le crédit Déc est en ta faveur).
+    Divers vérifiés EBS : <strong>${fmtPlain(d.diversVerifie)}€</strong> de transactions (vols + iPhone + prêts).<br>
+    Divers non vérifiés : ${fmtPlain(d.diversNonVerifie)}€ (Nov 1 800€ + Déc 600€ sans preuve).
   </div></div>`;
 
   // Mois par mois
@@ -220,15 +220,15 @@ function renderAugustin2025() {
   html += `<div class="n ok"><strong>Match parfait</strong> : ${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel (${fmtPlain(totalMarocDH)} DH). ${d.virementsMaroc.length} mois vérifiés, 0€ d'écart.</div></div>`;
 
   // Cat 5: Divers
-  html += `<div class="s"><div class="st">5. Autre (Divers Supplement) — ${fmtPlain(totalDiversCalc)}€ dont ${fmtPlain(d.diversVerifie)}€ vérifiés (vols + iPhone)</div><table>
-    <thead><tr><th>Mois</th><th style="text-align:right">Divers 1 (€)</th><th style="text-align:right">Divers 2 (€)</th><th style="text-align:right">Total (€)</th><th>Preuve</th></tr></thead><tbody>`;
+  html += `<div class="s"><div class="st">5. Autre (Divers) — ${fmtPlain(totalDiversCalc)}€ net · ${fmtPlain(d.diversVerifie)}€ vérifiés EBS · ${fmtPlain(d.diversNonVerifie)}€ sans preuve</div><table>
+    <thead><tr><th>Mois</th><th>Libellé</th><th style="text-align:right">Montant (€)</th><th>Preuve</th></tr></thead><tbody>`;
   d.divers.forEach(dv => {
-    const total = (dv.d1 || 0) + (dv.d2 || 0);
     const rowStyle = dv.preuve === 'ok' ? ' style="background:var(--green-bg)"' : '';
-    html += `<tr${rowStyle}><td>${dv.mois}</td><td class="a">${fmtPlain(dv.d1)}</td><td class="a">${dv.d2 ? (dv.d2 < 0 ? '−' + fmtPlain(Math.abs(dv.d2)) : fmtPlain(dv.d2)) : '—'}</td><td class="a">${total < 0 ? '−' + fmtPlain(Math.abs(total)) : fmtPlain(total)}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
+    const montantStr = dv.montant < 0 ? '−' + fmtPlain(Math.abs(dv.montant)) : fmtPlain(dv.montant);
+    html += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
   });
-  html += `<tr class="tr"><td><strong>Total</strong></td><td></td><td></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong>${fmtPlain(d.diversVerifie)}€ vérifié / ${fmtSigned(d.diversNonVerifie, '€')} sans preuve</strong></td></tr></tbody></table>`;
-  html += `<div class="n ok"><strong>Fév 400€</strong> + <strong>Juin 1 240€</strong> = vols payés pour Augustin ✓. <strong>Sep 1 130€</strong> = iPhone 1 305,41 USD (EBS 09/10, taux 0,8648) ✓. Reste Nov 300€ et Déc −1 900€ sans preuve (net ${fmtSigned(d.diversNonVerifie, '€')}). Le crédit Déc est en ta faveur.</div></div>`;
+  html += `<tr class="tr"><td colspan="2"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong>${fmtPlain(d.diversVerifie)}€ vérifié EBS / ${fmtPlain(d.diversNonVerifie)}€ sans preuve</strong></td></tr></tbody></table>`;
+  html += `<div class="n ok"><strong>Fév 400€</strong> + <strong>Juin 1 240€</strong> = vols ✓. <strong>Sep 1 130€</strong> = iPhone ✓. <strong>Nov −1 500€</strong> = Prêt EBS 15/12 ✓. <strong>Déc −2 500€</strong> = Prêt EBS 04/12 ✓. Reste seulement Nov 1 800€ et Déc 600€ sans preuve (${fmtPlain(d.diversNonVerifie)}€).</div></div>`;
 
   // RTL Factures
   html += `<div class="s"><div class="st">Factures RTL 2025 — Revenus (${fmtPlain(totalRTL)}€ ✓)</div><table>
