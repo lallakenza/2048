@@ -846,7 +846,13 @@ function renderMesGains() {
 
   const totalGainAz = gainMAD_az25 + gainMAD_az26;
 
-  // ===== 2. COMMISSION BADRE 10% =====
+  // ===== 2. COMMISSION YSQUARE (Kenza) 8% =====
+  const ysquareTotal = sum(az25.ysquare, 'montant'); // 54300 EUR
+  const ysquareCommRate = 0.08;
+  const commYsquareEUR = Math.round(ysquareTotal * ysquareCommRate); // in EUR
+  const commYsquareMAD = Math.round(commYsquareEUR * mktEURMAD); // convert to MAD at market rate
+
+  // ===== 3. COMMISSION BADRE 10% =====
   const b25 = DATA.badre2025;
   const b26 = DATA.badre2026;
 
@@ -854,12 +860,12 @@ function renderMesGains() {
   const commBadre26 = b26.majalis.filter(m => m.statut === 'ok').reduce((s, m) => s + Math.round(m.htEUR * b26.tauxApplique * b26.commissionRate), 0);
   const totalComm = commBadre25 + commBadre26;
 
-  // ===== 3. ÉCART TAUX BADRE (appliqué vs marché) =====
+  // ===== 4. ÉCART TAUX BADRE (appliqué vs marché) =====
   const fxBadre25 = b25.majalis.reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)), 0);
   const fxBadre26 = b26.majalis.filter(m => m.statut === 'ok' && m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)), 0);
   const totalFxBadre = fxBadre25 + fxBadre26;
 
-  // ===== 4. P2P SPREAD on Badre payments =====
+  // ===== 5. P2P SPREAD on Badre payments =====
   // The MAD paid to Badre via P2P costs less EUR than at bank rate
   const totalNetBadre25 = b25.majalis.reduce((s, m) => {
     const dh = Math.round(m.htEUR * m.tauxApplique);
@@ -874,7 +880,7 @@ function renderMesGains() {
   const p2pSavingBadre = totalNetBadreDH * (1 - mktEURMAD / effEURMAD);
 
   // ===== GRAND TOTAL =====
-  const grandTotal = totalGainAz + totalComm + totalFxBadre + p2pSavingBadre;
+  const grandTotal = totalGainAz + commYsquareMAD + totalComm + totalFxBadre + p2pSavingBadre;
 
   // ===== BUILD HTML =====
   let html = `<h2 style="font-size:1.05rem;margin-bottom:6px">Mes Gains — Synthèse complète</h2>`;
@@ -897,6 +903,9 @@ function renderMesGains() {
 
   // Azarkan 2026
   html += `<tr><td><strong>Virements Azarkan 2026</strong></td><td>${fmtPlain(totalDH26)} DH envoyés, crédités ${fmtPlain(eurCredite26)} € (taux ${az26.tauxMaroc}), coût réel ${fmtPlain(Math.round(eurCoutP2P26))} € via P2P</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td></tr>`;
+
+  // Commission Ysquare
+  html += `<tr><td><strong>Commission Ysquare (Kenza) 8%</strong></td><td>${fmtPlain(ysquareTotal)} € × 8% = ${fmtPlain(commYsquareEUR)} € (≈ ${fmtPlain(commYsquareMAD)} DH au taux marché)</td><td class="a" style="color:var(--green)">${fmtSigned(commYsquareMAD, '')}</td></tr>`;
 
   // Commission Badre
   html += `<tr><td><strong>Commission Badre 10%</strong></td><td>2025 : ${fmtPlain(commBadre25)} DH · 2026 : ${fmtPlain(commBadre26)} DH</td><td class="a" style="color:var(--green)">${fmtSigned(totalComm, '')}</td></tr>`;
@@ -956,18 +965,22 @@ function renderMesGains() {
   const p2pAdvantage = effEURMAD - mktEURMAD;
   html += `<div class="insight pass"><div class="t">📈 Avantage P2P : +${p2pAdvantage.toFixed(3).replace('.',',')} MAD/EUR vs marché</div><div class="d">Le taux marché EUR/MAD moyen est ${mktEURMAD.toFixed(3).replace('.',',')}. Le P2P te donne ${effEURMAD.toFixed(3).replace('.',',')}. Ce premium de ${((p2pAdvantage/mktEURMAD)*100).toFixed(2).replace('.',',')}% vient de la vente USDT→MAD sur Binance (marché parallèle).</div></div>`;
 
-  // Insight 3: Badre commission total
+  // Insight 3: Ysquare commission
+  html += `<div class="insight pass"><div class="t">👩 Ysquare (Kenza) : ${fmtPlain(commYsquareEUR)} € de commission</div><div class="d">${fmtPlain(ysquareTotal)} € payés à Kenza en 2025 (6 paiements EBS). Commission moyenne de 8% retenue = <strong>${fmtPlain(commYsquareEUR)} €</strong> (≈ ${fmtPlain(commYsquareMAD)} DH).</div></div>`;
+
+  // Insight 4: Badre commission total
   const totalGainsBadre = totalComm + totalFxBadre + Math.round(p2pSavingBadre);
   html += `<div class="insight pass"><div class="t">🤝 Badre génère ${fmtPlain(totalGainsBadre)} DH de gains cumulés</div><div class="d">Commission 10% : <strong>${fmtPlain(totalComm)} DH</strong> · Écart taux : <strong>${fmtPlain(totalFxBadre)} DH</strong> · P2P spread : <strong>${fmtPlain(Math.round(p2pSavingBadre))} DH</strong>. La commission reste la source principale.</div></div>`;
 
-  // Insight 4: breakdown percentage
+  // Insight 5: breakdown percentage
   const pctAz = (totalGainAz / grandTotal * 100).toFixed(1);
+  const pctYsq = (commYsquareMAD / grandTotal * 100).toFixed(1);
   const pctComm = (totalComm / grandTotal * 100).toFixed(1);
   const pctFx = (totalFxBadre / grandTotal * 100).toFixed(1);
   const pctP2P = (p2pSavingBadre / grandTotal * 100).toFixed(1);
-  html += `<div class="insight"><div class="t">📊 Répartition des gains</div><div class="d">Virements Azarkan : <strong>${pctAz}%</strong> · Commission Badre : <strong>${pctComm}%</strong> · Écart taux Badre : <strong>${pctFx}%</strong> · Spread P2P Badre : <strong>${pctP2P}%</strong></div></div>`;
+  html += `<div class="insight"><div class="t">📊 Répartition des gains</div><div class="d">Virements Azarkan : <strong>${pctAz}%</strong> · Ysquare 8% : <strong>${pctYsq}%</strong> · Commission Badre : <strong>${pctComm}%</strong> · Écart taux Badre : <strong>${pctFx}%</strong> · Spread P2P Badre : <strong>${pctP2P}%</strong></div></div>`;
 
-  // Insight 5: monthly average
+  // Insight 6: monthly average
   const months = 13; // Feb 2025 to Mar 2026
   const monthlyAvg = grandTotal / months;
   html += `<div class="insight"><div class="t">📅 Moyenne mensuelle : ${fmtPlain(Math.round(monthlyAvg))} DH/mois</div><div class="d">Sur ${months} mois d'activité (Fév 2025 – Mar 2026), soit ~${fmtPlain(Math.round(monthlyAvg / effEURMAD))} €/mois.</div></div>`;
