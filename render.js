@@ -47,6 +47,14 @@ const badge = (type, text) => `<span class="b ${type}">${text}</span>`;
 
 const sum = (arr, key) => arr.reduce((s, x) => s + (typeof key === 'function' ? key(x) : (x[key] || 0)), 0);
 
+// ---- YEAR TOGGLE HELPER ----
+function yearToggle(section, activeYear) {
+  return `<div class="year-toggle">
+    <div class="year-btn ${activeYear===2025?'active':''}" data-year="2025" onclick="switch${section}Year(2025)">2025</div>
+    <div class="year-btn ${activeYear===2026?'active':''}" data-year="2026" onclick="switch${section}Year(2026)">2026</div>
+  </div>`;
+}
+
 // ---- AZARKAN 2025 ----
 function renderAzarkan2025() {
   const d = DATA.azarkan2025;
@@ -82,7 +90,7 @@ function renderAzarkan2025() {
   const totalRTL = sum(d.rtl, 'montant');
   const totalRecuRTL = sum(d.rtl, 'recu');
 
-  let html = '';
+  let html = yearToggle('Az', 2025);
 
   // Title
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
@@ -245,7 +253,8 @@ function renderAzarkan2026() {
   // Actually let's compute properly: facturé RTL not yet received + pending
   const totalFactureRTL = sum(d.rtl.filter(r => r.ref !== '—'), 'montant');
 
-  let html = `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
+  let html = yearToggle('Az', 2026);
+  html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
 
   html += `<div class="cards">
     <div class="card"><div class="l">Actuals à date</div><div class="v blue">${fmtPlain(totalFactureRTL + totalRTLFacture - totalFactureRTL)} €</div></div>
@@ -299,7 +308,8 @@ function renderBadre2025() {
   const solde = totalNetBadre - totalPaye;
   const totalGains = totalCommission + totalGainFX;
 
-  let html = `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
+  let html = yearToggle('Ba', 2025);
+  html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${d.subtitle}</p>`;
 
   // Cards
@@ -400,7 +410,8 @@ function renderBadre2026() {
   const soldeDu = report + totalNetBadrePaid;
   const solde2026 = soldeDu - totalPaye;
 
-  let html = `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
+  let html = yearToggle('Ba', 2026);
+  html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report 2025 : ${fmtSigned(report, 'DH')} (dû à Badre). Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong>. Réconciliation sur paiements Majalis reçus uniquement.</p>`;
 
   html += `<div class="cards">
@@ -777,13 +788,203 @@ function renderFXP2P() {
   return html;
 }
 
+// ---- MES GAINS (Binga only) ----
+function renderMesGains() {
+  if (!window.PRIV) return '<div style="padding:40px;text-align:center;color:var(--muted)"><p style="font-size:1.1rem">🔒 Section réservée</p></div>';
+
+  const d = DATA.fxP2P;
+  const peg = d.leg2.tauxMarche; // 3.6725
+
+  // ===== Compute effective & market EUR/MAD from P2P pipeline =====
+  const totalEURleg1 = sum(d.leg1.transactions, 'eur');
+  const totalAEDleg1 = sum(d.leg1.transactions, 'aed');
+  const totalAEDMktLeg1 = d.leg1.transactions.reduce((s, t) => s + t.eur * t.tauxMarche, 0);
+  const wavgTauxIFX = totalAEDleg1 / totalEURleg1;
+  const wavgTauxMkt1 = totalAEDMktLeg1 / totalEURleg1;
+
+  const totalAEDleg2 = sum(d.leg2.transactions, 'aed');
+  const totalUSDTleg2 = sum(d.leg2.transactions, 'usdt');
+  const wavgPrixBuy = totalAEDleg2 / totalUSDTleg2;
+
+  const totalUSDTleg3 = sum(d.leg3.transactions, 'usdt');
+  const totalMADleg3 = sum(d.leg3.transactions, 'mad');
+  const totalMADMktLeg3 = d.leg3.transactions.reduce((s, t) => s + t.usdt * (d.leg3.tauxMarche[t.date] || 0), 0);
+  const wavgPrixSell = totalMADleg3 / totalUSDTleg3;
+  const wavgMktSell = totalMADMktLeg3 / totalUSDTleg3;
+
+  // Rate chain: 1 EUR → tIFX AED → tIFX/buyPrice USDT → tIFX/buyPrice × sellPrice MAD
+  const effEURMAD = wavgTauxIFX * wavgPrixSell / wavgPrixBuy;
+  const mktEURMAD = wavgTauxMkt1 * wavgMktSell / peg;
+
+  // ===== 1. VIREMENTS AZARKAN — Rate arbitrage + P2P spread =====
+  const az25 = DATA.azarkan2025;
+  const az26 = DATA.azarkan2026;
+  const tauxAz = az25.tauxMaroc; // 10
+
+  // 2025 virements
+  const totalDH25 = sum(az25.virementsMaroc, 'totalDH'); // 230000
+  const eurCredite25 = totalDH25 / tauxAz; // 23000
+  const eurCoutP2P25 = totalDH25 / effEURMAD;
+  const gainEUR_az25 = eurCredite25 - eurCoutP2P25;
+  const gainMAD_az25 = gainEUR_az25 * effEURMAD; // = totalDH25 * (effEURMAD/tauxAz - 1) ... simplified
+
+  // Decompose: rate arbitrage (tauxAz vs market) + P2P spread (market vs effective)
+  const eurCoutMarche25 = totalDH25 / mktEURMAD;
+  const gainRateArb25 = (eurCredite25 - eurCoutMarche25) * mktEURMAD; // Azarkan rate vs market, in MAD
+  const gainP2PSpread25 = (eurCoutMarche25 - eurCoutP2P25) * effEURMAD; // P2P vs market, in MAD
+
+  // 2026 virements
+  const totalDH26 = sum(az26.virementsMaroc, 'dh'); // 50000
+  const eurCredite26 = totalDH26 / az26.tauxMaroc;
+  const eurCoutP2P26 = totalDH26 / effEURMAD;
+  const gainEUR_az26 = eurCredite26 - eurCoutP2P26;
+  const gainMAD_az26 = gainEUR_az26 * effEURMAD;
+
+  const eurCoutMarche26 = totalDH26 / mktEURMAD;
+  const gainRateArb26 = (eurCredite26 - eurCoutMarche26) * mktEURMAD;
+  const gainP2PSpread26 = (eurCoutMarche26 - eurCoutP2P26) * effEURMAD;
+
+  const totalGainAz = gainMAD_az25 + gainMAD_az26;
+
+  // ===== 2. COMMISSION BADRE 10% =====
+  const b25 = DATA.badre2025;
+  const b26 = DATA.badre2026;
+
+  const commBadre25 = b25.majalis.reduce((s, m) => s + Math.round(m.htEUR * m.tauxApplique * b25.commissionRate), 0);
+  const commBadre26 = b26.majalis.filter(m => m.statut === 'ok').reduce((s, m) => s + Math.round(m.htEUR * b26.tauxApplique * b26.commissionRate), 0);
+  const totalComm = commBadre25 + commBadre26;
+
+  // ===== 3. ÉCART TAUX BADRE (appliqué vs marché) =====
+  const fxBadre25 = b25.majalis.reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)), 0);
+  const fxBadre26 = b26.majalis.filter(m => m.statut === 'ok' && m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)), 0);
+  const totalFxBadre = fxBadre25 + fxBadre26;
+
+  // ===== 4. P2P SPREAD on Badre payments =====
+  // The MAD paid to Badre via P2P costs less EUR than at bank rate
+  const totalNetBadre25 = b25.majalis.reduce((s, m) => {
+    const dh = Math.round(m.htEUR * m.tauxApplique);
+    return s + dh - Math.round(dh * b25.commissionRate);
+  }, 0);
+  const totalNetBadre26 = b26.majalis.filter(m => m.statut === 'ok').reduce((s, m) => {
+    const dh = Math.round(m.htEUR * b26.tauxApplique);
+    return s + dh - Math.round(dh * b26.commissionRate);
+  }, 0);
+  const totalNetBadreDH = totalNetBadre25 + totalNetBadre26;
+  // P2P saving: cost at market - cost at P2P (in EUR) * effRate
+  const p2pSavingBadre = totalNetBadreDH * (1 - mktEURMAD / effEURMAD);
+
+  // ===== GRAND TOTAL =====
+  const grandTotal = totalGainAz + totalComm + totalFxBadre + p2pSavingBadre;
+
+  // ===== BUILD HTML =====
+  let html = `<h2 style="font-size:1.05rem;margin-bottom:6px">Mes Gains — Synthèse complète</h2>`;
+  html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Calcul de tous les gains générés par l'activité de facturation et le pipeline FX P2P. Tous les montants en MAD.</p>`;
+
+  // Grand total card
+  html += `<div class="cards">
+    <div class="card"><div class="l">Total gains (MAD)</div><div class="v green">${fmtPlain(Math.round(grandTotal))} DH</div></div>
+    <div class="card"><div class="l">≈ en EUR</div><div class="v green">${fmtPlain(Math.round(grandTotal / effEURMAD))} €</div></div>
+    <div class="card"><div class="l">Taux effectif P2P</div><div class="v blue">${effEURMAD.toFixed(3).replace('.',',')}</div></div>
+    <div class="card"><div class="l">Taux marché moyen</div><div class="v yellow">${mktEURMAD.toFixed(3).replace('.',',')}</div></div>
+  </div>`;
+
+  // ===== TABLE RÉCAPITULATIVE =====
+  html += `<div class="s"><div class="st">Récapitulatif des gains par source</div><table>
+    <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">Gain (DH)</th></tr></thead><tbody>`;
+
+  // Azarkan 2025
+  html += `<tr><td><strong>Virements Azarkan 2025</strong></td><td>${fmtPlain(totalDH25)} DH envoyés, crédités ${fmtPlain(eurCredite25)} € (taux ${tauxAz}), coût réel ${fmtPlain(Math.round(eurCoutP2P25))} € via P2P</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az25), '')}</td></tr>`;
+
+  // Azarkan 2026
+  html += `<tr><td><strong>Virements Azarkan 2026</strong></td><td>${fmtPlain(totalDH26)} DH envoyés, crédités ${fmtPlain(eurCredite26)} € (taux ${az26.tauxMaroc}), coût réel ${fmtPlain(Math.round(eurCoutP2P26))} € via P2P</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td></tr>`;
+
+  // Commission Badre
+  html += `<tr><td><strong>Commission Badre 10%</strong></td><td>2025 : ${fmtPlain(commBadre25)} DH · 2026 : ${fmtPlain(commBadre26)} DH</td><td class="a" style="color:var(--green)">${fmtSigned(totalComm, '')}</td></tr>`;
+
+  // FX Badre
+  html += `<tr><td><strong>Écart taux Badre</strong></td><td>Taux appliqué &lt; taux marché (2025 : ${fmtPlain(fxBadre25)} DH · 2026 : ${fmtPlain(fxBadre26)} DH)</td><td class="a" style="color:var(--green)">${fmtSigned(totalFxBadre, '')}</td></tr>`;
+
+  // P2P spread on Badre
+  html += `<tr><td><strong>Spread P2P (paiements Badre)</strong></td><td>Envoi de ${fmtPlain(totalNetBadreDH)} DH via Binance au lieu de banque</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(p2pSavingBadre), '')}</td></tr>`;
+
+  // Total
+  html += `<tr class="tr"><td><strong>TOTAL GAINS</strong></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(grandTotal), ' DH')}</strong></td></tr>`;
+  html += `</tbody></table></div>`;
+
+  // ===== BREAKDOWN AZARKAN =====
+  html += `<div class="s"><div class="st">Détail — Virements Azarkan (Maroc)</div>`;
+  html += `<div class="n ok">Quand tu envoies des MAD à Azarkan via Binance P2P, le taux appliqué par Azarkan est <strong>${tauxAz} MAD/EUR</strong>. Ton taux effectif P2P est <strong>${effEURMAD.toFixed(3).replace('.',',')} MAD/EUR</strong>. La différence (${(effEURMAD - tauxAz).toFixed(3).replace('.',',')} MAD/EUR) est ton gain pour chaque EUR crédité.</div>`;
+
+  html += `<table><thead><tr><th>Période</th><th style="text-align:right">DH envoyés</th><th style="text-align:right">EUR crédités (÷${tauxAz})</th><th style="text-align:right">Coût réel EUR (P2P)</th><th style="text-align:right">Gain EUR</th><th style="text-align:right">Gain MAD</th></tr></thead><tbody>`;
+  html += `<tr><td>2025 (Fév-Déc)</td><td class="a">${fmtPlain(totalDH25)}</td><td class="a">${fmtPlain(eurCredite25)}</td><td class="a">${fmtPlain(Math.round(eurCoutP2P25))}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainEUR_az25), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az25), '')}</td></tr>`;
+  html += `<tr><td>2026 (Jan-Mar)</td><td class="a">${fmtPlain(totalDH26)}</td><td class="a">${fmtPlain(eurCredite26)}</td><td class="a">${fmtPlain(Math.round(eurCoutP2P26))}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainEUR_az26), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td></tr>`;
+  html += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDH25 + totalDH26)}</strong></td><td class="a"><strong>${fmtPlain(eurCredite25 + eurCredite26)}</strong></td><td class="a"><strong>${fmtPlain(Math.round(eurCoutP2P25 + eurCoutP2P26))}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainEUR_az25 + gainEUR_az26), '')}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainMAD_az25 + gainMAD_az26), '')}</strong></td></tr>`;
+  html += `</tbody></table></div>`;
+
+  // ===== BREAKDOWN BADRE =====
+  html += `<div class="s"><div class="st">Détail — Gains Badre (Commission + Taux + P2P)</div>`;
+
+  // Per-transaction table for Badre 2025
+  html += `<table><thead><tr><th>Date</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Commission 10% (DH)</th><th style="text-align:right">Gain taux (DH)</th></tr></thead><tbody>`;
+  let sumComm = 0, sumFxB = 0;
+  b25.majalis.forEach(m => {
+    const dh = Math.round(m.htEUR * m.tauxApplique);
+    const comm = Math.round(dh * b25.commissionRate);
+    const fx = Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique));
+    sumComm += comm; sumFxB += fx;
+    html += `<tr><td>${m.date}</td><td class="a">${fmtPlain(m.htEUR)}</td><td class="a">${fmtRate(m.tauxApplique)}</td><td class="a">${fmtRate(m.tauxMarche)}</td><td class="a" style="color:var(--green)">${fmtPlain(comm)}</td><td class="a" style="color:var(--green)">${fmtSigned(fx, '')}</td></tr>`;
+  });
+  // Badre 2026 paid
+  b26.majalis.filter(m => m.statut === 'ok').forEach(m => {
+    const dh = Math.round(m.htEUR * b26.tauxApplique);
+    const comm = Math.round(dh * b26.commissionRate);
+    const fx = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)) : 0;
+    sumComm += comm; sumFxB += fx;
+    html += `<tr><td>${m.mois} 2026</td><td class="a">${fmtPlain(m.htEUR)}</td><td class="a">${fmtRate(b26.tauxApplique)}</td><td class="a">${m.tauxMarche ? fmtRate(m.tauxMarche) : '—'}</td><td class="a" style="color:var(--green)">${fmtPlain(comm)}</td><td class="a" style="color:var(--green)">${m.tauxMarche ? fmtSigned(fx, '') : '—'}</td></tr>`;
+  });
+  html += `<tr class="tr"><td><strong>Total</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(sumComm)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(sumFxB, '')}</strong></td></tr>`;
+  html += `</tbody></table></div>`;
+
+  // ===== INSIGHTS =====
+  html += `<div class="s"><div class="st">Insights</div>`;
+
+  // Insight 1: effective vs Azarkan rate
+  const gainPerEUR_az = effEURMAD - tauxAz;
+  html += `<div class="insight pass"><div class="t">💰 Gain de ${gainPerEUR_az.toFixed(2).replace('.',',')} DH par EUR crédité chez Azarkan</div><div class="d">Le taux Azarkan est ${tauxAz} MAD/EUR. Ton taux effectif via Binance P2P est ${effEURMAD.toFixed(3).replace('.',',')} MAD/EUR. Pour chaque 1 000€ crédité, tu gagnes <strong>${fmtPlain(Math.round(gainPerEUR_az * 1000))} DH</strong>.</div></div>`;
+
+  // Insight 2: P2P vs market
+  const p2pAdvantage = effEURMAD - mktEURMAD;
+  html += `<div class="insight pass"><div class="t">📈 Avantage P2P : +${p2pAdvantage.toFixed(3).replace('.',',')} MAD/EUR vs marché</div><div class="d">Le taux marché EUR/MAD moyen est ${mktEURMAD.toFixed(3).replace('.',',')}. Le P2P te donne ${effEURMAD.toFixed(3).replace('.',',')}. Ce premium de ${((p2pAdvantage/mktEURMAD)*100).toFixed(2).replace('.',',')}% vient de la vente USDT→MAD sur Binance (marché parallèle).</div></div>`;
+
+  // Insight 3: Badre commission total
+  const totalGainsBadre = totalComm + totalFxBadre + Math.round(p2pSavingBadre);
+  html += `<div class="insight pass"><div class="t">🤝 Badre génère ${fmtPlain(totalGainsBadre)} DH de gains cumulés</div><div class="d">Commission 10% : <strong>${fmtPlain(totalComm)} DH</strong> · Écart taux : <strong>${fmtPlain(totalFxBadre)} DH</strong> · P2P spread : <strong>${fmtPlain(Math.round(p2pSavingBadre))} DH</strong>. La commission reste la source principale.</div></div>`;
+
+  // Insight 4: breakdown percentage
+  const pctAz = (totalGainAz / grandTotal * 100).toFixed(1);
+  const pctComm = (totalComm / grandTotal * 100).toFixed(1);
+  const pctFx = (totalFxBadre / grandTotal * 100).toFixed(1);
+  const pctP2P = (p2pSavingBadre / grandTotal * 100).toFixed(1);
+  html += `<div class="insight"><div class="t">📊 Répartition des gains</div><div class="d">Virements Azarkan : <strong>${pctAz}%</strong> · Commission Badre : <strong>${pctComm}%</strong> · Écart taux Badre : <strong>${pctFx}%</strong> · Spread P2P Badre : <strong>${pctP2P}%</strong></div></div>`;
+
+  // Insight 5: monthly average
+  const months = 13; // Feb 2025 to Mar 2026
+  const monthlyAvg = grandTotal / months;
+  html += `<div class="insight"><div class="t">📅 Moyenne mensuelle : ${fmtPlain(Math.round(monthlyAvg))} DH/mois</div><div class="d">Sur ${months} mois d'activité (Fév 2025 – Mar 2026), soit ~${fmtPlain(Math.round(monthlyAvg / effEURMAD))} €/mois.</div></div>`;
+
+  html += `</div>`;
+
+  return html;
+}
+
 // ---- INIT ----
 function renderAll() {
-  document.getElementById('az25').innerHTML = renderAzarkan2025();
-  document.getElementById('az26').innerHTML = renderAzarkan2026();
-  document.getElementById('ba25').innerHTML = renderBadre2025();
-  document.getElementById('ba26').innerHTML = renderBadre2026();
+  const azY = window.azYear || 2026;
+  const baY = window.baYear || 2026;
+  document.getElementById('azarkan').innerHTML = (azY === 2025) ? renderAzarkan2025() : renderAzarkan2026();
+  document.getElementById('badre').innerHTML = (baY === 2025) ? renderBadre2025() : renderBadre2026();
   document.getElementById('fxp2p').innerHTML = renderFXP2P();
+  document.getElementById('gains').innerHTML = renderMesGains();
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

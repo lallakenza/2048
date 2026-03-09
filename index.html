@@ -63,6 +63,11 @@
   .insight{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;border-left:4px solid var(--accent);margin-bottom:12px}
   .insight.pass{border-left-color:var(--green)} .insight.warn{border-left-color:var(--yellow)} .insight.fail{border-left-color:var(--red)}
   .insight strong{color:var(--text)} .insight .t{font-weight:700;font-size:.88rem;margin-bottom:6px} .insight .d{font-size:.8rem;color:var(--muted);line-height:1.5}
+  /* Year toggle */
+  .year-toggle{display:inline-flex;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:18px;border:1px solid var(--border)}
+  .year-btn{padding:7px 18px;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--muted);transition:all .2s;user-select:none}
+  .year-btn:hover{color:var(--text)}
+  .year-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
   @media(max-width:768px){.content{padding:14px}.tabs{padding:0 10px}.tab{padding:10px 12px;font-size:.72rem}table{font-size:.72rem}thead th,tbody td{padding:6px 7px}.cards{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -72,18 +77,16 @@
   <p>Audit croisé : Excel Azarkan × EBS × Attijariwafa — Taux Azarkan : 10 000 DH = 1 000€</p>
 </div>
 <div class="tabs">
-  <div class="tab active" onclick="showTab('az25')">Azarkan 2025</div>
-  <div class="tab" onclick="showTab('az26')">Azarkan 2026</div>
-  <div class="tab" onclick="showTab('ba25')">Badre 2025</div>
-  <div class="tab" onclick="showTab('ba26')">Badre 2026</div>
+  <div class="tab active" onclick="showTab('azarkan')">Azarkan</div>
+  <div class="tab" onclick="showTab('badre')">Badre</div>
   <div class="tab" id="tab-fxp2p" onclick="showTab('fxp2p')" style="display:none">FX P2P</div>
+  <div class="tab" id="tab-gains" onclick="showTab('gains')" style="display:none">Mes Gains</div>
 </div>
 <div class="content">
-  <div id="az25" class="panel active"></div>
-  <div id="az26" class="panel"></div>
-  <div id="ba25" class="panel"></div>
-  <div id="ba26" class="panel"></div>
+  <div id="azarkan" class="panel active"></div>
+  <div id="badre" class="panel"></div>
   <div id="fxp2p" class="panel"></div>
+  <div id="gains" class="panel"></div>
 </div>
 <div style="padding:20px 32px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
   <span style="font-size:.72rem;color:var(--muted)">Réf. dossier</span>
@@ -97,26 +100,46 @@
     <div class="binga-line bot"></div>
   </div>
 </div>
-<script src="data.js?v=8"></script>
-<script src="render.js?v=8"></script>
+<script src="data.js?v=9"></script>
+<script src="render.js?v=9"></script>
 <script>
+// ---- Tab switching ----
 function showTab(id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   event.target.classList.add('active');
 }
+
+// ---- Year toggle ----
+window.azYear = 2026;
+window.baYear = 2026;
+function switchAzYear(y){
+  window.azYear = y;
+  document.getElementById('azarkan').innerHTML = (y === 2025) ? renderAzarkan2025() : renderAzarkan2026();
+  document.querySelectorAll('#azarkan .year-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.year) === y);
+  });
+}
+function switchBaYear(y){
+  window.baYear = y;
+  document.getElementById('badre').innerHTML = (y === 2025) ? renderBadre2025() : renderBadre2026();
+  document.querySelectorAll('#badre .year-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.year) === y);
+  });
+}
+
+// ---- Binga ----
 document.getElementById('dref').addEventListener('input', function(){
   const v = this.value.trim();
   if(v === 'BINGA' && !window.PRIV){
     window.PRIV = true;
-    // Show Binga Mode animation
     const ovl = document.getElementById('bingaOvl');
     ovl.classList.add('show');
-    // Switch to dark/pro theme after short delay
     setTimeout(()=>{ document.body.classList.add('dark'); }, 400);
     setTimeout(()=>{
       document.getElementById('tab-fxp2p').style.display = '';
+      document.getElementById('tab-gains').style.display = '';
       renderAll();
       ovl.classList.remove('show');
     }, 1900);
