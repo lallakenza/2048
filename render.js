@@ -220,13 +220,13 @@ function renderAugustin2025() {
 
   // Cat 5: Divers
   html += `<div class="s"><div class="st">5. Autre (Divers) — ${fmtPlain(totalDiversCalc)}€ net · 100% vérifié EBS (${d.divers.length} opérations)</div><table>
-    <thead><tr><th>Mois</th><th>Libellé</th><th style="text-align:right">Montant (€)</th><th>Preuve</th></tr></thead><tbody>`;
+    <thead><tr><th>Mois</th><th>Date EBS</th><th>Libellé</th><th style="text-align:right">Montant (€)</th><th>Preuve</th></tr></thead><tbody>`;
   d.divers.forEach(dv => {
     const rowStyle = dv.preuve === 'ok' ? ' style="background:var(--green-bg)"' : '';
     const montantStr = dv.montant < 0 ? '−' + fmtPlain(Math.abs(dv.montant)) : fmtPlain(dv.montant);
-    html += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
+    html += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.date || '—'}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
   });
-  html += `<tr class="tr"><td colspan="2"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong style="color:var(--green)">✓ 100% vérifié EBS</strong></td></tr></tbody></table>`;
+  html += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong style="color:var(--green)">✓ 100% vérifié EBS</strong></td></tr></tbody></table>`;
   html += `<div class="n ok"><strong>100% vérifié EBS</strong> — ${d.divers.length} opérations, ${fmtPlain(d.diversVerifie)}€ en valeur absolue. Vols ✓, iPhone ✓, virements Nov/Déc ✓, prêts ✓. <strong>0€ sans preuve.</strong></div></div>`;
 
   // RTL Factures
