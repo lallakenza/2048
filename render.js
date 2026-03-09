@@ -247,39 +247,59 @@ function renderAzarkan2026() {
 
   const totalMAD = sum(d.virementsMaroc, 'dh');
   const totalEUR = totalMAD / d.tauxMaroc;
-  const totalRTLFacture = sum(d.rtl, 'montant');
-  // Actuals = factures reçues (statut ok) — for now sum all
-  const actualsADate = sum(d.rtl.filter(r => r.statut !== 'i'), 'montant') + totalRTLFacture - totalRTLFacture + totalRTLFacture; // simplified: just show facturé
-  // Actually let's compute properly: facturé RTL not yet received + pending
-  const totalFactureRTL = sum(d.rtl.filter(r => r.ref !== '—'), 'montant');
+
+  // Facturé (accrual) = toutes les factures RTL 2026 (émises + à facturer)
+  const totalFacture = sum(d.rtl, 'montant');
+  // Facturé mais pas encore payé = factures émises (ref !== '—') pas encore reçues
+  const totalFactureEmis = sum(d.rtl.filter(r => r.ref !== '—'), 'montant');
+  // Amine a reçu = factures RTL effectivement payées (statut 'ok')
+  const amineRecu = sum(d.rtl.filter(r => r.statut === 'ok'), 'montant');
+  // Azarkan a reçu = virements Maroc en EUR
+  const azarkanRecuEUR = totalEUR;
+  // Delta = Amine reçu − Azarkan reçu + report 2025
+  const delta = amineRecu - azarkanRecuEUR + d.report2025;
 
   let html = yearToggle('Az', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
 
   html += `<div class="cards">
-    <div class="card"><div class="l">Actuals à date</div><div class="v blue">${fmtPlain(totalFactureRTL + totalRTLFacture - totalFactureRTL)} €</div></div>
-    <div class="card"><div class="l">Report 2025</div><div class="v red">${fmtSigned(d.report2025)}</div></div>
-    <div class="card"><div class="l">Facturé RTL 2026</div><div class="v yellow">${fmtPlain(totalFactureRTL)} €</div></div>
-    <div class="card"><div class="l">MAD → Azarkan 2026</div><div class="v blue">${fmtPlain(totalMAD)} DH</div></div>
+    <div class="card"><div class="l">Facturé (accrual)</div><div class="v yellow">${fmtPlain(totalFacture)} €</div></div>
+    <div class="card"><div class="l">Amine a reçu</div><div class="v ${amineRecu > 0 ? 'green' : 'red'}">${fmtPlain(amineRecu)} €</div></div>
+    <div class="card"><div class="l">Azarkan a reçu</div><div class="v blue">${fmtPlain(azarkanRecuEUR)} €</div></div>
+    <div class="card"><div class="l">Delta (Amine − Azarkan)</div><div class="v ${delta >= 0 ? 'green' : 'red'}">${fmtSigned(delta)}</div></div>
   </div>`;
 
+  // Réconciliation résumé
+  html += `<div class="s"><div class="st">Réconciliation 2026 — Facturé vs Reçu</div><table>
+    <thead><tr><th>Ligne</th><th style="text-align:right">EUR</th><th>Détail</th></tr></thead><tbody>
+    <tr><td>Facturé RTL (accrual)</td><td class="a" style="color:var(--yellow)">${fmtPlain(totalFacture)}</td><td>${d.rtl.length} factures (Jan–Mar 2026)</td></tr>
+    <tr><td>dont émises (en attente paiement)</td><td class="a">${fmtPlain(totalFactureEmis)}</td><td>${d.rtl.filter(r => r.ref !== '—').length} factures émises</td></tr>
+    <tr><td>Amine a reçu (cash in)</td><td class="a" style="color:var(--green)">${fmtPlain(amineRecu)}</td><td>Factures RTL payées à ce jour</td></tr>
+    <tr><td>Azarkan a reçu (cash out)</td><td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(azarkanRecuEUR)}</td><td>${fmtPlain(totalMAD)} DH ÷ ${d.tauxMaroc}</td></tr>
+    <tr><td>Report 2025</td><td class="a" style="color:var(--red)">${fmtSigned(d.report2025)}</td><td>Solde clôture 2025</td></tr>
+    <tr class="tr"><td><strong>Delta net</strong></td><td class="a" style="color:${delta >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmtSigned(delta)}</strong></td><td>${delta < 0 ? 'Amine a avancé ' + fmtPlain(Math.abs(delta)) + '€ de plus' : 'Azarkan doit ' + fmtPlain(delta) + '€'}</td></tr>
+    </tbody></table></div>`;
+
+  // Factures RTL 2026
+  html += `<div class="s"><div class="st">Factures RTL 2026</div><table>
+    <thead><tr><th>Facture</th><th>Période</th><th>Jours</th><th style="text-align:right">Montant (€)</th><th>Statut</th></tr></thead><tbody>`;
+  d.rtl.forEach(r => {
+    html += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${badge(r.statut, r.statutText)}</td></tr>`;
+  });
+  html += `<tr class="tr"><td colspan="3"><strong>Total facturé</strong></td><td class="a"><strong>${fmtPlain(totalFacture)}</strong></td><td></td></tr></tbody></table></div>`;
+
   // Virements Maroc
-  html += `<div class="s"><div class="st">Virements Maroc → Azarkan 2026</div><table>
+  html += `<div class="s"><div class="st">Azarkan a reçu — Virements Maroc 2026</div><table>
     <thead><tr><th>#</th><th>Date</th><th>Bénéficiaire</th><th style="text-align:right">DH</th><th style="text-align:right">= EUR (÷${d.tauxMaroc})</th></tr></thead><tbody>`;
   d.virementsMaroc.forEach((v, i) => {
     html += `<tr><td>${i+1}</td><td>${v.date}</td><td>${v.beneficiaire}</td><td class="a">${fmtPlain(v.dh)}</td><td class="a">${fmtPlain(v.dh / d.tauxMaroc)}</td></tr>`;
   });
   html += `<tr class="tr"><td></td><td colspan="2"><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(totalMAD)}</strong></td><td class="a"><strong>${fmtPlain(totalEUR)}</strong></td></tr></tbody></table></div>`;
 
-  // RTL 2026
-  html += `<div class="s"><div class="st">Factures RTL 2026 — En attente</div><table>
-    <thead><tr><th>Facture</th><th>Période</th><th>Jours</th><th style="text-align:right">Montant (€)</th><th>Statut</th></tr></thead><tbody>`;
-  d.rtl.forEach(r => {
-    html += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${badge(r.statut, r.statutText)}</td></tr>`;
-  });
-  html += `</tbody></table></div>`;
-
-  html += `<div class="n">Clôture 2026 à faire une fois les données complètes. Le report 2025 est de <strong>${fmtSigned(d.report2025)}</strong> (Excel = corrigé, Maroc matche parfaitement).</div>`;
+  html += `<div class="n">${delta < 0
+    ? `<strong>Amine a avancé ${fmtPlain(Math.abs(delta))}€</strong> de plus qu'il n'a reçu. Les ${totalFactureEmis > 0 ? fmtPlain(totalFactureEmis) + '€ de factures RTL en attente' : 'factures RTL'} couvriront ce delta une fois payées.`
+    : `Le solde est positif : Azarkan doit ${fmtPlain(delta)}€ à Amine.`
+  } Report 2025 : <strong>${fmtSigned(d.report2025)}</strong>.</div>`;
 
   return html;
 }
