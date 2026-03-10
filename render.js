@@ -362,7 +362,7 @@ function renderBenoitAll() {
 // ---- BENOIT 2025 ----
 function renderBenoit2025(embedded) {
   const d = DATA.benoit2025;
-  const rate = d.commissionRate || 0; // 0 in public mode (encrypted)
+  const rate = d.commissionRate || 0; // from data (public or decrypted)
 
   // Computed per transaction
   const transactions = d.councils.map(m => {
@@ -397,8 +397,9 @@ function renderBenoit2025(embedded) {
     </div>`;
   } else {
     html += `<div class="cards">
-      <div class="card"><div class="l">Total Councils HT</div><div class="v blue">${fmtPlain(totalDH)} DH</div></div>
+      <div class="card"><div class="l">Dû à Benoit (90% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
       <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+      <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
     </div>`;
   }
 
@@ -412,11 +413,11 @@ function renderBenoit2025(embedded) {
     html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalGainFX, '')}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr></tbody></table></div>`;
   } else {
     html += `<div class="s"><div class="st">Paiements Councils HT 2025 — convertis en DH</div><table>
-      <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th></th></tr></thead><tbody>`;
+      <thead><tr><th>#</th><th>Date EBS</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
-      html += `<tr><td>${i+1}</td><td>${t.date}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
+      html += `<tr><td>${i+1}</td><td>${t.date}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
     });
-    html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td></td></tr></tbody></table></div>`;
+    html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr></tbody></table></div>`;
   }
 
   // Virements
@@ -427,17 +428,15 @@ function renderBenoit2025(embedded) {
   });
   html += `<tr class="tr"><td></td><td colspan="2"><strong>Total payé 2025</strong></td><td class="a"><strong>${fmtPlain(totalPaye)}</strong></td><td></td></tr></tbody></table></div>`;
 
-  // Réconciliation
-  if (window.PRIV) {
-    html += `<div class="s"><div class="st">Réconciliation Benoit 2025</div><table>
-      <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
-      <tr><td>Councils HT total (taux appliqué)</td><td class="a">${fmtPlain(totalDH)}</td><td>${transactions.length} paiements EBS × taux Amine</td></tr>
-      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
-      <tr><td><strong>Net dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr>
-      <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virements (Jul-Mar)</td></tr>
-      <tr class="tr"><td><strong>Solde restant dû</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(solde, '')}</strong></td><td>Amine doit encore ${fmtPlain(solde)} DH à Benoit</td></tr>
-      </tbody></table></div>`;
-  }
+  // Réconciliation (always visible now)
+  html += `<div class="s"><div class="st">Réconciliation Benoit 2025</div><table>
+    <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
+    <tr><td>Councils HT total (taux appliqué)</td><td class="a">${fmtPlain(totalDH)}</td><td>${transactions.length} paiements EBS × taux appliqué</td></tr>
+    <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
+    <tr><td><strong>Net dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr>
+    <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virements (Jul-Mar)</td></tr>
+    <tr class="tr"><td><strong>Solde → Report 2026</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(solde, 'DH')}</strong></td><td>${solde > 0 ? 'Amine doit encore ' + fmtPlain(solde) + ' DH à Benoit → carryforward 2026' : 'Soldé'}</td></tr>
+    </tbody></table></div>`;
 
   // Consolidation gains (private only)
   if (window.PRIV) {
@@ -507,10 +506,12 @@ function renderBenoit2026(embedded) {
       <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde2026 > 0 ? 'yellow' : solde2026 < 0 ? 'green' : 'green'}">${fmtSigned(solde2026, 'DH')}</div></div>
     </div>`;
   } else {
-    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Paiements Councils 2026 en cours.</p>`;
+    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report 2025 : ${fmtSigned(report, 'DH')} (dû à Benoit). Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong>.</p>`;
     html += `<div class="cards">
-      <div class="card"><div class="l">Paiements Councils</div><div class="v blue">${d.councils.length} factures</div></div>
+      <div class="card"><div class="l">Report 2025</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
+      <div class="card"><div class="l">Councils payé 2026 (net −10%)</div><div class="v blue">${fmtPlain(totalNetBenoitPaid)} DH</div></div>
       <div class="card"><div class="l">Payé DH 2026</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
+      <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde2026 > 0 ? 'yellow' : 'green'}">${fmtSigned(solde2026, 'DH')}</div></div>
     </div>`;
   }
 
@@ -523,10 +524,10 @@ function renderBenoit2026(embedded) {
     });
     html += `</tbody></table></div>`;
   } else {
-    html += `<div class="s"><div class="st">Paiements Councils 2026</div><table>
-      <thead><tr><th>Mois</th><th style="text-align:right">HT (€)</th><th>Statut</th></tr></thead><tbody>`;
+    html += `<div class="s"><div class="st">Paiements Councils 2026 — convertis en DH (taux ${fmtRate(taux)})</div><table>
+      <thead><tr><th>Mois</th><th style="text-align:right">HT (€)</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Benoit (DH)</th><th>Statut</th></tr></thead><tbody>`;
     transactions.forEach(t => {
-      html += `<tr><td>${t.mois}</td><td class="a">${fmtPlain(t.htEUR)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
+      html += `<tr><td>${t.mois}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
     });
     html += `</tbody></table></div>`;
   }
@@ -541,19 +542,17 @@ function renderBenoit2026(embedded) {
     html += `<tr class="tr"><td></td><td colspan="2"><strong>Total payé 2026</strong></td><td class="a"><strong>${fmtPlain(totalPaye)}</strong></td><td></td></tr></tbody></table></div>`;
   }
 
-  // Réconciliation 2026 (PRIV only)
-  if (window.PRIV) {
-    html += `<div class="s"><div class="st">Réconciliation Benoit 2026 (payé uniquement)</div><table>
-      <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
-      <tr><td>Report 2025</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Solde clôture 2025 (dû à Benoit)</td></tr>
-      <tr><td>Councils HT payé 2026 (taux ${fmtRate(taux)})</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paidTransactions.length} paiement(s) reçu(s)</td></tr>
-      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommissionPaid)}</td><td>Retenue par Amine</td></tr>
-      <tr><td><strong>Total dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Report + net Councils payé</td></tr>
-      <tr><td>Virements DH 2026</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
-      <tr class="tr"><td><strong>Solde 2026</strong></td><td class="a" style="color:${solde2026 > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde2026, '')}</strong></td><td>${solde2026 > 0 ? 'Amine doit encore ' + fmtPlain(solde2026) + ' DH à Benoit' : solde2026 < 0 ? 'Benoit a un excédent de ' + fmtPlain(Math.abs(solde2026)) + ' DH' : 'Soldé'}</td></tr>
-      </tbody></table></div>`;
-    html += `<div class="n">Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong> (fixe). La réconciliation ne prend en compte que les Councils effectivement payés.</div>`;
-  }
+  // Réconciliation 2026 (always visible)
+  html += `<div class="s"><div class="st">Réconciliation Benoit 2026 (payé uniquement)</div><table>
+    <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
+    <tr><td>Report 2025</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Solde clôture 2025 (dû à Benoit)</td></tr>
+    <tr><td>Councils HT payé 2026 (taux ${fmtRate(taux)})</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paidTransactions.length} paiement(s) reçu(s)</td></tr>
+    <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommissionPaid)}</td><td>Retenue par Amine</td></tr>
+    <tr><td><strong>Total dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Report + net Councils payé</td></tr>
+    <tr><td>Virements DH 2026</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
+    <tr class="tr"><td><strong>Solde 2026</strong></td><td class="a" style="color:${solde2026 > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde2026, '')}</strong></td><td>${solde2026 > 0 ? 'Amine doit encore ' + fmtPlain(solde2026) + ' DH à Benoit' : solde2026 < 0 ? 'Benoit a un excédent de ' + fmtPlain(Math.abs(solde2026)) + ' DH' : 'Soldé'}</td></tr>
+    </tbody></table></div>`;
+  html += `<div class="n">Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. Taux appliqué 2026 : <strong>${fmtRate(taux)}</strong> (fixe). La réconciliation ne prend en compte que les Councils effectivement payés.</div>`;
 
   return html;
 }

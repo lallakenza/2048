@@ -138,7 +138,7 @@ const DATA = {
   benoit2025: {
     title: "Clôture Benoit 2025 — Tracking en DH",
     subtitle: "Tout est comptabilisé en DH. Les paiements Councils (en EUR) sont convertis en DH au taux EUR/MAD du jour de chaque transaction.",
-    // commissionRate: ENCRYPTED — injected at runtime
+    commissionRate: 0.10,
     // tauxMarche per transaction: ENCRYPTED — injected at runtime
 
     councils: [
@@ -163,8 +163,8 @@ const DATA = {
   // ==================== BENOIT 2026 (PUBLIC — sans taux ni commission) ====================
   benoit2026: {
     title: "Benoit 2026 — En cours (tracking en DH)",
-    // tauxApplique: ENCRYPTED
-    // commissionRate: ENCRYPTED
+    commissionRate: 0.10,
+    tauxApplique: 10.600,
 
     councils: [
       { mois: "Janvier", htEUR: 5000, statut: "ok", statutText: "Paid 11/02" },
