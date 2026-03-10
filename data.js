@@ -164,11 +164,10 @@ const DATA = {
   benoit2026: {
     title: "Benoit 2026 — En cours (tracking en DH)",
     commissionRate: 0.10,
-    tauxApplique: 10.600,
 
     councils: [
-      { mois: "Janvier", htEUR: 5000, statut: "ok", statutText: "Paid 11/02" },
-      { mois: "Février", htEUR: 5000, statut: "w", statutText: "Invoiced" },
+      { mois: "Janvier", htEUR: 5000, tauxApplique: 10.600, statut: "ok", statutText: "Paid 11/02" },
+      { mois: "Février", htEUR: 5000, tauxApplique: 10.600, statut: "w", statutText: "Invoiced" },
     ],
 
     virements: [
