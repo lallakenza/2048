@@ -95,6 +95,9 @@ function renderMesGains() {
   // ===== 2. COMMISSION YCARRÉ (Oum Yakout) — 2025 only =====
   const ycarreTotal = DATA._ycarreTotal || sum(az25.ycarre, 'montant');
   const ycarreCommRate = DATA._ycarreCommission || 0;
+  const ycarrePct = Math.round(ycarreCommRate * 100);
+  const benoitPct25 = Math.round((b25.commissionRate || 0) * 100);
+  const benoitPct26 = Math.round((b26.commissionRate || 0) * 100);
   const commYcarréEUR = Math.round(ycarreTotal * ycarreCommRate);
   const commYcarréMAD = Math.round(commYcarréEUR * mkt25);
 
@@ -103,12 +106,12 @@ function renderMesGains() {
   const b26 = DATA.benoit2026;
 
   const commBenoit25 = b25.councils.reduce((s, m) => s + Math.round(m.htEUR * m.tauxApplique * b25.commissionRate), 0);
-  const commBenoit26 = b26.councils.filter(m => m.statut === 'ok').reduce((s, m) => s + Math.round(m.htEUR * b26.tauxApplique * b26.commissionRate), 0);
+  const commBenoit26 = b26.councils.filter(m => m.statut === 'ok').reduce((s, m) => s + Math.round(m.htEUR * m.tauxApplique * b26.commissionRate), 0);
   const totalComm = commBenoit25 + commBenoit26;
 
   // ===== 4. ÉCART TAUX BENOIT (appliqué vs marché) =====
   const fxBenoit25 = b25.councils.reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)), 0);
-  const fxBenoit26 = b26.councils.filter(m => m.statut === 'ok' && m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)), 0);
+  const fxBenoit26 = b26.councils.filter(m => m.statut === 'ok' && m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)), 0);
   const totalFxBenoit = fxBenoit25 + fxBenoit26;
 
   // ===== 5. P2P SPREAD on Benoit payments =====
@@ -117,7 +120,7 @@ function renderMesGains() {
     return s + dh - Math.round(dh * b25.commissionRate);
   }, 0);
   const totalNetBenoit26 = b26.councils.filter(m => m.statut === 'ok').reduce((s, m) => {
-    const dh = Math.round(m.htEUR * b26.tauxApplique);
+    const dh = Math.round(m.htEUR * m.tauxApplique);
     return s + dh - Math.round(dh * b26.commissionRate);
   }, 0);
   // Year-specific P2P savings
@@ -166,30 +169,38 @@ function renderMesGains() {
     <div class="card"><div class="l">Taux marché 2026</div><div class="v">${r2026 ? mkt26.toFixed(3).replace('.',',') : '—'} MAD/€</div></div>` : ''}
   </div>`;
 
-  // ===== TABLE RÉCAPITULATIVE =====
+  // ===== TABLE RÉCAPITULATIVE (with DH/% toggle) =====
+  const showPct = window.gainsShowPct || false;
+  const fmtV = (v, base) => showPct ? (base ? (v / base * 100).toFixed(1).replace('.', ',') + '%' : '—') : fmtSigned(Math.round(v), '');
+  const fmtVb = (v, base, suffix) => showPct ? (base ? '<strong>' + (v / base * 100).toFixed(1).replace('.', ',') + '%</strong>' : '—') : '<strong>' + fmtSigned(Math.round(v), suffix || '') + '</strong>';
+  const toggleBtn = `<span class="year-toggle" style="margin-left:12px;display:inline-flex;vertical-align:middle"><span class="year-btn ${!showPct?'active':''}" onclick="window.gainsShowPct=false;document.getElementById('gains').innerHTML=renderMesGains()">DH</span><span class="year-btn ${showPct?'active':''}" onclick="window.gainsShowPct=true;document.getElementById('gains').innerHTML=renderMesGains()">%</span></span>`;
+
   if (!gy) {
+    const colSuffix = showPct ? '%' : 'DH';
     // Full 2-year table
-    html += `<div class="s"><div class="st">Récapitulatif des gains par source et année</div><table>
-      <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">2025 (DH)</th><th style="text-align:right">2026 (DH)</th><th style="text-align:right">Total (DH)</th></tr></thead><tbody>`;
-    html += `<tr><td><strong>Virements Augustin</strong></td><td>${fmtPlain(totalDH25 + totalDH26)} DH envoyés</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az25), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(totalGainAz), '')}</td></tr>`;
-    html += `<tr><td><strong>Commission Ycarré 8%</strong></td><td>${fmtPlain(ycarreTotal)} € × 8%</td><td class="a" style="color:var(--green)">${fmtSigned(commYcarréMAD, '')}</td><td class="a">—</td><td class="a" style="color:var(--green)">${fmtSigned(commYcarréMAD, '')}</td></tr>`;
-    html += `<tr><td><strong>Commission Benoit 10%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtSigned(commBenoit25, '')}</td><td class="a" style="color:var(--green)">${fmtSigned(commBenoit26, '')}</td><td class="a" style="color:var(--green)">${fmtSigned(totalComm, '')}</td></tr>`;
-    html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtSigned(fxBenoit25, '')}</td><td class="a" style="color:var(--green)">${fmtSigned(fxBenoit26, '')}</td><td class="a" style="color:var(--green)">${fmtSigned(totalFxBenoit, '')}</td></tr>`;
-    html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(p2pSavingBenoit25), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(p2pSavingBenoit26), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(p2pSavingBenoit), '')}</td></tr>`;
-    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2025</strong></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gains2025), ' DH')}</strong></td><td></td><td></td></tr>`;
-    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2026</strong></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gains2026), ' DH')}</strong></td><td></td></tr>`;
-    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL GAINS</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(grandTotal), ' DH')}</strong></td></tr>`;
+    html += `<div class="s"><div class="st">Récapitulatif des gains par source et année ${toggleBtn}</div><table>
+      <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">2025 (${colSuffix})</th><th style="text-align:right">2026 (${colSuffix})</th><th style="text-align:right">Total (${colSuffix})</th></tr></thead><tbody>`;
+    html += `<tr><td><strong>Virements Augustin</strong></td><td>${fmtPlain(totalDH25 + totalDH26)} DH envoyés</td><td class="a" style="color:var(--green)">${fmtV(gainMAD_az25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(gainMAD_az26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalGainAz, grandTotal)}</td></tr>`;
+    html += `<tr><td><strong>Commission Ycarré ${ycarrePct}%</strong></td><td>${fmtPlain(ycarreTotal)} € × ${ycarrePct}%</td><td class="a" style="color:var(--green)">${fmtV(commYcarréMAD, gains2025)}</td><td class="a">—</td><td class="a" style="color:var(--green)">${fmtV(commYcarréMAD, grandTotal)}</td></tr>`;
+    html += `<tr><td><strong>Commission Benoit ${benoitPct25}%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtV(commBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(commBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalComm, grandTotal)}</td></tr>`;
+    html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalFxBenoit, grandTotal)}</td></tr>`;
+    html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit, grandTotal)}</td></tr>`;
+    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2025</strong></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2025, gains2025, ' DH')}</td><td></td><td></td></tr>`;
+    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2026</strong></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2026, gains2026, ' DH')}</td><td></td></tr>`;
+    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL GAINS</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(grandTotal, grandTotal, ' DH')}</td></tr>`;
     html += `</tbody></table></div>`;
   } else {
+    const colSuffix = showPct ? '%' : 'DH';
+    const base = filteredTotal;
     // Single year table
-    html += `<div class="s"><div class="st">Récapitulatif des gains — ${gy}</div><table>
-      <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">Montant (DH)</th></tr></thead><tbody>`;
-    html += `<tr><td><strong>Virements Augustin</strong></td><td>${fmtPlain(gy===2025 ? totalDH25 : totalDH26)} DH envoyés</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gy===2025 ? gainMAD_az25 : gainMAD_az26), '')}</td></tr>`;
-    if (gy === 2025) html += `<tr><td><strong>Commission Ycarré 8%</strong></td><td>${fmtPlain(ycarreTotal)} € × 8%</td><td class="a" style="color:var(--green)">${fmtSigned(commYcarréMAD, '')}</td></tr>`;
-    html += `<tr><td><strong>Commission Benoit 10%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtSigned(gy===2025 ? commBenoit25 : commBenoit26, '')}</td></tr>`;
-    html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtSigned(gy===2025 ? fxBenoit25 : fxBenoit26, '')}</td></tr>`;
-    html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gy===2025 ? p2pSavingBenoit25 : p2pSavingBenoit26), '')}</td></tr>`;
-    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL ${gy}</strong></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(filteredTotal), ' DH')}</strong></td></tr>`;
+    html += `<div class="s"><div class="st">Récapitulatif des gains — ${gy} ${toggleBtn}</div><table>
+      <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">Montant (${colSuffix})</th></tr></thead><tbody>`;
+    html += `<tr><td><strong>Virements Augustin</strong></td><td>${fmtPlain(gy===2025 ? totalDH25 : totalDH26)} DH envoyés</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? gainMAD_az25 : gainMAD_az26, base)}</td></tr>`;
+    if (gy === 2025) html += `<tr><td><strong>Commission Ycarré ${ycarrePct}%</strong></td><td>${fmtPlain(ycarreTotal)} € × ${ycarrePct}%</td><td class="a" style="color:var(--green)">${fmtV(commYcarréMAD, base)}</td></tr>`;
+    html += `<tr><td><strong>Commission Benoit ${benoitPct25}%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? commBenoit25 : commBenoit26, base)}</td></tr>`;
+    html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? fxBenoit25 : fxBenoit26, base)}</td></tr>`;
+    html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? p2pSavingBenoit25 : p2pSavingBenoit26, base)}</td></tr>`;
+    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL ${gy}</strong></td><td></td><td class="a" style="color:var(--green)">${fmtVb(filteredTotal, base, ' DH')}</td></tr>`;
     html += `</tbody></table></div>`;
   }
 
@@ -207,7 +218,7 @@ function renderMesGains() {
   // ===== BREAKDOWN BENOIT =====
   html += `<div class="s"><div class="st">Détail — Gains Benoit (Commission + Taux + P2P)</div>`;
 
-  html += `<table><thead><tr><th>Date</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Commission 10% (DH)</th><th style="text-align:right">Gain taux (DH)</th></tr></thead><tbody>`;
+  html += `<table><thead><tr><th>Date</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Commission ${benoitPct25}% (DH)</th><th style="text-align:right">Gain taux (DH)</th></tr></thead><tbody>`;
   let sumComm = 0, sumFxB = 0;
   if (show25) {
     html += `<tr style="background:rgba(33,150,243,.06)"><td colspan="6"><strong>— 2025 —</strong></td></tr>`;
@@ -223,11 +234,11 @@ function renderMesGains() {
   if (show26) {
     html += `<tr style="background:rgba(33,150,243,.06)"><td colspan="6"><strong>— 2026 —</strong></td></tr>`;
     b26.councils.filter(m => m.statut === 'ok').forEach(m => {
-      const dh = Math.round(m.htEUR * b26.tauxApplique);
+      const dh = Math.round(m.htEUR * m.tauxApplique);
       const comm = Math.round(dh * b26.commissionRate);
-      const fx = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - b26.tauxApplique)) : 0;
+      const fx = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - m.tauxApplique)) : 0;
       sumComm += comm; sumFxB += fx;
-      html += `<tr><td>${m.mois} 2026</td><td class="a">${fmtPlain(m.htEUR)}</td><td class="a">${fmtRate(b26.tauxApplique)}</td><td class="a">${m.tauxMarche ? fmtRate(m.tauxMarche) : '—'}</td><td class="a" style="color:var(--green)">${fmtPlain(comm)}</td><td class="a" style="color:var(--green)">${m.tauxMarche ? fmtSigned(fx, '') : '—'}</td></tr>`;
+      html += `<tr><td>${m.mois} 2026</td><td class="a">${fmtPlain(m.htEUR)}</td><td class="a">${fmtRate(m.tauxApplique)}</td><td class="a">${m.tauxMarche ? fmtRate(m.tauxMarche) : '—'}</td><td class="a" style="color:var(--green)">${fmtPlain(comm)}</td><td class="a" style="color:var(--green)">${m.tauxMarche ? fmtSigned(fx, '') : '—'}</td></tr>`;
     });
     html += `<tr class="tr"><td><strong>S/T 2026</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(commBenoit26)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(fxBenoit26, '')}</strong></td></tr>`;
   }
@@ -256,14 +267,14 @@ function renderMesGains() {
   }
 
   // Ycarré (2025 only)
-  if (show25) html += `<div class="insight pass"><div class="t">👩 Ycarré (Oum Yakout) : ${fmtPlain(commYcarréEUR)} € de commission (2025)</div><div class="d">${fmtPlain(ycarreTotal)} € payés en 2025 (6 paiements EBS). Commission 8% = <strong>${fmtPlain(commYcarréEUR)} €</strong> (≈ ${fmtPlain(commYcarréMAD)} DH).</div></div>`;
+  if (show25) html += `<div class="insight pass"><div class="t">👩 Ycarré (Oum Yakout) : ${fmtPlain(commYcarréEUR)} € de commission (2025)</div><div class="d">${fmtPlain(ycarreTotal)} € payés en 2025 (6 paiements EBS). Commission ${ycarrePct}% = <strong>${fmtPlain(commYcarréEUR)} €</strong> (≈ ${fmtPlain(commYcarréMAD)} DH).</div></div>`;
 
   // Benoit
   const fBenoit25 = commBenoit25 + fxBenoit25 + Math.round(p2pSavingBenoit25);
   const fBenoit26 = commBenoit26 + fxBenoit26 + Math.round(p2pSavingBenoit26);
   const totalGainsBenoit = totalComm + totalFxBenoit + Math.round(p2pSavingBenoit);
   const benoitDisplay = gy === 2025 ? fBenoit25 : gy === 2026 ? fBenoit26 : totalGainsBenoit;
-  html += `<div class="insight pass"><div class="t">🤝 Benoit : ${fmtPlain(benoitDisplay)} DH ${gy ? '(' + gy + ')' : 'cumulés'}</div><div class="d">${gy === 2025 ? `Commission 10% : <strong>${fmtPlain(commBenoit25)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit25)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit25))} DH</strong>.` : gy === 2026 ? `Commission 10% : <strong>${fmtPlain(commBenoit26)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit26)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit26))} DH</strong>.` : `Commission 10% : <strong>${fmtPlain(totalComm)} DH</strong> (${fmtPlain(commBenoit25)} + ${fmtPlain(commBenoit26)}) · Écart taux : <strong>${fmtPlain(totalFxBenoit)} DH</strong> · P2P spread : <strong>${fmtPlain(Math.round(p2pSavingBenoit))} DH</strong>.`}</div></div>`;
+  html += `<div class="insight pass"><div class="t">🤝 Benoit : ${fmtPlain(benoitDisplay)} DH ${gy ? '(' + gy + ')' : 'cumulés'}</div><div class="d">${gy === 2025 ? `Commission ${benoitPct25}% : <strong>${fmtPlain(commBenoit25)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit25)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit25))} DH</strong>.` : gy === 2026 ? `Commission ${benoitPct25}% : <strong>${fmtPlain(commBenoit26)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit26)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit26))} DH</strong>.` : `Commission ${benoitPct25}% : <strong>${fmtPlain(totalComm)} DH</strong> (${fmtPlain(commBenoit25)} + ${fmtPlain(commBenoit26)}) · Écart taux : <strong>${fmtPlain(totalFxBenoit)} DH</strong> · P2P spread : <strong>${fmtPlain(Math.round(p2pSavingBenoit))} DH</strong>.`}</div></div>`;
 
   // Répartition
   const refTotal = filteredTotal || 1;

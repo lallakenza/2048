@@ -173,6 +173,10 @@ const DATA = {
     virements: [
       { date: "09/03/2026", beneficiaire: "Benoit Chevalier", dh: 50000, motif: "Remboursement" },
     ],
+
+    notes: [
+      "Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. La réconciliation ne prend en compte que les Councils effectivement payés.",
+    ],
   },
 
   // ==================== FX P2P — ENCRYPTED ====================

@@ -38,6 +38,8 @@ function renderBenoitYear(dataKey, opts = {}) {
   const { embedded = false, year = 2025, report = 0 } = opts;
   const d = DATA[dataKey];
   const rate = d.commissionRate || 0;
+  const ratePct = Math.round(rate * 100);  // e.g. 10 for 0.10
+  const netPct = 100 - ratePct;            // e.g. 90
 
   // Detect if this is a clôture year (no statut field) or en-cours
   const isClotured = !d.councils[0]?.statut;
@@ -95,14 +97,14 @@ function renderBenoitYear(dataKey, opts = {}) {
     // Clôture: Dû / Payé / Solde (+ Gains in PRIV)
     if (window.PRIV) {
       html += `<div class="cards">
-        <div class="card"><div class="l">Dû à Benoit (90% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
+        <div class="card"><div class="l">Dû à Benoit (${netPct}% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
         <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
         <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
         <div class="card"><div class="l">Total gains (FX + Commission)</div><div class="v green">${fmtPlain(totalGains)} DH</div></div>
       </div>`;
     } else {
       html += `<div class="cards">
-        <div class="card"><div class="l">Dû à Benoit (90% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
+        <div class="card"><div class="l">Dû à Benoit (${netPct}% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
         <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
         <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
       </div>`;
@@ -113,14 +115,14 @@ function renderBenoitYear(dataKey, opts = {}) {
       html += `<div class="cards">
         <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
         <div class="card"><div class="l">Councils payé ${year} (brut)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
-        <div class="card"><div class="l">Councils payé ${year} (net −10%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
+        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
         <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
         <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div></div>
       </div>`;
     } else {
       html += `<div class="cards">
         <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
-        <div class="card"><div class="l">Councils payé ${year} (net −10%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
+        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
         <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
         <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div></div>
       </div>`;
@@ -135,7 +137,7 @@ function renderBenoitYear(dataKey, opts = {}) {
   if (window.PRIV) {
     const privTitle = tableTitle.replace('convertis en DH', 'convertis en DH (taux appliqué vs marché)');
     html += `<div class="s"><div class="st">${privTitle}</div><table>
-      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th>${dateLabel}</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Δ taux</th><th style="text-align:right">= DH</th><th style="text-align:right">Gain FX (DH)</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
+      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th>${dateLabel}</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Δ taux</th><th style="text-align:right">= DH</th><th style="text-align:right">Gain FX (DH)</th><th style="text-align:right">Commission ${ratePct}%</th><th style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
       const dateVal = t[dateField];
       const statusCell = isClotured
@@ -149,7 +151,7 @@ function renderBenoitYear(dataKey, opts = {}) {
     html += `</tbody></table></div>`;
   } else {
     html += `<div class="s"><div class="st">${tableTitle}</div><table>
-      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th>${dateLabel}</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission 10%</th><th style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
+      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th>${dateLabel}</th><th style="text-align:right">HT (€)</th><th style="text-align:right">Taux appliqué</th><th style="text-align:right">= DH</th><th style="text-align:right">Commission ${ratePct}%</th><th style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
       const dateVal = t[dateField];
       const statusCell = isClotured
@@ -178,9 +180,9 @@ function renderBenoitYear(dataKey, opts = {}) {
     html += `<div class="s"><div class="st">Réconciliation Benoit ${year}</div><table>
       <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
       <tr><td>Councils HT total (taux appliqué)</td><td class="a">${fmtPlain(totalDH)}</td><td>${transactions.length} paiements EBS × taux appliqué</td></tr>
-      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
+      <tr><td>Commission ${ratePct}%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommission)}</td><td>Retenue par Amine</td></tr>
       <tr><td><strong>Net dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr>
-      <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virements (Jul-Mar)</td></tr>
+      <tr><td>Total virements DH</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
       <tr class="tr"><td><strong>Solde → Report ${year + 1}</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(solde, 'DH')}</strong></td><td>${solde > 0 ? 'Amine doit encore ' + fmtPlain(solde) + ' DH à Benoit → carryforward ' + (year + 1) : 'Soldé'}</td></tr>
       </tbody></table></div>`;
   } else {
@@ -188,14 +190,14 @@ function renderBenoitYear(dataKey, opts = {}) {
       <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
       <tr><td>Report ${year - 1}</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Solde clôture ${year - 1} (dû à Benoit)</td></tr>
       <tr><td>Councils HT payé ${year}</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paidTransactions.length} paiement(s) reçu(s)</td></tr>
-      <tr><td>Commission 10%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommPaid)}</td><td>Retenue par Amine</td></tr>
+      <tr><td>Commission ${ratePct}%</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommPaid)}</td><td>Retenue par Amine</td></tr>
       <tr><td><strong>Total dû à Benoit</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Report + net Councils payé</td></tr>
       <tr><td>Virements DH ${year}</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${d.virements.length} virement(s)</td></tr>
       <tr class="tr"><td><strong>Solde ${year}</strong></td><td class="a" style="color:${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde, '')}</strong></td><td>${solde > 0 ? 'Amine doit encore ' + fmtPlain(solde) + ' DH à Benoit' : solde < 0 ? 'Benoit a un excédent de ' + fmtPlain(Math.abs(solde)) + ' DH' : 'Soldé'}</td></tr>
       </tbody></table></div>`;
-    // Footer note for 2026 about the 06/03 virement
-    if (year === 2026) {
-      html += `<div class="n">Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. La réconciliation ne prend en compte que les Councils effectivement payés.</div>`;
+    // Footer notes from data (if any)
+    if (d.notes) {
+      d.notes.forEach(n => { html += `<div class="n">${n}</div>`; });
     }
   }
 
@@ -203,7 +205,7 @@ function renderBenoitYear(dataKey, opts = {}) {
   if (window.PRIV && isClotured) {
     html += `<div class="s"><div class="st">Consolidation des gains Amine — Benoit ${year}</div><table>
       <thead><tr><th>Source du gain</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
-      <tr><td><strong>Commission 10%</strong></td><td class="a" style="color:var(--green)">${fmtSigned(totalCommission, '')}</td><td>10% sur ${fmtPlain(totalDH)} DH de Councils HT</td></tr>
+      <tr><td><strong>Commission ${ratePct}%</strong></td><td class="a" style="color:var(--green)">${fmtSigned(totalCommission, '')}</td><td>${ratePct}% sur ${fmtPlain(totalDH)} DH de Councils HT</td></tr>
       <tr><td><strong>Gain FX (Δ taux)</strong></td><td class="a" style="color:var(--green)">${fmtSigned(totalGainFX, '')}</td><td>Taux appliqué inférieur au marché sur ${transactions.length} transactions</td></tr>
       <tr class="tr"><td><strong>Total gains Amine</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalGains, '')}</strong></td><td></td></tr>
       </tbody></table>`;
