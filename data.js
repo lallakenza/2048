@@ -120,7 +120,7 @@ const DATA = {
 
     rtl: [
       { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350, dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },
-      { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "w", statutText: "Invoiced" },
+      { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "ok", statutText: "Paid 01/04" },
       { ref: "—", periode: "Mars", jours: 20, montant: 17000, statut: "i", statutText: "À facturer" },
     ],
 
@@ -133,7 +133,7 @@ const DATA = {
 
     insights: [
       { type: "neutral", titre: "💸 Flux cash 2026 : Amine 6 800€ → Azarkan / Azarkan 1 200€ → Amine", desc: "<strong>Azarkan → Amine :</strong> 1 200€ (via Zakaria Belghiti).<br><strong>Amine → Azarkan :</strong> 800€ (via Oumaima) + 6 000€ (2×3 000€ via Nezha → Hanane) = <strong>6 800€</strong>.<br><em>Ventilation des 6 000€ :</em> 2 000€ = remboursement dette cash (prêts 2025 : 4 000€ − remboursés 2 400€ = 1 600€ + Zak 1 200 − Oumaima 800 = 400€), 4 000€ = avec commission 6% (brut = 4 000 ÷ 0,94 = 4 255€, commission Amine = 255€).<br>Dette cash personnelle <strong>soldée</strong>." },
-      { type: "neutral", titre: "📄 Factures RTL 2026 : 2 émises, 1 à facturer", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) émise le 31/12/2025, échéance 01/03/2026. INVRTL014 (Fév, 20j, 17 000€ HT) émise le 01/03/2026, échéance 01/04/2026. Mars (20j, 17 000€ HT) à facturer. <strong>Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
+      { type: "pass", titre: "📄 Factures RTL 2026 : 2 payées, 1 à facturer", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). Mars (20j, 17 000€ HT) à facturer. <strong>Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
     ],
   },
 
