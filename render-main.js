@@ -4,8 +4,8 @@
 
 // ---- TAB CONFIGURATION (single source of truth) ----
 const TAB_CONFIG = [
-  { id: 'augustin', label: 'Augustin', access: 'full' },
-  { id: 'benoit',   label: 'Benoit',   access: 'all' },
+  { id: 'augustin', label: 'Azarkan', access: 'full' },
+  { id: 'benoit',   label: 'Badre',   access: 'all' },
   { id: 'fxp2p',    label: 'FX P2P',   access: 'priv' },
   { id: 'gains',    label: 'Mes Gains', access: 'priv' },
 ];

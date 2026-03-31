@@ -118,6 +118,24 @@ const sum = (arr, key) => arr.reduce((s, x) => s + (typeof key === 'function' ? 
   });
 })();
 
+// ---- COLLAPSIBLE SECTION HELPER ----
+function collapsible(title, contentHtml, opts = {}) {
+  const id = 'coll-' + Math.random().toString(36).substr(2, 6);
+  const openByDefault = opts.open || false;
+  const cls = openByDefault ? 'open' : '';
+  return `<div class="s">
+    <div class="st section-toggle ${cls}" onclick="toggleSection('${id}',this)"><span>${title}</span></div>
+    <div class="section-body ${cls}" id="${id}">${contentHtml}</div>
+  </div>`;
+}
+
+function toggleSection(id, btn) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  body.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
 // ---- RECO VIEW TOGGLE (Paid / Invoiced / Accrued) ----
 function switchRecoView(view) {
   ['paid','invoiced','accrued'].forEach(v => {

@@ -54,15 +54,19 @@ function renderAugustin2025(embedded) {
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${d.subtitle}</p>`;
 
-  // Cards
-  const solde25WhoOwes = soldeCorrige < 0
-    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--red);font-weight:600">→ Augustin doit à Amine</div>`
-    : `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Amine doit à Augustin</div>`;
-  html += `<div class="cards">
-    <div class="card"><div class="l">Actuals Jan-Déc</div><div class="v blue">${fmtPlain(totalActuals)} €</div><div style="font-size:.65rem;color:var(--muted)">Revenus RTL encaissés</div></div>
-    <div class="card"><div class="l">Total dépenses</div><div class="v yellow">${fmtPlain(totalDepenses)} €</div><div style="font-size:.65rem;color:var(--muted)">Payé à Augustin</div></div>
-    <div class="card" style="border:2px solid var(--red)"><div class="l">Position clôture 2025</div><div class="v red">${fmtSigned(soldeCorrige)}</div>${solde25WhoOwes}</div>
-    <div class="card"><div class="l">Réconciliation</div><div class="v green">100%</div><div style="font-size:.65rem;color:var(--muted)">0€ sans preuve</div></div>
+  // Hero card
+  const solde25Color = soldeCorrige < 0 ? 'red' : 'green';
+  const solde25Msg = soldeCorrige < 0 ? 'Augustin doit à Amine' : 'Amine doit à Augustin';
+  html += `<div class="hero-card" style="border-color:var(--${solde25Color})">
+    <div class="hero-label">Clôture 2025</div>
+    <div class="hero-value ${solde25Color}">${fmtSigned(soldeCorrige)}</div>
+    <div class="hero-who" style="color:var(--${solde25Color})">${solde25Msg}</div>
+    <div class="hero-detail">Réconciliation 100% complète · 0€ sans preuve</div>
+  </div>`;
+  html += `<div class="summary-row">
+    <div class="summary-item"><div class="sl">Actuals Jan–Déc</div><div class="sv" style="color:var(--accent)">${fmtPlain(totalActuals)} €</div></div>
+    <div class="summary-item"><div class="sl">Total dépenses</div><div class="sv" style="color:var(--yellow)">${fmtPlain(totalDepenses)} €</div></div>
+    <div class="summary-item"><div class="sl">RTL 2025</div><div class="sv" style="color:var(--green)">${fmtPlain(totalRTL)} €</div><div class="sd">${d.rtl.length} factures payées</div></div>
   </div>`;
 
   // Synthèse 5 catégories
@@ -77,7 +81,7 @@ function renderAugustin2025(embedded) {
   const totalExcelCat = categories.reduce((s, c) => s + c.excel, 0);
   const totalVerifieCat = categories.reduce((s, c) => s + c.verifie, 0);
 
-  html += `<div class="s"><div class="st">Synthèse des 5 catégories (Excel v2)</div><table>
+  let synthHtml = `<table>
     <thead><tr><th>Catégorie</th><th style="text-align:right">Excel v2 (€)</th><th style="text-align:right">Vérifié EBS/Banque (€)</th><th style="text-align:right">Écart (€)</th><th>Statut</th></tr></thead><tbody>`;
 
   categories.forEach(c => {
@@ -87,18 +91,20 @@ function renderAugustin2025(embedded) {
   });
 
   const ecartTotal = totalExcelCat - totalVerifieCat;
-  html += `<tr class="tr"><td><strong>Total dépenses</strong></td><td class="a"><strong>${fmtPlain(totalExcelCat)}</strong></td><td class="a"><strong>${fmtPlain(totalVerifieCat)}</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(ecartTotal, '')}</strong></td><td></td></tr>`;
-  html += `</tbody></table>`;
+  synthHtml += `<tr class="tr"><td><strong>Total dépenses</strong></td><td class="a"><strong>${fmtPlain(totalExcelCat)}</strong></td><td class="a"><strong>${fmtPlain(totalVerifieCat)}</strong></td><td class="a" style="color:var(--yellow)"><strong>${fmtSigned(ecartTotal, '')}</strong></td><td></td></tr>`;
+  synthHtml += `</tbody></table>`;
 
   // Note synthèse
-  html += `<div class="n">
+  synthHtml += `<div class="n">
     <strong>Résultat (Excel v2) :</strong> Augustin a largement corrigé son fichier. <strong>Les 5 catégories sont désormais 100% vérifiées par EBS/Banque.</strong> Ycarré, Councils, Baraka matchent à 100%. Le Maroc Fév-Déc matche parfaitement (${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel). Les Divers (${d.divers.length} opérations, ${fmtPlain(d.diversVerifie)}€ en valeur absolue) sont intégralement confirmés par EBS.<br><br>
     Solde Excel = Solde corrigé : <strong>${fmtSigned(soldeExcel)}</strong> (Augustin te doit).<br>
     <strong style="color:var(--green)">0€ sans preuve — Réconciliation complète.</strong>
-  </div></div>`;
+  </div>`;
+
+  html += collapsible('Synthèse des 5 catégories (Excel v2)', synthHtml);
 
   // Mois par mois
-  html += `<div class="s"><div class="st">Réconciliation mois par mois (Janvier → Décembre 2025)</div><table>
+  let moisHtml = `<table>
     <thead><tr><th>Mois</th><th data-sort="num" style="text-align:right">Actuals (€)</th><th data-sort="num" style="text-align:right">B+Y+M (€)</th><th data-sort="num" style="text-align:right">Maroc (€)</th><th data-sort="num" style="text-align:right">Divers (€)</th><th data-sort="num" style="text-align:right">Total dép. (€)</th><th data-sort="num" style="text-align:right">Solde mois (€)</th><th>Commentaire</th></tr></thead><tbody>`;
 
   let totalSoldeMois = 0;
@@ -129,74 +135,82 @@ function renderAugustin2025(embedded) {
     <td class="a"><strong>${fmtPlain(totalDepenses)}</strong></td>
     <td class="a"><strong>${fmtSigned(totalSoldeMois, '')}</strong></td>
     <td style="font-size:.7rem;color:var(--muted)">Maroc Fév-Déc = Excel (${fmtPlain(totalMarocExcel)}€)</td></tr>`;
-  html += `</tbody></table>`;
-  html += `<div class="n"><strong>Note :</strong> Le solde cumulé (${fmtSigned(totalSoldeMois, '€')}) inclut Janvier (${fmtPlain(mois[0].actuals)}€ d'Actuals sans dépenses). Le solde "Balance" d'Augustin (${fmtSigned(soldeExcel)}) est calculé <strong>sans Janvier</strong> (Fév-Déc uniquement) : ${fmtPlain(actualsFevDec)} − ${fmtPlain(depFevDec)} = ${fmtSigned(soldeExcel)}. Maroc réel = Excel (${fmtPlain(totalMarocExcel)}€) — parfait match.</div></div>`;
+  moisHtml += `</tbody></table>`;
+  moisHtml += `<div class="n"><strong>Note :</strong> Le solde cumulé (${fmtSigned(totalSoldeMois, '€')}) inclut Janvier (${fmtPlain(mois[0].actuals)}€ d'Actuals sans dépenses). Le solde "Balance" d'Augustin (${fmtSigned(soldeExcel)}) est calculé <strong>sans Janvier</strong> (Fév-Déc uniquement) : ${fmtPlain(actualsFevDec)} − ${fmtPlain(depFevDec)} = ${fmtSigned(soldeExcel)}. Maroc réel = Excel (${fmtPlain(totalMarocExcel)}€) — parfait match.</div>`;
+
+  html += collapsible('Réconciliation mois par mois (Janvier → Décembre 2025)', moisHtml);
 
   // Insights
-  html += `<div class="s"><div class="st">Insights clés — Fichier v2 vs v1</div>`;
+  let insightsHtml = '';
   d.insights.forEach(ins => {
     const cls = ins.type === 'pass' ? 'pass' : ins.type === 'warn' ? 'warn' : ins.type === 'fail' ? 'fail' : '';
-    html += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
+    insightsHtml += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
   });
-  html += `</div>`;
+  html += collapsible('Insights clés — Fichier v2 vs v1', insightsHtml);
 
   // Cat 1: Ycarré
-  html += `<div class="s"><div class="st">1. Ycarré (Oum Yakout) — ${fmtPlain(totalYcarré)}€ ✓</div><table>
+  let ycarreHtml = `<table>
     <thead><tr><th>#</th><th data-sort="date">Date EBS</th><th data-sort="num" style="text-align:right">EBS (€)</th><th></th></tr></thead><tbody>`;
   d.ycarre.forEach((y, i) => {
-    html += `<tr><td>${i+1}</td><td>${y.date}</td><td class="a">${fmtPlain(y.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
+    ycarreHtml += `<tr><td>${i+1}</td><td>${y.date}</td><td class="a">${fmtPlain(y.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
   });
-  html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalYcarré)}</strong></td><td></td></tr></tbody></table></div>`;
+  ycarreHtml += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalYcarré)}</strong></td><td></td></tr></tbody></table>`;
+  html += collapsible('1. Ycarré (Oum Yakout) — ' + fmtPlain(totalYcarré) + '€ ✓', ycarreHtml);
 
   // Cat 2: Councils
-  html += `<div class="s"><div class="st">2. Councils HT (Benoit) — ${fmtPlain(totalCouncils)}€ ✓ (corrigé v2)</div><table>
+  let councilsHtml = `<table>
     <thead><tr><th>#</th><th data-sort="date">Date EBS</th><th data-sort="num" style="text-align:right">Excel HT (€)</th><th data-sort="num" style="text-align:right">EBS HT (€)</th><th data-sort="num" style="text-align:right">Écart</th><th></th></tr></thead><tbody>`;
   d.councils.forEach((m, i) => {
     const ecart = m.excelHT - m.ebsHT;
-    html += `<tr><td>${i+1}</td><td>${m.date}</td><td class="a">${fmtPlain(m.excelHT)}</td><td class="a">${fmtPlain(m.ebsHT)}</td><td class="a">${ecart}</td><td>${badge('ok', m.note ? '✓ ' + m.note : '✓')}</td></tr>`;
+    councilsHtml += `<tr><td>${i+1}</td><td>${m.date}</td><td class="a">${fmtPlain(m.excelHT)}</td><td class="a">${fmtPlain(m.ebsHT)}</td><td class="a">${ecart}</td><td>${badge('ok', m.note ? '✓ ' + m.note : '✓')}</td></tr>`;
   });
   const totalMajExcel = sum(d.councils, 'excelHT');
-  html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalMajExcel)}</strong></td><td class="a"><strong>${fmtPlain(totalCouncils)}</strong></td><td class="a" style="color:var(--green)"><strong>0</strong></td><td></td></tr></tbody></table></div>`;
+  councilsHtml += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalMajExcel)}</strong></td><td class="a"><strong>${fmtPlain(totalCouncils)}</strong></td><td class="a" style="color:var(--green)"><strong>0</strong></td><td></td></tr></tbody></table>`;
+  html += collapsible('2. Councils HT (Benoit) — ' + fmtPlain(totalCouncils) + '€ ✓ (corrigé v2)', councilsHtml);
 
   // Cat 3: Baraka
-  html += `<div class="s"><div class="st">3. Baraka EUR (→ Augustin) — ${fmtPlain(totalBaraka)}€ ✓</div><table>
+  let barakaHtml = `<table>
     <thead><tr><th>#</th><th data-sort="date">Date EBS</th><th data-sort="num" style="text-align:right">Montant (€)</th><th></th></tr></thead><tbody>`;
   d.baraka.forEach((b, i) => {
-    html += `<tr><td>${i+1}</td><td>${b.date}</td><td class="a">${fmtPlain(b.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
+    barakaHtml += `<tr><td>${i+1}</td><td>${b.date}</td><td class="a">${fmtPlain(b.montant)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
   });
-  html += `<tr class="tr"><td></td><td><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalBaraka)}</strong></td><td></td></tr></tbody></table>`;
-  html += `<div class="n ok">${d.baraka.length}/${d.baraka.length} paiements 2025 vérifiés. Les 4 autres résultats EBS sont de 2024, hors périmètre.</div></div>`;
+  barakaHtml += `<tr class="tr"><td></td><td><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalBaraka)}</strong></td><td></td></tr></tbody></table>`;
+  barakaHtml += `<div class="n ok">${d.baraka.length}/${d.baraka.length} paiements 2025 vérifiés. Les 4 autres résultats EBS sont de 2024, hors périmètre.</div>`;
+  html += collapsible('3. Baraka EUR (→ Augustin) — ' + fmtPlain(totalBaraka) + '€ ✓', barakaHtml);
 
   // Cat 4: Virements Maroc
-  html += `<div class="s"><div class="st">4. Virements Maroc → Augustin (DH) — ${fmtPlain(totalMarocExcel)}€ ✓ match parfait</div><table>
+  let virementsHtml = `<table>
     <thead><tr><th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">Excel v2 (€)</th><th>Virements réels</th><th data-sort="num" style="text-align:right">Total DH</th><th data-sort="num" style="text-align:right">= EUR (÷10)</th><th data-sort="num" style="text-align:right">Écart (€)</th><th></th></tr></thead><tbody>`;
   d.virementsMaroc.forEach(v => {
     const eurEquiv = v.totalDH / d.tauxMaroc;
     const ecart = v.excelEUR - eurEquiv;
     const excelStyle = v.corrige ? ' style="color:var(--green)"' : '';
-    html += `<tr><td><strong>${v.mois}</strong></td><td class="a"${excelStyle}>${fmtPlain(v.excelEUR)}</td><td style="font-size:.72rem;color:var(--muted)">${v.detail}</td><td class="a">${fmtPlain(v.totalDH)}</td><td class="a">${fmtPlain(eurEquiv)}</td><td class="a" style="color:var(--green)">${ecart}</td><td>${badge('ok', v.corrige ? '✓ corrigé v2' : '✓')}</td></tr>`;
+    virementsHtml += `<tr><td><strong>${v.mois}</strong></td><td class="a"${excelStyle}>${fmtPlain(v.excelEUR)}</td><td style="font-size:.72rem;color:var(--muted)">${v.detail}</td><td class="a">${fmtPlain(v.totalDH)}</td><td class="a">${fmtPlain(eurEquiv)}</td><td class="a" style="color:var(--green)">${ecart}</td><td>${badge('ok', v.corrige ? '✓ corrigé v2' : '✓')}</td></tr>`;
   });
-  html += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalMarocExcel)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalMarocDH)}</strong></td><td class="a"><strong>${fmtPlain(totalMarocReel)}</strong></td><td class="a" style="color:var(--green)"><strong>0</strong></td><td></td></tr></tbody></table>`;
-  html += `<div class="n ok"><strong>Match parfait</strong> : ${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel (${fmtPlain(totalMarocDH)} DH). ${d.virementsMaroc.length} mois vérifiés, 0€ d'écart.</div></div>`;
+  virementsHtml += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalMarocExcel)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalMarocDH)}</strong></td><td class="a"><strong>${fmtPlain(totalMarocReel)}</strong></td><td class="a" style="color:var(--green)"><strong>0</strong></td><td></td></tr></tbody></table>`;
+  virementsHtml += `<div class="n ok"><strong>Match parfait</strong> : ${fmtPlain(totalMarocExcel)}€ Excel = ${fmtPlain(totalMarocReel)}€ réel (${fmtPlain(totalMarocDH)} DH). ${d.virementsMaroc.length} mois vérifiés, 0€ d'écart.</div>`;
+  html += collapsible('4. Virements Maroc → Augustin (DH) — ' + fmtPlain(totalMarocExcel) + '€ ✓ match parfait', virementsHtml);
 
   // Cat 5: Divers
-  html += `<div class="s"><div class="st">5. Autre (Divers) — ${fmtPlain(totalDiversCalc)}€ net · 100% vérifié EBS (${d.divers.length} opérations)</div><table>
+  let diversHtml = `<table>
     <thead><tr><th data-sort="date">Mois</th><th data-sort="date">Date EBS</th><th>Libellé</th><th data-sort="num" style="text-align:right">Montant (€)</th><th>Preuve</th></tr></thead><tbody>`;
   d.divers.forEach(dv => {
     const rowStyle = dv.preuve === 'ok' ? ' style="background:var(--green-bg)"' : '';
     const montantStr = dv.montant < 0 ? '−' + fmtPlain(Math.abs(dv.montant)) : fmtPlain(dv.montant);
-    html += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.date || '—'}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
+    diversHtml += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.date || '—'}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
   });
-  html += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong style="color:var(--green)">✓ 100% vérifié EBS</strong></td></tr></tbody></table>`;
-  html += `<div class="n ok"><strong>100% vérifié EBS</strong> — ${d.divers.length} opérations, ${fmtPlain(d.diversVerifie)}€ en valeur absolue. Vols ✓, iPhone ✓, virements Nov/Déc ✓, prêts ✓. <strong>0€ sans preuve.</strong></div></div>`;
+  diversHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong style="color:var(--green)">✓ 100% vérifié EBS</strong></td></tr></tbody></table>`;
+  diversHtml += `<div class="n ok"><strong>100% vérifié EBS</strong> — ${d.divers.length} opérations, ${fmtPlain(d.diversVerifie)}€ en valeur absolue. Vols ✓, iPhone ✓, virements Nov/Déc ✓, prêts ✓. <strong>0€ sans preuve.</strong></div>`;
+  html += collapsible('5. Autre (Divers) — ' + fmtPlain(totalDiversCalc) + '€ net · 100% vérifié EBS (' + d.divers.length + ' opérations)', diversHtml);
 
   // RTL Factures
-  html += `<div class="s"><div class="st">Factures RTL 2025 — Revenus (${fmtPlain(totalRTL)}€ ✓)</div><table>
+  let rtlHtml = `<table>
     <thead><tr><th>Facture</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">Facturé (€)</th><th data-sort="date">Date paiement</th><th data-sort="num" style="text-align:right">Reçu (€)</th><th></th></tr></thead><tbody>`;
   d.rtl.forEach(r => {
-    html += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.datePaiement}</td><td class="a">${fmtPlain(r.recu)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
+    rtlHtml += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.datePaiement}</td><td class="a">${fmtPlain(r.recu)}</td><td>${badge('ok','✓ EBS')}</td></tr>`;
   });
-  html += `<tr class="tr"><td colspan="3"><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalRTL)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalRecuRTL)}</strong></td><td></td></tr></tbody></table></div>`;
+  rtlHtml += `<tr class="tr"><td colspan="3"><strong>Total 2025</strong></td><td class="a"><strong>${fmtPlain(totalRTL)}</strong></td><td></td><td class="a"><strong>${fmtPlain(totalRecuRTL)}</strong></td><td></td></tr></tbody></table>`;
+  html += collapsible('Factures RTL 2025 — Revenus (' + fmtPlain(totalRTL) + '€ ✓)', rtlHtml);
 
   return html;
 }
@@ -238,36 +252,28 @@ function renderAugustin2026(embedded) {
   let html = embedded ? '' : yearToggle3('Az', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
 
-  // Toggle Paid / Invoiced / Accrued
+  // ---- HERO CARD: Position actuelle ----
+  html += `<div class="hero-card" style="border-color:${delta >= 0 ? 'var(--green)' : 'var(--red)'}">
+    <div class="hero-label">Position actuelle — Cash réel</div>
+    <div class="hero-value ${delta >= 0 ? 'green' : 'red'}">${fmtSigned(delta)}</div>
+    <div class="hero-who" style="color:${delta >= 0 ? 'var(--green)' : 'var(--red)'}">${delta >= 0 ? 'Amine doit payer Augustin' : 'Augustin doit à Amine'}</div>
+    <div class="hero-detail">Basé sur les factures RTL effectivement payées (${paidRTL.length}) · Report 2025 inclus</div>
+  </div>`;
+
+  // ---- Summary row ----
+  html += `<div class="summary-row">
+    <div class="summary-item"><div class="sl">RTL reçu (paid)</div><div class="sv" style="color:var(--green)">${fmtPlain(amineRecu)} €</div><div class="sd">${paidRTL.length} facture(s) payée(s)</div></div>
+    <div class="summary-item"><div class="sl">Virements Maroc</div><div class="sv" style="color:var(--accent)">${fmtPlain(augustinRecuEUR)} €</div><div class="sd">${fmtPlain(totalMAD)} DH envoyés</div></div>
+    <div class="summary-item"><div class="sl">Cash direct</div><div class="sv" style="color:var(--accent)">${fmtPlain(diversNet)} €</div><div class="sd">Paiements perso net</div></div>
+    <div class="summary-item"><div class="sl">Report 2025</div><div class="sv" style="color:var(--red)">${fmtSigned(d.report2025)}</div><div class="sd">Solde clôture 2025</div></div>
+    <div class="summary-item"><div class="sl">En attente RTL</div><div class="sv" style="color:var(--yellow)">${fmtPlain(totalPending)} €</div><div class="sd">Pas encore payé</div></div>
+  </div>`;
+
+  // View toggle (secondary)
   html += `<div style="display:flex;gap:0;margin-bottom:16px;background:var(--surface2);border-radius:8px;padding:3px;width:fit-content">
-    <button onclick="switchRecoView('paid')" id="reco-btn-paid" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;background:var(--accent);color:#fff;transition:all .2s">Paid</button>
-    <button onclick="switchRecoView('invoiced')" id="reco-btn-invoiced" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s">Invoiced</button>
-    <button onclick="switchRecoView('accrued')" id="reco-btn-accrued" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s">Accrued</button>
-  </div>`;
-
-  // Helper: who owes whom
-  const whoOwes = (d) => d >= 0
-    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Amine doit payer Augustin</div>`
-    : `<div style="font-size:.7rem;margin-top:4px;color:var(--red);font-weight:600">→ Augustin doit à Amine</div>`;
-
-  // 3 card sets (only one visible at a time)
-  html += `<div id="reco-cards-paid" class="cards">
-    <div class="card"><div class="l">RTL reçu (paid)</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Reçu par Amine de RTL</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
-    <div class="card" style="border:2px solid ${delta >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position actuelle</div><div class="v ${delta >= 0 ? 'green' : 'red'}">${fmtSigned(delta)}</div>${whoOwes(delta)}</div>
-    <div class="card"><div class="l">En attente paiement</div><div class="v yellow">${fmtPlain(totalPending)} €</div><div style="font-size:.65rem;color:var(--muted)">Factures RTL non payées</div></div>
-  </div>`;
-  html += `<div id="reco-cards-invoiced" class="cards" style="display:none">
-    <div class="card"><div class="l">RTL facturé</div><div class="v yellow">${fmtPlain(totalInvoiced)} €</div><div style="font-size:.65rem;color:var(--muted)">Factures émises à RTL</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
-    <div class="card" style="border:2px solid ${deltaInvoiced >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position (invoiced)</div><div class="v ${deltaInvoiced >= 0 ? 'green' : 'red'}">${fmtSigned(deltaInvoiced)}</div>${whoOwes(deltaInvoiced)}</div>
-    <div class="card"><div class="l">dont déjà payé</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Cash réellement reçu</div></div>
-  </div>`;
-  html += `<div id="reco-cards-accrued" class="cards" style="display:none">
-    <div class="card"><div class="l">RTL total (projection)</div><div class="v yellow">${fmtPlain(totalFacture)} €</div><div style="font-size:.65rem;color:var(--muted)">Payé + émis + à facturer</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
-    <div class="card" style="border:2px solid ${deltaAccrued >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position (projection)</div><div class="v ${deltaAccrued >= 0 ? 'green' : 'red'}">${fmtSigned(deltaAccrued)}</div>${whoOwes(deltaAccrued)}</div>
-    <div class="card"><div class="l">dont déjà payé</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Cash réellement reçu</div></div>
+    <button onclick="switchRecoView('paid')" id="reco-btn-paid" style="padding:5px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:600;background:var(--accent);color:#fff;transition:all .2s">Cash réel</button>
+    <button onclick="switchRecoView('invoiced')" id="reco-btn-invoiced" style="padding:5px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s">Facturé</button>
+    <button onclick="switchRecoView('accrued')" id="reco-btn-accrued" style="padding:5px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s">Projection</button>
   </div>`;
 
   // 3 reconciliation tables
@@ -302,25 +308,28 @@ function renderAugustin2026(embedded) {
     <div class="n" style="margin-top:8px;font-size:.72rem;color:var(--muted)">Inclut tout : factures payées, émises en attente, et périodes pas encore facturées (projection).</div></div>`;
 
   // Factures RTL 2026
-  html += `<div class="s"><div class="st">Factures RTL 2026 (HT — TVA 0% Bairok LLC / EAU)</div><table>
+  let rtlTableHtml = `<table>
     <thead><tr><th>Facture</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
   d.rtl.forEach(r => {
-    html += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.dateFacture || '—'}</td><td>${r.dateDue || '—'}</td><td>${badge(r.statut, r.statutText)}</td></tr>`;
+    rtlTableHtml += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.dateFacture || '—'}</td><td>${r.dateDue || '—'}</td><td>${badge(r.statut, r.statutText)}</td></tr>`;
   });
-  html += `<tr class="tr"><td colspan="3"><strong>Total facturé HT</strong></td><td class="a"><strong>${fmtPlain(totalFacture)}</strong></td><td></td><td></td><td></td></tr></tbody></table></div>`;
+  rtlTableHtml += `<tr class="tr"><td colspan="3"><strong>Total facturé HT</strong></td><td class="a"><strong>${fmtPlain(totalFacture)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
+  html += collapsible('Factures RTL 2026 (HT — TVA 0% Bairok LLC / EAU)', rtlTableHtml);
 
   // Virements Maroc
-  html += `<div class="s"><div class="st">Augustin a reçu — Virements Maroc 2026</div><table>
+  let virementsMarocHtml = `<table>
     <thead><tr><th>#</th><th data-sort="date">Date</th><th>Bénéficiaire</th><th data-sort="num" style="text-align:right">DH</th><th data-sort="num" style="text-align:right">= EUR (÷${d.tauxMaroc})</th></tr></thead><tbody>`;
   d.virementsMaroc.forEach((v, i) => {
-    html += `<tr><td>${i+1}</td><td>${v.date}</td><td>${v.beneficiaire}</td><td class="a">${fmtPlain(v.dh)}</td><td class="a">${fmtPlain(v.dh / d.tauxMaroc)}</td></tr>`;
+    virementsMarocHtml += `<tr><td>${i+1}</td><td>${v.date}</td><td>${v.beneficiaire}</td><td class="a">${fmtPlain(v.dh)}</td><td class="a">${fmtPlain(v.dh / d.tauxMaroc)}</td></tr>`;
   });
-  html += `<tr class="tr"><td></td><td colspan="2"><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(totalMAD)}</strong></td><td class="a"><strong>${fmtPlain(totalEUR)}</strong></td></tr></tbody></table></div>`;
+  virementsMarocHtml += `<tr class="tr"><td></td><td colspan="2"><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(totalMAD)}</strong></td><td class="a"><strong>${fmtPlain(totalEUR)}</strong></td></tr></tbody></table>`;
 
-  html += `<div class="n">${delta < 0
+  virementsMarocHtml += `<div class="n">${delta < 0
     ? `<strong>Amine a avancé ${fmtPlain(Math.abs(delta))}€</strong> de plus qu'il n'a reçu (cash réel). ${totalPending > 0 ? fmtPlain(totalPending) + '€ de factures RTL en attente de paiement couvriront ce delta.' : ''}`
     : `Le solde est positif (cash réel) : Augustin doit ${fmtPlain(delta)}€ à Amine.`
   } Report 2025 : <strong>${fmtSigned(d.report2025)}</strong>.</div>`;
+
+  html += collapsible('Virements Maroc 2026', virementsMarocHtml);
 
   // Divers 2026 (cash direct)
   if (d.divers && d.divers.length) {
@@ -333,18 +342,19 @@ function renderAugustin2026(embedded) {
       const brut = Math.round(x.montant / (1 - x.commissionRate) * 100) / 100;
       return s + (brut - x.montant);
     }, 0);
-    html += `<div class="s"><div class="st">Divers — Cash direct 2026</div><table>
+    let diversTable = `<table>
       <thead><tr><th>Opération</th><th data-sort="num" style="text-align:right">Net payé (€)</th><th data-sort="num" style="text-align:right">Brut couvert (€)</th><th>Détail</th></tr></thead><tbody>`;
     d.divers.forEach(x => {
       const color = x.montant > 0 ? 'var(--green)' : 'var(--red)';
       const brut = x.commissionRate ? Math.round(x.montant / (1 - x.commissionRate) * 100) / 100 : null;
       const brutStr = brut ? fmtPlain(Math.round(brut)) : '—';
       const detail = x.commissionRate ? `Commission ${Math.round(x.commissionRate * 100)}% → ${fmtPlain(Math.round(brut - x.montant))}€` : '';
-      html += `<tr><td>${x.label}</td><td class="a" style="color:${color}">${fmtSigned(x.montant, '€')}</td><td class="a">${brutStr}</td><td style="font-size:.72rem;color:var(--muted)">${detail}</td></tr>`;
+      diversTable += `<tr><td>${x.label}</td><td class="a" style="color:${color}">${fmtSigned(x.montant, '€')}</td><td class="a">${brutStr}</td><td style="font-size:.72rem;color:var(--muted)">${detail}</td></tr>`;
     });
     const soldeDiv = totalIn - totalOut;
-    html += `<tr class="tr"><td><strong>Solde cash net</strong></td><td class="a" style="color:${soldeDiv >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmtSigned(soldeDiv, '€')}</strong></td><td></td><td style="font-size:.72rem;color:var(--muted)">${diversCommission > 0 ? 'Commission perso totale : ' + fmtPlain(Math.round(diversCommission)) + '€' : ''}</td></tr>`;
-    html += `</tbody></table></div>`;
+    diversTable += `<tr class="tr"><td><strong>Solde cash net</strong></td><td class="a" style="color:${soldeDiv >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmtSigned(soldeDiv, '€')}</strong></td><td></td><td style="font-size:.72rem;color:var(--muted)">${diversCommission > 0 ? 'Commission perso totale : ' + fmtPlain(Math.round(diversCommission)) + '€' : ''}</td></tr>`;
+    diversTable += `</tbody></table>`;
+    html += collapsible('Divers — Cash direct 2026', diversTable);
   }
 
   // Facturation AZCS → Majalis (Badre)
@@ -357,25 +367,25 @@ function renderAugustin2026(embedded) {
     const totalTTCBadre = Math.round(totalHTBadre * (1 + tva));
     const paidBadre = b26.councils.filter(c => c.statut === 'ok');
     const totalHTpaid = sum(paidBadre, 'htEUR');
-    html += `<div class="s"><div class="st">Facturation AZCS → Majalis (Badre) — ${fmtPlain(totalHTBadre)}€ HT (${fmtPlain(totalTTCBadre)}€ TTC)</div>`;
-    html += `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
-    html += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
+    let azcsHtml = `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
+    azcsHtml += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
     b26.councils.forEach(c => {
       const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
       const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
-      html += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
+      azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
     });
-    html += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table></div>`;
+    azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
+    html += collapsible('Facturation AZCS → Majalis (Badre) — ' + fmtPlain(totalHTBadre) + '€ HT (' + fmtPlain(totalTTCBadre) + '€ TTC)', azcsHtml);
   }
 
   // Insights 2026
   if (d.insights) {
-    html += `<div class="s"><div class="st">Insights</div>`;
+    let insightsHtml2026 = '';
     d.insights.forEach(ins => {
       const cls = ins.type === 'pass' ? 'pass' : ins.type === 'warn' ? 'warn' : ins.type === 'fail' ? 'fail' : '';
-      html += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
+      insightsHtml2026 += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
     });
-    html += `</div>`;
+    html += collapsible('Insights', insightsHtml2026);
   }
 
   return html;
