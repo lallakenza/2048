@@ -55,11 +55,14 @@ function renderAugustin2025(embedded) {
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${d.subtitle}</p>`;
 
   // Cards
+  const solde25WhoOwes = soldeCorrige < 0
+    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--red);font-weight:600">→ Augustin doit à Amine</div>`
+    : `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Amine doit à Augustin</div>`;
   html += `<div class="cards">
-    <div class="card"><div class="l">Actuals Jan-Déc</div><div class="v blue">${fmtPlain(totalActuals)} €</div></div>
-    <div class="card"><div class="l">Total dépenses Excel</div><div class="v yellow">${fmtPlain(totalDepenses)} €</div></div>
-    <div class="card"><div class="l">Solde Excel (Fév-Déc)</div><div class="v red">${fmtSigned(soldeExcel)}</div></div>
-    <div class="card"><div class="l">Solde corrigé (MAD réel)</div><div class="v red">${fmtSigned(soldeCorrige)}</div></div>
+    <div class="card"><div class="l">Actuals Jan-Déc</div><div class="v blue">${fmtPlain(totalActuals)} €</div><div style="font-size:.65rem;color:var(--muted)">Revenus RTL encaissés</div></div>
+    <div class="card"><div class="l">Total dépenses</div><div class="v yellow">${fmtPlain(totalDepenses)} €</div><div style="font-size:.65rem;color:var(--muted)">Payé à Augustin</div></div>
+    <div class="card" style="border:2px solid var(--red)"><div class="l">Position clôture 2025</div><div class="v red">${fmtSigned(soldeCorrige)}</div>${solde25WhoOwes}</div>
+    <div class="card"><div class="l">Réconciliation</div><div class="v green">100%</div><div style="font-size:.65rem;color:var(--muted)">0€ sans preuve</div></div>
   </div>`;
 
   // Synthèse 5 catégories
@@ -242,24 +245,29 @@ function renderAugustin2026(embedded) {
     <button onclick="switchRecoView('accrued')" id="reco-btn-accrued" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;background:transparent;color:var(--muted);transition:all .2s">Accrued</button>
   </div>`;
 
+  // Helper: who owes whom
+  const whoOwes = (d) => d >= 0
+    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Amine doit payer Augustin</div>`
+    : `<div style="font-size:.7rem;margin-top:4px;color:var(--red);font-weight:600">→ Augustin doit à Amine</div>`;
+
   // 3 card sets (only one visible at a time)
   html += `<div id="reco-cards-paid" class="cards">
-    <div class="card"><div class="l">RTL reçu (paid)</div><div class="v green">${fmtPlain(amineRecu)} €</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">+ ${fmtPlain(diversNet)}€ cash direct</div></div>
-    <div class="card"><div class="l">Delta net (paid)</div><div class="v ${delta >= 0 ? 'green' : 'red'}">${fmtSigned(delta)}</div></div>
-    <div class="card"><div class="l">En attente</div><div class="v yellow">${fmtPlain(totalPending)} €</div></div>
+    <div class="card"><div class="l">RTL reçu (paid)</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Reçu par Amine de RTL</div></div>
+    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
+    <div class="card" style="border:2px solid ${delta >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position actuelle</div><div class="v ${delta >= 0 ? 'green' : 'red'}">${fmtSigned(delta)}</div>${whoOwes(delta)}</div>
+    <div class="card"><div class="l">En attente paiement</div><div class="v yellow">${fmtPlain(totalPending)} €</div><div style="font-size:.65rem;color:var(--muted)">Factures RTL non payées</div></div>
   </div>`;
   html += `<div id="reco-cards-invoiced" class="cards" style="display:none">
-    <div class="card"><div class="l">RTL facturé (invoiced)</div><div class="v yellow">${fmtPlain(totalInvoiced)} €</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">+ ${fmtPlain(diversNet)}€ cash direct</div></div>
-    <div class="card"><div class="l">Delta net (invoiced)</div><div class="v ${deltaInvoiced >= 0 ? 'green' : 'red'}">${fmtSigned(deltaInvoiced)}</div></div>
-    <div class="card"><div class="l">dont payé</div><div class="v green">${fmtPlain(amineRecu)} €</div></div>
+    <div class="card"><div class="l">RTL facturé</div><div class="v yellow">${fmtPlain(totalInvoiced)} €</div><div style="font-size:.65rem;color:var(--muted)">Factures émises à RTL</div></div>
+    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
+    <div class="card" style="border:2px solid ${deltaInvoiced >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position (invoiced)</div><div class="v ${deltaInvoiced >= 0 ? 'green' : 'red'}">${fmtSigned(deltaInvoiced)}</div>${whoOwes(deltaInvoiced)}</div>
+    <div class="card"><div class="l">dont déjà payé</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Cash réellement reçu</div></div>
   </div>`;
   html += `<div id="reco-cards-accrued" class="cards" style="display:none">
-    <div class="card"><div class="l">RTL total (accrued)</div><div class="v yellow">${fmtPlain(totalFacture)} €</div></div>
-    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">+ ${fmtPlain(diversNet)}€ cash direct</div></div>
-    <div class="card"><div class="l">Delta net (accrued)</div><div class="v ${deltaAccrued >= 0 ? 'green' : 'red'}">${fmtSigned(deltaAccrued)}</div></div>
-    <div class="card"><div class="l">dont payé</div><div class="v green">${fmtPlain(amineRecu)} €</div></div>
+    <div class="card"><div class="l">RTL total (projection)</div><div class="v yellow">${fmtPlain(totalFacture)} €</div><div style="font-size:.65rem;color:var(--muted)">Payé + émis + à facturer</div></div>
+    <div class="card"><div class="l">Augustin a reçu</div><div class="v blue">${fmtPlain(augustinRecuEUR)} €</div><div style="font-size:.65rem;color:var(--muted)">Virements + ${fmtPlain(diversNet)}€ cash</div></div>
+    <div class="card" style="border:2px solid ${deltaAccrued >= 0 ? 'var(--green)' : 'var(--red)'}"><div class="l">Position (projection)</div><div class="v ${deltaAccrued >= 0 ? 'green' : 'red'}">${fmtSigned(deltaAccrued)}</div>${whoOwes(deltaAccrued)}</div>
+    <div class="card"><div class="l">dont déjà payé</div><div class="v green">${fmtPlain(amineRecu)} €</div><div style="font-size:.65rem;color:var(--muted)">Cash réellement reçu</div></div>
   </div>`;
 
   // 3 reconciliation tables

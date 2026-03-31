@@ -96,38 +96,44 @@ function renderBenoitYear(dataKey, opts = {}) {
   }
 
   // ---- Cards ----
+  // Who owes whom helper for Benoit
+  const benoitWhoOwes = solde > 0
+    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--yellow);font-weight:600">→ Amine doit payer Benoit</div>`
+    : solde < 0
+    ? `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Benoit a un excédent</div>`
+    : `<div style="font-size:.7rem;margin-top:4px;color:var(--green);font-weight:600">→ Soldé</div>`;
+
   if (isClotured) {
     // Clôture: Dû / Payé / Solde (+ Gains in PRIV)
     if (window.PRIV) {
       html += `<div class="cards">
-        <div class="card"><div class="l">Dû à Benoit (${netPct}% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
-        <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-        <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
-        <div class="card"><div class="l">Total gains (FX + Commission)</div><div class="v green">${fmtPlain(totalGains)} DH</div></div>
+        <div class="card"><div class="l">Dû à Benoit (${netPct}%)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div><div style="font-size:.65rem;color:var(--muted)">Councils HT − commission</div></div>
+        <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div><div style="font-size:.65rem;color:var(--muted)">${d.virements.length} virement(s)</div></div>
+        <div class="card" style="border:2px solid ${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><div class="l">Position</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div>${benoitWhoOwes}</div>
+        <div class="card"><div class="l">Total gains Amine</div><div class="v green">${fmtPlain(totalGains)} DH</div><div style="font-size:.65rem;color:var(--muted)">FX + Commission</div></div>
       </div>`;
     } else {
       html += `<div class="cards">
-        <div class="card"><div class="l">Dû à Benoit (${netPct}% Councils)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div></div>
-        <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-        <div class="card"><div class="l">Solde (dû − payé)</div><div class="v yellow">${fmtSigned(solde, 'DH')}</div></div>
+        <div class="card"><div class="l">Dû à Benoit (${netPct}%)</div><div class="v blue">${fmtPlain(totalNetBenoit)} DH</div><div style="font-size:.65rem;color:var(--muted)">Councils HT − commission</div></div>
+        <div class="card"><div class="l">Payé en DH</div><div class="v green">${fmtPlain(totalPaye)} DH</div><div style="font-size:.65rem;color:var(--muted)">${d.virements.length} virement(s)</div></div>
+        <div class="card" style="border:2px solid ${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><div class="l">Position</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div>${benoitWhoOwes}</div>
       </div>`;
     }
   } else {
     // En-cours: Report / Net paid / Payé / Solde
     if (window.PRIV) {
       html += `<div class="cards">
-        <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
-        <div class="card"><div class="l">Councils payé ${year} (brut)</div><div class="v blue">${fmtPlain(totalDHPaid)} DH</div></div>
-        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
-        <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-        <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div></div>
+        <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div><div style="font-size:.65rem;color:var(--muted)">Reste dû de ${year - 1}</div></div>
+        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div><div style="font-size:.65rem;color:var(--muted)">${paidTransactions.length} factures reçues</div></div>
+        <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div><div style="font-size:.65rem;color:var(--muted)">${d.virements.length} virement(s) envoyé(s)</div></div>
+        <div class="card" style="border:2px solid ${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><div class="l">Position actuelle</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div>${benoitWhoOwes}</div>
       </div>`;
     } else {
       html += `<div class="cards">
-        <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div></div>
-        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div></div>
-        <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div></div>
-        <div class="card"><div class="l">Solde (report + dû − payé)</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div></div>
+        <div class="card"><div class="l">Report ${year - 1}</div><div class="v yellow">${fmtSigned(report, 'DH')}</div><div style="font-size:.65rem;color:var(--muted)">Reste dû de ${year - 1}</div></div>
+        <div class="card"><div class="l">Councils payé ${year} (net −${ratePct}%)</div><div class="v blue">${fmtPlain(totalNetPaid)} DH</div><div style="font-size:.65rem;color:var(--muted)">${paidTransactions.length} factures reçues</div></div>
+        <div class="card"><div class="l">Payé DH ${year}</div><div class="v green">${fmtPlain(totalPaye)} DH</div><div style="font-size:.65rem;color:var(--muted)">${d.virements.length} virement(s) envoyé(s)</div></div>
+        <div class="card" style="border:2px solid ${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><div class="l">Position actuelle</div><div class="v ${solde > 0 ? 'yellow' : 'green'}">${fmtSigned(solde, 'DH')}</div>${benoitWhoOwes}</div>
       </div>`;
     }
   }
