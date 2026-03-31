@@ -142,14 +142,13 @@ function renderBenoitYear(dataKey, opts = {}) {
       const statusCell = isClotured
         ? badge('ok', '✓ EBS')
         : badge(t.statut, t.statutText);
-      html += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${t.tauxMarche ? fmtRate(t.tauxMarche) : '—'}</td><td class="a"${t.delta !== null ? ' style="color:var(--green)"' : ''}>${t.delta !== null ? fmtDelta(t.delta) : '—'}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
+      councilsTableHtml += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${t.tauxMarche ? fmtRate(t.tauxMarche) : '—'}</td><td class="a"${t.delta !== null ? ' style="color:var(--green)"' : ''}>${t.delta !== null ? fmtDelta(t.delta) : '—'}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
     });
     if (isClotured) {
       const totalTTC = tvaRate ? Math.round(totalHTEUR * (1 + tvaRate)) : null;
       const ttcTotalCell = tvaRate ? `<td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTC)}</strong></td>` : '';
-      html += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td>${ttcTotalCell}<td></td><td></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalGainFX, '')}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr>`;
+      councilsTableHtml += `<tr class="tr"><td></td><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTEUR)}</strong></td>${ttcTotalCell}<td></td><td></td><td></td><td class="a"><strong>${fmtPlain(totalDH)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalGainFX, '')}</strong></td><td class="a"><strong>${fmtPlain(totalCommission)}</strong></td><td class="a"><strong>${fmtPlain(totalNetBenoit)}</strong></td><td></td></tr>`;
     }
-    councilsTableHtml += `</tbody></table>`;
     councilsTableHtml += `</tbody></table>`;
   } else {
     const ttcHeader2 = tvaRate ? `<th data-sort="num" style="text-align:right">TTC (€)</th>` : '';
