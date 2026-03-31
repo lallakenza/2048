@@ -119,8 +119,8 @@ const DATA = {
     ],
 
     rtl: [
-      { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350, dateFacture: "31/12/2025", po: "4500619649", dateDue: "01/03/2026", statut: "w", statutText: "Invoiced" },
-      { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", po: "4500619649", dateDue: "01/04/2026", statut: "w", statutText: "Invoiced" },
+      { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350, dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },
+      { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "w", statutText: "Invoiced" },
       { ref: "—", periode: "Mars", jours: 20, montant: 17000, statut: "i", statutText: "À facturer" },
     ],
 
@@ -169,10 +169,15 @@ const DATA = {
     title: "Benoit 2026 — En cours (tracking en DH)",
     commissionRate: 0.10,
     tvaRate: 0.21,
+    tjm: 625,
 
     councils: [
-      { mois: "Janvier", htEUR: 5000, tauxApplique: 10.600, statut: "ok", statutText: "Paid 11/02" },
-      { mois: "Février", htEUR: 5000, tauxApplique: 10.600, statut: "w", statutText: "Invoiced" },
+      { ref: "AZCS0001", mois: "Janvier 2026", jours: 8, htEUR: 5000, dateFacture: "30/01/2026", dateDue: "16/03/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 11/02" },
+      { ref: "AZCS0002", mois: "Février 2026", jours: 8, htEUR: 5000, dateFacture: "27/02/2026", dateDue: "13/04/2026", tauxApplique: 10.600, statut: "w", statutText: "Invoiced" },
+      { ref: "AZCS0003", mois: "Octobre 2025", jours: 9, htEUR: 5625, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
+      { ref: "AZCS0004", mois: "Novembre 2025", jours: 10, htEUR: 6250, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
+      { ref: "AZCS0005", mois: "Décembre 2025", jours: 13, htEUR: 8125, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
+      { ref: "AZCS0006", mois: "Mars 2026", jours: 9, htEUR: 5625, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03" },
     ],
 
     virements: [
@@ -181,6 +186,7 @@ const DATA = {
 
     notes: [
       "Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. La réconciliation ne prend en compte que les Councils effectivement payés.",
+      "Factures AZCS0003/0004/0005 = backlog 2025 (Oct/Nov/Déc) facturées et payées en mars 2026.",
     ],
   },
 

@@ -283,6 +283,27 @@ function renderAugustin2026(embedded) {
     html += `</tbody></table></div>`;
   }
 
+  // Facturation AZCS → Majalis (Badre)
+  const b26 = DATA.benoit2026;
+  if (b26 && b26.councils) {
+    const tjm = b26.tjm || 625;
+    const tva = b26.tvaRate || 0.21;
+    const tvaPctAz = Math.round(tva * 100);
+    const totalHTBadre = sum(b26.councils, 'htEUR');
+    const totalTTCBadre = Math.round(totalHTBadre * (1 + tva));
+    const paidBadre = b26.councils.filter(c => c.statut === 'ok');
+    const totalHTpaid = sum(paidBadre, 'htEUR');
+    html += `<div class="s"><div class="st">Facturation AZCS → Majalis (Badre) — ${fmtPlain(totalHTBadre)}€ HT (${fmtPlain(totalTTCBadre)}€ TTC)</div>`;
+    html += `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
+    html += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
+    b26.councils.forEach(c => {
+      const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
+      const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
+      html += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
+    });
+    html += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table></div>`;
+  }
+
   // Insights 2026
   if (d.insights) {
     html += `<div class="s"><div class="st">Insights</div>`;

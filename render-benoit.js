@@ -47,6 +47,7 @@ function renderBenoitYear(dataKey, opts = {}) {
   const isClotured = !d.councils[0]?.statut;
   const dateField = isClotured ? 'date' : 'mois';
   const dateLabel = isClotured ? 'Date EBS' : 'Mois';
+  const hasRef = d.councils.some(m => m.ref);
 
   // ---- Compute per-transaction ----
   const transactions = d.councils.map(m => {
@@ -139,18 +140,20 @@ function renderBenoitYear(dataKey, opts = {}) {
   if (window.PRIV) {
     const privTitle = tableTitle.replace('convertis en DH', 'convertis en DH (taux appliqué vs marché)');
     const ttcHeader = tvaRate ? `<th data-sort="num" style="text-align:right">TTC (€)</th>` : '';
+    const refHeader = hasRef ? '<th>Ref</th>' : '';
     html += `<div class="s"><div class="st">${privTitle}</div>`;
-    if (tvaRate) html += `<div class="n" style="margin-bottom:8px">Azarkan reçoit les paiements <strong>TTC</strong> (TVA ${tvaPct}%) en Belgique — on comptabilise en <strong>HT</strong>.</div>`;
+    if (tvaRate) html += `<div class="n" style="margin-bottom:8px">AZCS → Majalis. Azarkan reçoit les paiements <strong>TTC</strong> (TVA ${tvaPct}%) en Belgique — on comptabilise en <strong>HT</strong>.</div>`;
     html += `<table>
-      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th data-sort="date">${dateLabel}</th><th data-sort="num" style="text-align:right">HT (€)</th>${ttcHeader}<th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Δ taux</th><th data-sort="num" style="text-align:right">= DH</th><th data-sort="num" style="text-align:right">Gain FX (DH)</th><th data-sort="num" style="text-align:right">Commission ${ratePct}%</th><th data-sort="num" style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
+      <thead><tr>${isClotured ? '<th>#</th>' : ''}${refHeader}<th data-sort="date">${dateLabel}</th><th data-sort="num" style="text-align:right">HT (€)</th>${ttcHeader}<th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Δ taux</th><th data-sort="num" style="text-align:right">= DH</th><th data-sort="num" style="text-align:right">Gain FX (DH)</th><th data-sort="num" style="text-align:right">Commission ${ratePct}%</th><th data-sort="num" style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
       const dateVal = t[dateField];
       const ttc = tvaRate ? Math.round(t.htEUR * (1 + tvaRate) * 100) / 100 : null;
       const ttcCell = tvaRate ? `<td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttc))}</td>` : '';
+      const refCell = hasRef ? `<td style="font-size:.72rem">${t.ref || ''}${t.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : ''}</td>` : '';
       const statusCell = isClotured
         ? badge('ok', '✓ EBS')
         : badge(t.statut, t.statutText);
-      html += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${t.tauxMarche ? fmtRate(t.tauxMarche) : '—'}</td><td class="a"${t.delta !== null ? ' style="color:var(--green)"' : ''}>${t.delta !== null ? fmtDelta(t.delta) : '—'}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
+      html += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${t.tauxMarche ? fmtRate(t.tauxMarche) : '—'}</td><td class="a"${t.delta !== null ? ' style="color:var(--green)"' : ''}>${t.delta !== null ? fmtDelta(t.delta) : '—'}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
     });
     if (isClotured) {
       const totalTTC = tvaRate ? Math.round(totalHTEUR * (1 + tvaRate)) : null;
@@ -160,18 +163,20 @@ function renderBenoitYear(dataKey, opts = {}) {
     html += `</tbody></table></div>`;
   } else {
     const ttcHeader2 = tvaRate ? `<th data-sort="num" style="text-align:right">TTC (€)</th>` : '';
+    const refHeader2 = hasRef ? '<th>Ref</th>' : '';
     html += `<div class="s"><div class="st">${tableTitle}</div>`;
-    if (tvaRate) html += `<div class="n" style="margin-bottom:8px">Azarkan reçoit les paiements <strong>TTC</strong> (TVA ${tvaPct}%) en Belgique — on comptabilise en <strong>HT</strong>.</div>`;
+    if (tvaRate) html += `<div class="n" style="margin-bottom:8px">AZCS → Majalis. Azarkan reçoit les paiements <strong>TTC</strong> (TVA ${tvaPct}%) en Belgique — on comptabilise en <strong>HT</strong>.</div>`;
     html += `<table>
-      <thead><tr>${isClotured ? '<th>#</th>' : ''}<th data-sort="date">${dateLabel}</th><th data-sort="num" style="text-align:right">HT (€)</th>${ttcHeader2}<th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">= DH</th><th data-sort="num" style="text-align:right">Commission ${ratePct}%</th><th data-sort="num" style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
+      <thead><tr>${isClotured ? '<th>#</th>' : ''}${refHeader2}<th data-sort="date">${dateLabel}</th><th data-sort="num" style="text-align:right">HT (€)</th>${ttcHeader2}<th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">= DH</th><th data-sort="num" style="text-align:right">Commission ${ratePct}%</th><th data-sort="num" style="text-align:right">Net Benoit (DH)</th><th></th></tr></thead><tbody>`;
     transactions.forEach((t, i) => {
       const dateVal = t[dateField];
       const ttc2 = tvaRate ? Math.round(t.htEUR * (1 + tvaRate) * 100) / 100 : null;
       const ttcCell2 = tvaRate ? `<td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttc2))}</td>` : '';
+      const refCell2 = hasRef ? `<td style="font-size:.72rem">${t.ref || ''}${t.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : ''}</td>` : '';
       const statusCell = isClotured
         ? badge('ok', '✓ EBS')
         : badge(t.statut, t.statutText);
-      html += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell2}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
+      html += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell2}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell2}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
     });
     if (isClotured) {
       const totalTTC2 = tvaRate ? Math.round(totalHTEUR * (1 + tvaRate)) : null;
