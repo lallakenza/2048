@@ -317,13 +317,13 @@ function renderAugustin2026(embedded) {
       <div class="hero-label">Si paiement France (pro)</div>
       <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPro))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
-      <div class="hero-detail">Virement pro · commission 5% incluse</div>
+      <div class="hero-detail">Virement entreprise · montant brut</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (perso)</div>
       <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPerso))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
-      <div class="hero-detail">Cash réel · sans commission</div>
+      <div class="hero-detail">Cash EUR · −5% commission Amine (Pro × 0.95)</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement Maroc</div>
@@ -505,7 +505,7 @@ function renderAugustin2026(embedded) {
     });
     diversTable += `<tr class="tr"><td><strong>Total</strong></td><td class="a" style="color:var(--accent)"><strong>${fmtSigned(Math.round(diversPerso), '€')}</strong></td><td class="a"><strong>${fmtPlain(Math.round(diversPro))}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(Math.round(commissionAmine))}</strong></td><td style="font-size:.72rem;color:var(--muted)">Δ Pro − Perso = commission Amine</td></tr>`;
     diversTable += `</tbody></table>`;
-    diversTable += `<div class="n" style="margin-top:6px"><strong>Règles :</strong> Dette = 1:1 (pas de commission). Cash Europe = commission 5% (Pro = Perso ÷ 0.95). Maroc = 1 000€ pro = 10 000 MAD (traité dans Virements Maroc).</div>`;
+    diversTable += `<div class="n" style="margin-top:6px"><strong>Règles :</strong> Dette = 1:1 (pas de commission). Cash EUR = Perso = Pro × 0.95 (commission 5% Amine). Maroc = Pro × 10 (taux fixe 1 000€ pro = 10 000 MAD).</div>`;
     html += collapsible('Divers — Cash direct 2026 (Pro vs Perso)', diversTable);
   }
 

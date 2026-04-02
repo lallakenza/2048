@@ -92,20 +92,20 @@ function renderAmine() {
   // ---- AZARKAN SECTION ----
   html += `<div style="margin-bottom:20px">`;
   html += `<div style="font-size:.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Azarkan (Augustin)</div>`;
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Paiement possible : <strong>pro</strong> (virement entreprise, commission 5%), <strong>perso</strong> (cash), ou <strong>Maroc</strong> (MAD, taux fixe 1 000€ pro = 10 000 MAD)</div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Pro → EUR perso = Pro × 0.95 (−5% commission Amine) · Pro → MAD = Pro × 10 (taux fixe)</div>`;
 
   html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
     <div class="hero-card" style="border-color:${azColor}">
       <div class="hero-label">Si je paye en Pro</div>
       <div class="hero-value ${azCls}" style="font-size:1.2rem">${fmtSigned(Math.round(-posNetPro))}</div>
       <div class="hero-who" style="color:${azColor}">${azLabel}</div>
-      <div class="hero-detail">Commission 5% incluse</div>
+      <div class="hero-detail">Virement entreprise · montant brut</div>
     </div>
     <div class="hero-card" style="border-color:${azColor}">
       <div class="hero-label">Si je paye en Perso</div>
       <div class="hero-value ${azCls}" style="font-size:1.2rem">${fmtSigned(Math.round(-posNetPerso))}</div>
       <div class="hero-who" style="color:${azColor}">${azLabel}</div>
-      <div class="hero-detail">Cash réel · sans commission</div>
+      <div class="hero-detail">Cash EUR · −5% commission Amine (Pro × 0.95)</div>
     </div>
     <div class="hero-card" style="border-color:${azColor}">
       <div class="hero-label">Si je paye au Maroc</div>
@@ -126,7 +126,7 @@ function renderAmine() {
   // ---- BADRE SECTION ----
   html += `<div style="margin-bottom:20px">`;
   html += `<div style="font-size:.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Badre (Benoit)</div>`;
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Paiement : <strong>cash DH uniquement</strong> (virements Maroc). Commission 10%, taux fixe 1 000€ = 10 600 MAD.</div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Pro × taux appliqué → DH − 10% commission Amine. Taux fixe 2026 : 10.6. Paiement cash DH uniquement.</div>`;
 
   html += `<div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;max-width:340px">
     <div class="hero-card" style="border-color:${baColor}">
