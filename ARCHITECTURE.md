@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Site statique hébergé sur GitHub Pages (lallakenza/facturation) permettant la réconciliation de facturation entre plusieurs parties. Données chiffrées AES-256-GCM côté client (Web Crypto API). Façade hôtelière fictive "Riad Mogador".
+Site statique hébergé sur GitHub Pages (lallakenza/facturation) permettant la réconciliation de facturation entre plusieurs parties. Données chiffrées AES-256-GCM côté client (Web Crypto API). Façade hôtelière "Riad Anwar" (riad fictif à Casablanca, quartier Habous).
 
 ---
 
@@ -12,7 +12,7 @@ Site statique hébergé sur GitHub Pages (lallakenza/facturation) permettant la 
 |---|---|---|
 | **Augustin** | Mohammed Azarkan | Consultant SAP chez RTL via Bairok Consulting LLC (EAU) |
 | **Benoit** / **Benoit Chevalier** / **Badrecheikh Elmouksit** | Badre | Bénéficiaire des paiements Councils, tracking en DH |
-| **Amine** | Amine Koraibi (propriétaire du site) | Gestionnaire facturation, retient commissions |
+| **Amine** | Amine (propriétaire du site) | Gestionnaire facturation, retient commissions |
 | **Jean Augustin** | Bénéficiaire virements Maroc | Azarkan côté DH |
 | **Nezha** | Femme d'Amine | Émettrice des virements perso EUR |
 | **Hanane** | Femme d'Azarkan | Réceptrice des virements perso EUR |
@@ -105,7 +105,7 @@ Le site a 3 niveaux d'accès contrôlés par un "gate" (mot de passe) :
 | **BINGA** | `BINGA` | Portail hôtel OU champ `#dref` | `full` | `true` | Sombre | Tous : Ma Position, Azarkan, Badre, FX P2P, Mes Gains |
 
 ### Fonctionnement du gate
-- Page d'accueil = portail facturation hôtelier fictif "Riad Mogador" (façade, Essaouira)
+- Page d'accueil = portail facturation hôtelier "Riad Anwar" (façade, Casablanca quartier Habous)
 - Le champ "N° de réservation" (`#resaSearch`) accepte BRIDGEVALE, COUPA ou BINGA (case-insensitive)
 - BRIDGEVALE/COUPA : déchiffre `data-enc.js` → transition vers la réconciliation
 - BINGA depuis le portail : déchiffre `data-enc.js` (avec clé BRIDGEVALE) + `data-priv.enc.js` (avec clé BINGA) → mode sombre + tous les onglets

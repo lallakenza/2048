@@ -55,7 +55,7 @@ const NICK_MAP = {
   'benoit chevalier':       'Benoit',
   'badrecheikh elmouksit':  'Benoit',
   'badre':                  'Benoit',
-  'amine koraibi':          'Amine',
+  'amine':                  'Amine',
   'nezha':                  'Nezha',
   'hanane':                 'Hanane',
 };
@@ -69,7 +69,6 @@ const NICK_REPLACE = [
   [/\bAzarkan\b/gi, 'Augustin'], [/\bMohammed Azarkan\b/gi, 'Augustin'],
   [/\bBadre\b/gi, 'Benoit'], [/\bBadrecheikh\b/gi, 'Benoit'],
   [/\bBadrecheikh Elmouksit\b/gi, 'Benoit'],
-  [/\bKoraibi\b/gi, 'Amine'],
 ];
 const nickText = (text) => {
   if (!text) return '';
