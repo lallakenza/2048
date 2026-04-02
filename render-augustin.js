@@ -222,6 +222,7 @@ function renderAugustin2026(embedded) {
   // =====================================================
   // CALCULS — 3 montants par flux : TTC / HT (Pro) / Perso
   // =====================================================
+  const b26 = DATA.benoit2026;
   const tvaAZCS = (b26 && b26.tvaRate) ? b26.tvaRate : 0.21;
 
   // --- RTL (Bairok, TVA 0%) : TTC = HT = Perso ---
@@ -236,7 +237,6 @@ function renderAugustin2026(embedded) {
   const rtlPaidPerso = amineRecu;
 
   // --- AZCS (21% TVA belge) : TTC = HT×1.21, Perso = HT ---
-  const b26 = DATA.benoit2026;
   const azcsAll = (b26 && b26.councils) ? b26.councils : [];
   const azcsPaid = azcsAll.filter(c => c.statut === 'ok');
   const azcsInvoiced = azcsAll.filter(c => c.statut === 'ok' || c.statut === 'w');
