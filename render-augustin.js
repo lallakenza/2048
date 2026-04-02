@@ -424,7 +424,7 @@ function renderAugustin2026(embedded) {
     diversItems.forEach(x => {
       const c = x.perso > 0 ? 'var(--blue,#60a5fa)' : 'var(--green)';
       t += `<tr>
-        <td style="font-size:.75rem">− ${x.label.length > 45 ? x.label.substring(0, 45) + '…' : x.label}</td>
+        <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
         <td class="a" style="color:var(--muted)">—</td>
         <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro))}</td>
         <td class="a" style="color:${c}">${fmtPlain(Math.round(x.perso))}</td>
@@ -499,7 +499,7 @@ function renderAugustin2026(embedded) {
       <thead><tr><th>Opération</th><th data-sort="num" style="text-align:right">Pro (€)</th><th data-sort="num" style="text-align:right">Perso (€)</th><th data-sort="num" style="text-align:right">Commission (€)</th><th>Règle</th></tr></thead><tbody>`;
     diversItems.forEach(x => {
       const color = x.pro > 0 ? 'var(--green)' : 'var(--red)';
-      diversTable += `<tr><td>${x.label}</td><td class="a" style="color:${color}">${fmtPlain(Math.round(x.pro))}</td><td class="a">${fmtPlain(Math.round(x.perso))}</td><td class="a" style="color:var(--green)">${fmtPlain(Math.round(x.commission))}</td><td style="font-size:.72rem;color:var(--muted)">Perso = Pro × ${PERSO_FACTOR}</td></tr>`;
+      diversTable += `<tr><td>${nickText(x.label)}</td><td class="a" style="color:${color}">${fmtPlain(Math.round(x.pro))}</td><td class="a">${fmtPlain(Math.round(x.perso))}</td><td class="a" style="color:var(--green)">${fmtPlain(Math.round(x.commission))}</td><td style="font-size:.72rem;color:var(--muted)">Perso = Pro × ${PERSO_FACTOR}</td></tr>`;
     });
     diversTable += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(Math.round(diversPro))}</strong></td><td class="a" style="color:var(--accent)"><strong>${fmtPlain(Math.round(totalDiversPerso))}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(Math.round(totalDiversComm))}</strong></td><td style="font-size:.72rem;color:var(--muted)">Perso = Pro × ${PERSO_FACTOR}</td></tr>`;
     diversTable += `</tbody></table>`;

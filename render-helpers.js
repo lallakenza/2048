@@ -64,6 +64,17 @@ const nick = (name) => {
   const key = name.toLowerCase().trim();
   return NICK_MAP[key] || name;
 };
+// Replace ALL real names in a free-text string (labels, descriptions, etc.)
+const NICK_REPLACE = [
+  [/\bAzarkan\b/gi, 'Augustin'], [/\bMohammed Azarkan\b/gi, 'Augustin'],
+  [/\bBadre\b/gi, 'Benoit'], [/\bBadrecheikh\b/gi, 'Benoit'],
+  [/\bBadrecheikh Elmouksit\b/gi, 'Benoit'],
+  [/\bKoraibi\b/gi, 'Amine'],
+];
+const nickText = (text) => {
+  if (!text) return '';
+  return NICK_REPLACE.reduce((t, [re, nick]) => t.replace(re, nick), text);
+};
 
 // ---- SORTABLE TABLE SUPPORT ----
 (function() {
