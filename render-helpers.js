@@ -46,6 +46,25 @@ const badge = (type, text) => `<span class="b ${type}">${text}</span>`;
 
 const sum = (arr, key) => arr.reduce((s, x) => s + (typeof key === 'function' ? key(x) : (x[key] || 0)), 0);
 
+// ---- NICKNAME MAPPING (noms réels → nicknames) ----
+// Règle : on n'affiche JAMAIS les vrais noms sur le site, uniquement les nicknames
+const NICK_MAP = {
+  'jean augustin':          'Augustin',
+  'mohammed azarkan':       'Augustin',
+  'azarkan':                'Augustin',
+  'benoit chevalier':       'Benoit',
+  'badrecheikh elmouksit':  'Benoit',
+  'badre':                  'Benoit',
+  'amine koraibi':          'Amine',
+  'nezha':                  'Nezha',
+  'hanane':                 'Hanane',
+};
+const nick = (name) => {
+  if (!name) return '—';
+  const key = name.toLowerCase().trim();
+  return NICK_MAP[key] || name;
+};
+
 // ---- SORTABLE TABLE SUPPORT ----
 (function() {
   const MOIS_FR = {'janvier':0,'février':1,'mars':2,'avril':3,'mai':4,'juin':5,
