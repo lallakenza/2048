@@ -126,7 +126,7 @@ function renderAmine() {
   // ---- BADRE SECTION ----
   html += `<div style="margin-bottom:20px">`;
   html += `<div style="font-size:.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Badre (Benoit)</div>`;
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Paiement : <strong>cash DH uniquement</strong> (virements Maroc). Commission 10% prélevée avant.</div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Paiement : <strong>cash DH uniquement</strong> (virements Maroc). Commission 10%, taux fixe 1 000€ = 10 600 MAD.</div>`;
 
   html += `<div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;max-width:340px">
     <div class="hero-card" style="border-color:${baColor}">
@@ -156,9 +156,9 @@ function renderAmine() {
   html += `<tr class="tr"><td colspan="2"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalPaye26)} DH</strong></td><td></td></tr></tbody></table>`;
 
   // ---- COMBINED POSITION ----
-  // Convert Badre DH to EUR for a rough combined view
-  // Use Azarkan's tauxMaroc (10) as reference rate
-  const baOwedEUR = baOwedDH / az.tauxMaroc;
+  // Convert Badre DH to EUR — taux fixe Badre = 10.6 (différent d'Azarkan 10)
+  const tauxBadre = 10.6;
+  const baOwedEUR = baOwedDH / tauxBadre;
   const combinedEUR = azOwedPerso + baOwedEUR;
   const combSign = combinedEUR >= 0;
   const combColor = combSign ? 'var(--green)' : 'var(--red)';
@@ -174,14 +174,14 @@ function renderAmine() {
       <div style="text-align:center">
         <div style="font-size:.72rem;color:var(--muted)">vs Badre (≈EUR)</div>
         <div style="font-size:1.1rem;font-weight:700;color:${baColor}">${fmtSigned(Math.round(baOwedEUR))}</div>
-        <div style="font-size:.65rem;color:var(--muted)">${fmtSigned(-soldeBadre, 'DH')} ÷ ${az.tauxMaroc}</div>
+        <div style="font-size:.65rem;color:var(--muted)">${fmtSigned(-soldeBadre, 'DH')} ÷ ${tauxBadre}</div>
       </div>
       <div style="text-align:center;padding:10px;border-radius:8px;background:${combSign ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)'}">
         <div style="font-size:.72rem;color:var(--muted)">${combLabel}</div>
         <div style="font-size:1.3rem;font-weight:900;color:${combColor}">${fmtSigned(Math.round(combinedEUR))}</div>
       </div>
     </div>
-    <div style="font-size:.65rem;color:var(--muted);margin-top:8px;text-align:center">Estimation : position Badre convertie en EUR au taux fixe ${az.tauxMaroc}. Position Azarkan en base perso (cash).</div>
+    <div style="font-size:.65rem;color:var(--muted);margin-top:8px;text-align:center">Estimation : position Badre convertie en EUR au taux fixe ${tauxBadre}. Position Azarkan en base perso (cash).</div>
   </div>`;
 
   return html;
