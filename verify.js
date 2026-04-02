@@ -117,18 +117,22 @@ check('RTL paid 2026', amineRecu26, 26350);
 const posEntreprise = amineRecu26 - azcsRecuPaid26 + az26.report2025;
 check('Position Entreprise (paid)', posEntreprise, -5958);
 
-// Divers : montant = PERSO. Pro = montant / 0.95 (brut items: Pro = Perso)
+// Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
 const diversPro26 = az26.divers.reduce((s, x) => {
-  if (x.brut) return s + x.montant; // brut: Pro = Perso (remboursement prêt)
+  if (x.proOrigin) return s + x.montant; // proOrigin: montant IS pro
   return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
 }, 0);
-const expectedDiversPro = 2000 + 4000 / 0.95; // 2000 brut + 4211 with commission
-check('Divers Pro 2026 (2000 brut + 4000÷0.95)', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
+const expectedDiversPro = 2000 + 4000 / 0.95; // 2000 pro-origin + 4211 (4000 perso ÷ 0.95)
+check('Divers Pro 2026 (2000 pro + 4000÷0.95)', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
 
-const commAmine = diversPro26 - diversNet26;
-const expectedComm = (4000 / 0.95 - 4000); // only 4000€ has commission (2000€ is brut)
-check('Commission 5% divers (4000 only)', Math.round(commAmine * 100), Math.round(expectedComm * 100));
+// Perso for proOrigin item = 2000 × 0.95 = 1900
+const diversPerso26 = az26.divers.reduce((s, x) => {
+  if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
+  return s + x.montant;
+}, 0);
+const expectedDiversPerso = 2000 * 0.95 + 4000; // 1900 + 4000 = 5900
+check('Divers Perso 2026 (2000×0.95 + 4000)', Math.round(diversPerso26 * 100), Math.round(expectedDiversPerso * 100));
 
 // Position Net PRO (paid)
 const posNetPro = posEntreprise - totalEUR26 - diversPro26;

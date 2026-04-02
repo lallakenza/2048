@@ -257,17 +257,27 @@ function renderAugustin2026(embedded) {
   const virementsProEUR = totalMAD / d.tauxMaroc;
 
   // --- Divers : montant = PERSO (cash réel donné). Pro = montant / PERSO_FACTOR ---
-  // Exception: brut = true → Pro = Perso (remboursement prêt, pas de commission)
-  const diversPerso = d.divers ? d.divers.reduce((s, x) => s + x.montant, 0) : 0;
+  // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
+  //   (remboursement prêt : dette en pro, display montant* en perso)
+  const diversPerso = d.divers ? d.divers.reduce((s, x) => {
+    if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
+    return s + x.montant;
+  }, 0) : 0;
   const diversPro = d.divers ? d.divers.reduce((s, x) => {
-    if (x.brut) return s + x.montant; // brut: Pro = Perso
+    if (x.proOrigin) return s + x.montant; // montant IS pro
     return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
   }, 0) : 0;
 
   // --- Itemized divers for table display ---
   const diversItems = d.divers ? d.divers.map(x => {
+    if (x.proOrigin) {
+      // montant = PRO. Perso = Pro × 0.95. Display: montant* in perso col
+      const pro = x.montant;
+      const perso = Math.round(pro * PERSO_FACTOR * 100) / 100;
+      return { ...x, pro, perso, displayPerso: x.montant, commission: 0 };
+    }
     const perso = x.montant; // montant IS perso (cash réel)
-    const pro = x.brut ? perso : Math.round(perso / PERSO_FACTOR * 100) / 100;
+    const pro = Math.round(perso / PERSO_FACTOR * 100) / 100;
     return { ...x, pro, perso, commission: Math.round((pro - perso) * 100) / 100 };
   }) : [];
 
@@ -441,16 +451,27 @@ function renderAugustin2026(embedded) {
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
     // Divers itemized
-    // Divers = cash EUR perso → pill on Perso € column
     diversItems.forEach(x => {
       const c = x.perso > 0 ? 'var(--blue,#60a5fa)' : 'var(--green)';
-      t += `<tr>
-        <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
-        <td class="a" style="color:var(--muted)">—</td>
-        <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro))}</td>
-        <td class="a">${pill(fmtPlain(Math.round(x.perso)), 'eur')}</td>
-        <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro * TX))}</td>
-        <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
+      // proOrigin: display montant* in perso col (actual cash sent), pill on Pro
+      if (x.proOrigin) {
+        t += `<tr>
+          <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
+          <td class="a" style="color:var(--muted)">—</td>
+          <td class="a">${pill(fmtPlain(Math.round(x.pro)), 'pro')}</td>
+          <td class="a" style="color:${c}">${fmtPlain(x.displayPerso)}*</td>
+          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro * TX))}</td>
+          <td style="font-size:.72rem;color:var(--muted)">remb. prêt · Pro = ${fmtPlain(Math.round(x.pro))}</td></tr>`;
+      } else {
+        // Normal: montant = perso, pill on Perso €
+        t += `<tr>
+          <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
+          <td class="a" style="color:var(--muted)">—</td>
+          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro))}</td>
+          <td class="a">${pill(fmtPlain(Math.round(x.perso)), 'eur')}</td>
+          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro * TX))}</td>
+          <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
+      }
     });
 
     // Net totals
@@ -469,7 +490,7 @@ function renderAugustin2026(embedded) {
 
     t += `</tbody></table>
     <div class="n" style="margin-top:8px;font-size:.72rem;color:var(--muted)"><strong>TTC</strong> = cash réel (TVA incluse). <strong>Pro</strong> = valeur business. <strong>Perso € = Pro × ${PF}</strong>. <strong>Perso MAD = Pro × ${TX}</strong> (taux fixe). Donc 1 000€ pro = ${(PF * 1000).toLocaleString('fr-FR')}€ perso = ${(TX * 1000).toLocaleString('fr-FR')} MAD.</div>
-    <div class="n" style="margin-top:6px;font-size:.7rem;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="color:var(--muted)">Devise d'origine :</span> ${pill('Pro', 'pro')} <span style="color:var(--muted)">factures</span> ${pill('Perso €', 'eur')} <span style="color:var(--muted)">cash EUR</span> ${pill('MAD', 'mad')} <span style="color:var(--muted)">virements DH</span></div></div>`;
+    <div class="n" style="margin-top:6px;font-size:.7rem;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="color:var(--muted)">Devise d'origine :</span> ${pill('Pro', 'pro')} <span style="color:var(--muted)">factures / prêts</span> ${pill('Perso €', 'eur')} <span style="color:var(--muted)">cash EUR</span> ${pill('MAD', 'mad')} <span style="color:var(--muted)">virements DH</span> <span style="color:var(--muted)">· * = montant virement perso (calcul : Perso = Pro × ${PF})</span></div></div>`;
     return t;
   }
 

@@ -125,7 +125,7 @@ const FULL_DATA = {
       { ref: "—", periode: "Mars", jours: 20, montant: 17000, statut: "i", statutText: "À facturer" },
     ],
     divers: [
-      { label: "Amine → Azarkan (via Nezha → Hanane) — remboursement prêt 2025 + ajustements 2026", montant: 2000, brut: true,
+      { label: "Amine → Azarkan (via Nezha → Hanane) — remboursement prêt 2025 + ajustements 2026", montant: 2000, proOrigin: true,
         breakdown: [
           { label: "Prêts Azarkan → Amine 2025 (1 500 + 2 500)", montant: 4000 },
           { label: "Virements Amine → Azarkan 2025 (600+700+500+600)", montant: -2400 },

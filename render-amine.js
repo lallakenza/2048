@@ -29,11 +29,14 @@ function renderAmine() {
   const virementsEUR = totalMAD_az / az.tauxMaroc;
 
   // Divers : montant = PERSO (cash réel). Pro = montant / PERSO_FACTOR
-  // Exception: brut = true → Pro = Perso (remboursement prêt)
-  const diversPerso = az.divers ? az.divers.reduce((s, x) => s + x.montant, 0) : 0;
+  // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
   const PERSO_FACTOR = 0.95;
+  const diversPerso = az.divers ? az.divers.reduce((s, x) => {
+    if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
+    return s + x.montant;
+  }, 0) : 0;
   const diversPro = az.divers ? az.divers.reduce((s, x) => {
-    if (x.brut) return s + x.montant;
+    if (x.proOrigin) return s + x.montant; // montant IS pro
     return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
   }, 0) : 0;
 
