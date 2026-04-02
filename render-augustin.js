@@ -303,12 +303,13 @@ function renderAugustin2026(embedded) {
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
 
   // ---- HERO CARDS: 3 options de règlement équivalentes ----
+  // Taux fixe : 1 000€ PRO = 10 000 MAD → Maroc = deltaNetPro × tauxMaroc
   const absNetPro = Math.abs(Math.round(deltaNetPro));
   const absNetPerso = Math.abs(Math.round(deltaNetPerso));
-  const absNetMAD = Math.abs(Math.round(deltaNetPerso * d.tauxMaroc));
-  const whoOwes = deltaNetPerso >= 0 ? 'Amine doit à Augustin' : 'Augustin doit à Amine';
-  const heroColor = deltaNetPerso >= 0 ? 'var(--green)' : 'var(--red)';
-  const heroCls = deltaNetPerso >= 0 ? 'green' : 'red';
+  const absNetMAD = Math.abs(Math.round(deltaNetPro * d.tauxMaroc));
+  const whoOwes = deltaNetPro >= 0 ? 'Amine doit à Augustin' : 'Augustin doit à Amine';
+  const heroColor = deltaNetPro >= 0 ? 'var(--green)' : 'var(--red)';
+  const heroCls = deltaNetPro >= 0 ? 'green' : 'red';
 
   html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL − Majalis→AZCS + Report) · <strong>${whoOwes}</strong></div>`;
   html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
@@ -326,9 +327,9 @@ function renderAugustin2026(embedded) {
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement Maroc</div>
-      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${deltaNetPerso >= 0 ? '+' : '−'}${absNetMAD.toLocaleString('fr-FR')} MAD</div>
+      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${deltaNetPro >= 0 ? '+' : '−'}${absNetMAD.toLocaleString('fr-FR')} MAD</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
-      <div class="hero-detail">Taux fixe : 1 000€ = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD</div>
+      <div class="hero-detail">Taux fixe : 1 000€ pro = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD</div>
     </div>
   </div>`;
 
