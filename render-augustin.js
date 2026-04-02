@@ -257,17 +257,17 @@ function renderAugustin2026(embedded) {
   const virementsProEUR = totalMAD / d.tauxMaroc;
 
   // --- Divers : montant = PERSO (cash réel donné). Pro = montant / PERSO_FACTOR ---
+  // Exception: brut = true → Pro = Perso (remboursement prêt, pas de commission)
   const diversPerso = d.divers ? d.divers.reduce((s, x) => s + x.montant, 0) : 0;
   const diversPro = d.divers ? d.divers.reduce((s, x) => {
+    if (x.brut) return s + x.montant; // brut: Pro = Perso
     return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
   }, 0) : 0;
-  // Commission réelle encaissée sur les divers
-  const commissionAmineDivers = Math.round((diversPro - diversPerso) * 100) / 100;
 
   // --- Itemized divers for table display ---
   const diversItems = d.divers ? d.divers.map(x => {
     const perso = x.montant; // montant IS perso (cash réel)
-    const pro = Math.round(perso / PERSO_FACTOR * 100) / 100;
+    const pro = x.brut ? perso : Math.round(perso / PERSO_FACTOR * 100) / 100;
     return { ...x, pro, perso, commission: Math.round((pro - perso) * 100) / 100 };
   }) : [];
 

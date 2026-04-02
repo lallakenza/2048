@@ -117,17 +117,18 @@ check('RTL paid 2026', amineRecu26, 26350);
 const posEntreprise = amineRecu26 - azcsRecuPaid26 + az26.report2025;
 check('Position Entreprise (paid)', posEntreprise, -5958);
 
-// Divers : montant = PERSO. Pro = montant / 0.95
+// Divers : montant = PERSO. Pro = montant / 0.95 (brut items: Pro = Perso)
 const PERSO_FACTOR = 0.95;
 const diversPro26 = az26.divers.reduce((s, x) => {
+  if (x.brut) return s + x.montant; // brut: Pro = Perso (remboursement prêt)
   return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
 }, 0);
-const expectedDiversPro = 2000 / 0.95 + 4000 / 0.95;
-check('Divers Pro 2026 (perso÷0.95)', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
+const expectedDiversPro = 2000 + 4000 / 0.95; // 2000 brut + 4211 with commission
+check('Divers Pro 2026 (2000 brut + 4000÷0.95)', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
 
 const commAmine = diversPro26 - diversNet26;
-const expectedComm = (2000 / 0.95 - 2000) + (4000 / 0.95 - 4000);
-check('Commission Amine 5% divers', Math.round(commAmine * 100), Math.round(expectedComm * 100));
+const expectedComm = (4000 / 0.95 - 4000); // only 4000€ has commission (2000€ is brut)
+check('Commission 5% divers (4000 only)', Math.round(commAmine * 100), Math.round(expectedComm * 100));
 
 // Position Net PRO (paid)
 const posNetPro = posEntreprise - totalEUR26 - diversPro26;

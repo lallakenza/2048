@@ -29,9 +29,11 @@ function renderAmine() {
   const virementsEUR = totalMAD_az / az.tauxMaroc;
 
   // Divers : montant = PERSO (cash réel). Pro = montant / PERSO_FACTOR
+  // Exception: brut = true → Pro = Perso (remboursement prêt)
   const diversPerso = az.divers ? az.divers.reduce((s, x) => s + x.montant, 0) : 0;
-  const PERSO_FACTOR = 0.95; // Pro → Perso : 5% commission Amine
+  const PERSO_FACTOR = 0.95;
   const diversPro = az.divers ? az.divers.reduce((s, x) => {
+    if (x.brut) return s + x.montant;
     return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
   }, 0) : 0;
 
