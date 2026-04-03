@@ -95,13 +95,13 @@ check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
 check('Total MAD 2026', totalMAD26, 50000);
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', totalEUR26, 5000);
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(50000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 26350);
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
-check('Divers net 2026', diversNet26, 6000);
-check('Divers count 2026 (no Zak/Oumaima)', az26.divers.length, 2);
+check('Divers net montant 2026', diversNet26, 5600); // -1200 + 800 + 2000 + 4000
+check('Divers count 2026 (Zak + Oum + remb + cash)', az26.divers.length, 4);
 
 // AZCS via Majalis (from benoit2026)
 const azcsAll26 = DATA.benoit2026.councils;
@@ -123,16 +123,16 @@ const diversPro26 = az26.divers.reduce((s, x) => {
   if (x.proOrigin) return s + x.montant; // proOrigin: montant IS pro
   return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
 }, 0);
-const expectedDiversPro = 2000 + 4000 / 0.95; // 2000 pro-origin + 4211 (4000 perso ÷ 0.95)
-check('Divers Pro 2026 (2000 pro + 4000÷0.95)', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
+// All items are perso: Zak -1200 + Oum +800 + Remb 2000 + Cash 4000 = 5600 perso
+// Pro = each montant / 0.95
+const expectedDiversPro = Math.round(-1200/0.95*100)/100 + Math.round(800/0.95*100)/100 + Math.round(2000/0.95*100)/100 + Math.round(4000/0.95*100)/100;
+check('Divers Pro 2026', Math.round(diversPro26 * 100), Math.round(expectedDiversPro * 100));
 
-// Perso for proOrigin item = 2000 × 0.95 = 1900
 const diversPerso26 = az26.divers.reduce((s, x) => {
   if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
   return s + x.montant;
 }, 0);
-const expectedDiversPerso = 2000 * 0.95 + 4000; // 1900 + 4000 = 5900
-check('Divers Perso 2026 (2000×0.95 + 4000)', Math.round(diversPerso26 * 100), Math.round(expectedDiversPerso * 100));
+check('Divers Perso 2026', diversPerso26, 5600);
 
 // Position Net PRO (paid)
 const posNetPro = posEntreprise - totalEUR26 - diversPro26;
@@ -150,7 +150,7 @@ check('Position Maroc (MAD)', Math.round(posNetMaroc), Math.round(posNetPro * az
 console.log('\n=== EQUIVALENCE DES POSITIONS ===');
 check('Perso = Pro × 0.95', Math.round(posNetPerso), Math.round(posNetPro * PERSO_FACTOR));
 check('MAD = Pro × tauxMaroc', Math.round(posNetMaroc), Math.round(posNetPro * az26.tauxMaroc));
-check('1000€ pro = 950€ perso = 10k MAD', Math.round(1000 * PERSO_FACTOR), 950);
+check('1000€ pro = 950€ perso = 10.26k MAD', Math.round(1000 * PERSO_FACTOR), 950);
 
 // ===== BENOIT 2025 =====
 console.log('\n=== BENOIT 2025 ===');

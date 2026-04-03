@@ -116,7 +116,7 @@ function renderAmine() {
       <div class="hero-label">Si je paye au Maroc</div>
       <div class="hero-value ${azCls}" style="font-size:1.2rem">${posNetPro >= 0 ? '−' : '+'}${Math.abs(Math.round(posNetMAD)).toLocaleString('fr-FR')} MAD</div>
       <div class="hero-who" style="color:${azColor}">${azLabel}</div>
-      <div class="hero-detail">Taux fixe : 1 000€ pro = 10 000 MAD</div>
+      <div class="hero-detail">Taux fixe : 1 000€ pro = ${(az.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD</div>
     </div>
   </div>`;
 
