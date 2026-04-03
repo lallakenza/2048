@@ -46,6 +46,34 @@ const badge = (type, text) => `<span class="b ${type}">${text}</span>`;
 
 const sum = (arr, key) => arr.reduce((s, x) => s + (typeof key === 'function' ? key(x) : (x[key] || 0)), 0);
 
+// ---- SHARED: Benoit position calculation ----
+// Single source of truth — called by render-amine.js AND render-benoit.js
+function computeBenoitSolde() {
+  const b25 = DATA.benoit2025;
+  const b26 = DATA.benoit2026;
+  const rate25 = b25.commissionRate || 0;
+  const rate26 = b26.commissionRate || 0;
+
+  // Report 2025: net dû − payé
+  const net25 = b25.councils.reduce((s, m) => {
+    const dh = Math.round(m.htEUR * m.tauxApplique);
+    return s + dh - Math.round(dh * rate25);
+  }, 0);
+  const paye25 = sum(b25.virements, 'dh');
+  const report25 = net25 - paye25;
+
+  // 2026: only paid councils count
+  const paidCouncils26 = b26.councils.filter(c => c.statut === 'ok');
+  const netPaid26 = paidCouncils26.reduce((s, c) => {
+    const dh = Math.round(c.htEUR * c.tauxApplique);
+    return s + dh - Math.round(dh * rate26);
+  }, 0);
+  const totalPaye26 = sum(b26.virements, 'dh');
+  const solde = report25 + netPaid26 - totalPaye26;
+
+  return { report25, netPaid26, totalPaye26, solde, paidCount: paidCouncils26.length };
+}
+
 // ---- NICKNAME MAPPING (noms réels → nicknames) ----
 // Règle : on n'affiche JAMAIS les vrais noms sur le site, uniquement les nicknames
 const NICK_MAP = {

@@ -54,25 +54,11 @@ function renderAmine() {
   const azOwedMAD = -posNetMAD;
 
   // ============================================================
-  // 2. BADRE (Benoit 2026)
+  // 2. BADRE (Benoit 2026) — uses shared computeBenoitSolde()
   // ============================================================
-  const b25 = DATA.benoit2025;
-  const rate25 = b25.commissionRate || 0;
-  const net25 = b25.councils.reduce((s, m) => {
-    const dh = Math.round(m.htEUR * m.tauxApplique);
-    return s + dh - Math.round(dh * rate25);
-  }, 0);
-  const paye25 = sum(b25.virements, 'dh');
-  const report25 = net25 - paye25;
-
-  const rate26 = b26.commissionRate || 0;
+  const badrePos = computeBenoitSolde();
+  const soldeBadre = badrePos.solde;
   const paidCouncils26 = b26.councils.filter(c => c.statut === 'ok');
-  const netPaid26 = paidCouncils26.reduce((s, c) => {
-    const dh = Math.round(c.htEUR * c.tauxApplique);
-    return s + dh - Math.round(dh * rate26);
-  }, 0);
-  const totalPaye26 = sum(b26.virements, 'dh');
-  const soldeBadre = report25 + netPaid26 - totalPaye26;
   // soldeBadre > 0 → Amine doit à Badre. From Amine's perspective: negative (I owe)
   const baOwedDH = -soldeBadre; // positive = Benoit me doit
 
@@ -145,10 +131,10 @@ function renderAmine() {
 
   // Badre breakdown
   html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
-    <strong>Détail :</strong> Report 2025 = ${fmtSigned(report25, 'DH')}.
-    Councils payés 2026 (net −10%) = ${fmtPlain(netPaid26)} DH (${paidCouncils26.length} factures).
-    Total dû = ${fmtPlain(report25 + netPaid26)} DH.
-    Payé = ${fmtPlain(totalPaye26)} DH (${b26.virements.length} virements).
+    <strong>Détail :</strong> Report 2025 = ${fmtSigned(badrePos.report25, 'DH')}.
+    Councils payés 2026 (net −10%) = ${fmtPlain(badrePos.netPaid26)} DH (${badrePos.paidCount} factures).
+    Total dû = ${fmtPlain(badrePos.report25 + badrePos.netPaid26)} DH.
+    Payé = ${fmtPlain(badrePos.totalPaye26)} DH (${b26.virements.length} virements).
     Solde = ${fmtSigned(soldeBadre, 'DH')}.
   </div>`;
   html += `</div>`;

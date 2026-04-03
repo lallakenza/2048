@@ -19,16 +19,9 @@ function renderBenoit2025(embedded) {
 }
 
 function renderBenoit2026(embedded) {
-  // Compute report dynamically from 2025
-  const b25 = DATA.benoit2025;
-  const rate25 = b25.commissionRate || 0;
-  const net25 = b25.councils.reduce((s, m) => {
-    const dh = Math.round(m.htEUR * m.tauxApplique);
-    return s + dh - Math.round(dh * rate25);
-  }, 0);
-  const paye25 = sum(b25.virements, 'dh');
-  const report = net25 - paye25;
-  return renderBenoitYear('benoit2026', { embedded, year: 2026, report });
+  // Uses shared computeBenoitSolde() for report — single source of truth
+  const { report25 } = computeBenoitSolde();
+  return renderBenoitYear('benoit2026', { embedded, year: 2026, report: report25 });
 }
 
 // ============================================================
