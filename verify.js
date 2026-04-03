@@ -93,9 +93,9 @@ console.log('\n=== AUGUSTIN 2026 ===');
 const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
-check('Total MAD 2026', totalMAD26, 50000);
+check('Total MAD 2026', totalMAD26, 60000);
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(50000 / 10.26 * 100));
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(60000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 26350);
 
