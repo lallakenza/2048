@@ -450,28 +450,18 @@ function renderAugustin2026(embedded) {
       <td class="a">${pill(fmtPlain(totalMAD), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
-    // Divers itemized
+    // Divers itemized — sign reflects direction: + = received, − = paid
     diversItems.forEach(x => {
-      const c = x.perso > 0 ? 'var(--blue,#60a5fa)' : 'var(--green)';
-      // proOrigin: display montant* in perso col (actual cash sent), pill on Pro
-      if (x.proOrigin) {
-        t += `<tr>
-          <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
-          <td class="a" style="color:var(--muted)">—</td>
-          <td class="a">${pill(fmtPlain(Math.round(x.pro)), 'pro')}</td>
-          <td class="a" style="color:${c}">${fmtPlain(x.displayPerso)}*</td>
-          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro * TX))}</td>
-          <td style="font-size:.72rem;color:var(--muted)">remb. prêt · Pro = ${fmtPlain(Math.round(x.pro))}</td></tr>`;
-      } else {
-        // Normal: montant = perso, pill on Perso €
-        t += `<tr>
-          <td style="font-size:.75rem">− ${((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label))}</td>
-          <td class="a" style="color:var(--muted)">—</td>
-          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro))}</td>
-          <td class="a">${pill(fmtPlain(Math.round(x.perso)), 'eur')}</td>
-          <td class="a" style="color:${c}">${fmtPlain(Math.round(x.pro * TX))}</td>
-          <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
-      }
+      const sign = x.perso < 0 ? '+' : '−';
+      const c = x.perso < 0 ? 'var(--green)' : 'var(--blue,#60a5fa)';
+      const truncLabel = ((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label));
+      t += `<tr>
+        <td style="font-size:.75rem">${sign} ${truncLabel}</td>
+        <td class="a" style="color:var(--muted)">—</td>
+        <td class="a" style="color:${c}">${fmtSigned(Math.round(x.pro), '')}</td>
+        <td class="a">${pill(fmtSigned(Math.round(x.perso), ''), 'eur')}</td>
+        <td class="a" style="color:${c}">${fmtSigned(Math.round(x.pro * TX), '')}</td>
+        <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
     });
 
     // Net totals
@@ -544,7 +534,7 @@ function renderAugustin2026(embedded) {
       <thead><tr><th>Opération</th><th data-sort="num" style="text-align:right">Pro (€)</th><th data-sort="num" style="text-align:right">Perso (€)</th><th>Règle</th></tr></thead><tbody>`;
     diversItems.forEach(x => {
       const color = x.pro > 0 ? 'var(--green)' : 'var(--red)';
-      diversTable += `<tr><td>${nickText(x.label)}</td><td class="a" style="color:${color}">${fmtPlain(Math.round(x.pro))}</td><td class="a">${fmtPlain(Math.round(x.perso))}</td><td style="font-size:.72rem;color:var(--muted)">Pro = Perso ÷ ${PERSO_FACTOR}</td></tr>`;
+      diversTable += `<tr><td>${nickText(x.label)}</td><td class="a" style="color:${color}">${fmtSigned(Math.round(x.pro), '')}</td><td class="a" style="color:${color}">${fmtSigned(Math.round(x.perso), '')}</td><td style="font-size:.72rem;color:var(--muted)">Pro = Perso ÷ ${PERSO_FACTOR}</td></tr>`;
       // Breakdown sub-rows (if present)
       if (x.breakdown && x.breakdown.length) {
         x.breakdown.forEach(b => {
@@ -554,7 +544,7 @@ function renderAugustin2026(embedded) {
         });
       }
     });
-    diversTable += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(Math.round(diversPro))}</strong></td><td class="a" style="color:var(--accent)"><strong>${fmtPlain(Math.round(totalDiversPerso))}</strong></td><td style="font-size:.72rem;color:var(--muted)">Pro = Perso ÷ ${PERSO_FACTOR}</td></tr>`;
+    diversTable += `<tr class="tr"><td><strong>Total</strong></td><td class="a"><strong>${fmtSigned(Math.round(diversPro), '')}</strong></td><td class="a" style="color:var(--accent)"><strong>${fmtSigned(Math.round(totalDiversPerso), '')}</strong></td><td style="font-size:.72rem;color:var(--muted)">Pro = Perso ÷ ${PERSO_FACTOR}</td></tr>`;
     diversTable += `</tbody></table>`;
     diversTable += `<div class="n" style="margin-top:6px"><strong>Règle :</strong> Les montants sont en <strong>Perso</strong> (cash réel donné). Pro = Perso ÷ ${PERSO_FACTOR}. Donc 950€ perso = 1 000€ pro = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD.</div>`;
     html += collapsible('Divers — Cash direct 2026 (Pro vs Perso)', diversTable);
