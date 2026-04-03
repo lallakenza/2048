@@ -391,29 +391,29 @@ function renderAugustin2026(embedded) {
     const PF = PERSO_FACTOR;
     t += secHdr('①', 'Position Entreprise (sociétés)', 'var(--green-bg,rgba(34,197,94,.07))');
     const TX = d.tauxMaroc;
-    // RTL = invoiced in Pro → pill on Pro column
+    // RTL = money IN → positive (green)
     t += `<tr style="background:var(--green-bg,rgba(34,197,94,.07))">
-      <td><strong>+ ${rtlLabel}</strong></td>
-      <td class="a" style="color:var(--green)">${fmtPlain(rtlTTC)}</td>
-      <td class="a">${pill(fmtPlain(rtlHT), 'pro')}</td>
-      <td class="a" style="color:var(--green)">${fmtPlain(Math.round(rtlHT * PF))}</td>
-      <td class="a" style="color:var(--green)">${fmtPlain(Math.round(rtlHT * TX))}</td>
+      <td><strong>${rtlLabel}</strong></td>
+      <td class="a" style="color:var(--green)">${fmtSigned(rtlTTC, '')}</td>
+      <td class="a">${pill(fmtSigned(rtlHT, ''), 'pro')}</td>
+      <td class="a" style="color:var(--green)">${fmtSigned(Math.round(rtlHT * PF), '')}</td>
+      <td class="a" style="color:var(--green)">${fmtSigned(Math.round(rtlHT * TX), '')}</td>
       <td style="font-size:.72rem">${rtlCount} facture(s) · TVA 0%</td></tr>`;
-    // AZCS = invoiced in Pro → pill on Pro column
+    // AZCS = money OUT → negative (blue)
     t += `<tr>
-      <td>− ${azcsLabel}</td>
-      <td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(azcsTTC)}</td>
-      <td class="a">${pill(fmtPlain(azcsHT), 'pro')}</td>
-      <td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(Math.round(azcsHT * PF))}</td>
-      <td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(Math.round(azcsHT * TX))}</td>
+      <td>${azcsLabel}</td>
+      <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-azcsTTC, '')}</td>
+      <td class="a">${pill(fmtSigned(-azcsHT, ''), 'pro')}</td>
+      <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(azcsHT * PF), '')}</td>
+      <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(azcsHT * TX), '')}</td>
       <td style="font-size:.72rem">${azcsCount} facture(s) · TVA 21%</td></tr>`;
-    // Report = Pro origin → pill on Pro column
+    // Report = carried forward (already signed correctly)
     t += `<tr>
-      <td>+ Report 2025</td>
-      <td class="a" style="color:var(--red)">${fmtSigned(d.report2025)}</td>
-      <td class="a">${pill(fmtSigned(d.report2025), 'pro')}</td>
-      <td class="a" style="color:var(--red)">${fmtSigned(Math.round(d.report2025 * PF))}</td>
-      <td class="a" style="color:var(--red)">${fmtSigned(Math.round(d.report2025 * TX))}</td>
+      <td>Report 2025</td>
+      <td class="a" style="color:var(--red)">${fmtSigned(d.report2025, '')}</td>
+      <td class="a">${pill(fmtSigned(d.report2025, ''), 'pro')}</td>
+      <td class="a" style="color:var(--red)">${fmtSigned(Math.round(d.report2025 * PF), '')}</td>
+      <td class="a" style="color:var(--red)">${fmtSigned(Math.round(d.report2025 * TX), '')}</td>
       <td style="font-size:.72rem">Clôture 2025</td></tr>`;
     const eColor = deltaE >= 0 ? 'var(--green)' : 'var(--red)';
     const ePerso = Math.round(deltaE * PF);
@@ -441,26 +441,28 @@ function renderAugustin2026(embedded) {
       <td class="a" style="color:${eColor}">${fmtSigned(ePerso)}</td>
       <td class="a" style="color:${eColor}">${fmtSigned(eMAD, 'MAD')}</td>
       <td></td></tr>`;
-    // Virements Maroc = cash DH → pill on Perso MAD column
+    // Virements Maroc = money OUT → negative
     t += `<tr>
-      <td>− Virements Maroc</td>
+      <td>Virements Maroc</td>
       <td class="a" style="color:var(--muted)">—</td>
-      <td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(virementsProEUR)}</td>
-      <td class="a" style="color:var(--blue,#60a5fa)">${fmtPlain(virementsPerso)}</td>
-      <td class="a">${pill(fmtPlain(totalMAD), 'mad')}</td>
+      <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(virementsProEUR), '')}</td>
+      <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-virementsPerso, '')}</td>
+      <td class="a">${pill(fmtSigned(-totalMAD, ''), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
-    // Divers itemized — sign reflects direction: + = received, − = paid
+    // Divers itemized — negate for additive display: positive data (money to Azarkan) → negative display
     diversItems.forEach(x => {
-      const sign = x.perso < 0 ? '+' : '−';
-      const c = x.perso < 0 ? 'var(--green)' : 'var(--blue,#60a5fa)';
+      const dp = -Math.round(x.pro);
+      const dpe = -Math.round(x.perso);
+      const dm = -Math.round(x.pro * TX);
+      const c = dpe > 0 ? 'var(--green)' : 'var(--blue,#60a5fa)';
       const truncLabel = ((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label));
       t += `<tr>
-        <td style="font-size:.75rem">${sign} ${truncLabel}</td>
+        <td style="font-size:.75rem">${truncLabel}</td>
         <td class="a" style="color:var(--muted)">—</td>
-        <td class="a" style="color:${c}">${fmtSigned(Math.round(x.pro), '')}</td>
-        <td class="a">${pill(fmtSigned(Math.round(x.perso), ''), 'eur')}</td>
-        <td class="a" style="color:${c}">${fmtSigned(Math.round(x.pro * TX), '')}</td>
+        <td class="a" style="color:${c}">${fmtSigned(dp, '')}</td>
+        <td class="a">${pill(fmtSigned(dpe, ''), 'eur')}</td>
+        <td class="a" style="color:${c}">${fmtSigned(dm, '')}</td>
         <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
     });
 
