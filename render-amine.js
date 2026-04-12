@@ -195,5 +195,29 @@ function renderAmine() {
     <div style="font-size:.65rem;color:var(--muted);margin-top:8px;text-align:center">Position Augustin : taux ${az.tauxMaroc} · Position Benoit : taux ${tauxBadre}. EUR = base perso (cash).</div>
   </div>`;
 
+  // ── BRIDGE: Export positions to localStorage for networth dashboard ──
+  // Both sites share lallakenza.github.io origin → same localStorage.
+  // networth/js/engine.js reads 'facturation_positions' to auto-update
+  // Amine's facturation créances/dettes instead of hardcoded values.
+  try {
+    localStorage.setItem('facturation_positions', JSON.stringify({
+      updatedAt: new Date().toISOString(),
+      augustin: {
+        proEUR: Math.round(-posNetPro),         // positive = Augustin me doit (EUR PRO)
+        persoEUR: Math.round(-posNetPerso),      // positive = Augustin me doit (EUR PERSO/cash)
+        mad: Math.round(-posNetMAD),             // positive = Augustin me doit (MAD)
+        tauxMaroc: az.tauxMaroc,
+      },
+      benoit: {
+        dh: Math.round(-soldeBadre),             // positive = Benoit me doit, négatif = je lui dois
+        tauxBadre: tauxBadre,
+      },
+      combined: {
+        eur: Math.round(combinedEUR),            // net position EUR (perso)
+        mad: Math.round(combinedMAD),            // net position MAD
+      },
+    }));
+  } catch(e) { /* localStorage unavailable — ignore silently */ }
+
   return html;
 }
