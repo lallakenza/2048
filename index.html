@@ -3,374 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Riad Anwar — Portail Facturation</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🏨</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>2048</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23edc22e'/><text x='16' y='22' font-size='12' font-weight='700' text-anchor='middle' fill='%23f9f6f2' font-family='Helvetica,Arial,sans-serif'>2048</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* =============================== */
-/* HOTEL PORTAL — Riad Anwar        */
+/* GAME COVER — Classic 2048        */
 /* =============================== */
+/* Palette directement inspirée du 2048 original (Gabriele Cirulli) */
 :root {
-  --rm-primary: #1a4a3a;
-  --rm-primary-light: #2d6b54;
-  --rm-gold: #c9a84c;
-  --rm-gold-light: #e8d5a0;
-  --rm-sand: #f7f3ec;
-  --rm-sand-dark: #ede6d8;
-  --rm-text: #2c3e50;
-  --rm-muted: #7f8c8d;
-  --rm-border: #ddd5c7;
+  --g-bg:        #faf8ef;
+  --g-text:      #776e65;
+  --g-text-soft: #8f7a66;
+  --g-grid-bg:   #bbada0;
+  --g-cell-bg:   rgba(238, 228, 218, 0.35);
+  --g-btn:       #8f7a66;
+  --g-btn-hover: #7d6b59;
+  --g-input-bg:  #f0ece4;
+  --g-input-bd:  #d8cdb9;
+  --g-error:     #c0392b;
 }
 
-/* -- Hotel body -- */
-body.hotel-mode {
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
-  background: var(--rm-sand);
-  color: var(--rm-text);
+/* -- Game body -- */
+body.game-mode {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--g-bg);
+  color: var(--g-text);
   margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 40px;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* -- Top bar -- */
-.rm-topbar {
-  background: var(--rm-primary);
-  color: #fff;
-  padding: 0 0;
-  font-size: .72rem;
-  border-bottom: 3px solid var(--rm-gold);
+/* -- Cover wrap (transitions to reconciliation on success) -- */
+.cover-wrap {
+  width: 100%;
+  max-width: 520px;
+  transition: opacity .45s ease, transform .45s ease;
 }
-.rm-topbar-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 8px 24px;
+.cover-wrap.hide {
+  opacity: 0;
+  transform: scale(.985);
+  pointer-events: none;
+}
+
+/* -- Title -- */
+.cover-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cover-title h1 {
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--g-text);
+  margin: 0;
+  line-height: 1;
+}
+.cover-scores {
+  display: flex;
   gap: 6px;
 }
-.rm-topbar a { color: var(--rm-gold-light); text-decoration: none; }
-.rm-topbar a:hover { color: #fff; }
-.rm-topbar .rm-contact-info { display: flex; gap: 18px; flex-wrap: wrap; }
+.score-box {
+  background: var(--g-grid-bg);
+  color: #fff;
+  border-radius: 4px;
+  padding: 8px 14px;
+  min-width: 64px;
+  text-align: center;
+}
+.score-box .l {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.78);
+}
+.score-box .v {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
 
-/* -- Header / Logo area -- */
-.rm-header {
-  background: #fff;
-  border-bottom: 1px solid var(--rm-border);
-  padding: 16px 0;
-}
-.rm-header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
+/* -- Sub line -- */
+.cover-sub {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
 }
-.rm-logo {
+.cover-sub p {
+  font-size: 14px;
+  color: var(--g-text);
+  margin: 0;
+  line-height: 1.45;
+}
+.cover-sub .meta {
+  font-size: 13px;
+  color: var(--g-text-soft);
+}
+.cover-sub .meta strong { color: var(--g-text); font-weight: 700; }
+
+/* -- Intro panel (name + difficulty selector + play) -- */
+.intro-panel { /* visible by default; hidden when game starts */ }
+.intro-panel.hide { display: none !important; }
+
+.intro-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 14px;
 }
-.rm-logo-icon {
-  width: 48px; height: 48px;
-  background: var(--rm-primary);
-  border-radius: 8px;
+
+.diff-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.diff-btn {
+  appearance: none;
+  background: var(--g-input-bg);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  color: var(--g-text);
+  transition: background .15s, border-color .15s, transform .08s;
+}
+.diff-btn:hover { background: #ebe5d6; }
+.diff-btn:active { transform: scale(.98); }
+.diff-btn.active {
+  background: var(--g-grid-bg);
+  border-color: var(--g-btn);
+  color: #fff;
+}
+.diff-btn .grid-lbl {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.diff-btn .target-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
+  opacity: .85;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.name-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;  /* >=16px to avoid iOS auto-zoom */
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--g-text);
+  background: var(--g-input-bg);
+  border: 2px solid var(--g-input-bd);
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+  text-align: center;
+  letter-spacing: .02em;
+}
+.name-input:focus {
+  border-color: var(--g-btn);
+  box-shadow: 0 0 0 3px rgba(143,122,102,.18);
+}
+.name-input::placeholder { color: #b8ad95; font-weight: 500; }
+
+.primary-btn {
+  appearance: none;
+  background: var(--g-btn);
+  color: #f9f6f2;
+  border: none;
+  border-radius: 6px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: .02em;
+  transition: background .15s, transform .08s;
+}
+.primary-btn:hover { background: var(--g-btn-hover); }
+.primary-btn:active { transform: scale(.98); }
+.primary-btn:disabled { opacity: .55; cursor: wait; }
+
+.cover-error {
+  font-size: 13px;
+  color: var(--g-error);
+  text-align: center;
+  min-height: 18px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.cover-error.show { opacity: 1; }
+
+/* -- Game panel (visible after wrong-name unlock) -- */
+.game-panel { display: none; }
+.game-panel.show { display: block; }
+
+.game-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.game-actions .restart-btn {
+  appearance: none;
+  background: var(--g-btn);
+  color: #f9f6f2;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, transform .08s;
+}
+.game-actions .restart-btn:hover { background: var(--g-btn-hover); }
+.game-actions .restart-btn:active { transform: scale(.97); }
+.game-actions .restart-hint {
+  font-size: 12px;
+  color: var(--g-text-soft);
+  font-style: italic;
+}
+
+/* Game module hosts its own .g-board / .g-grid / .g-tiles / .g-message */
+.game-host {
+  position: relative;
+}
+
+.g-board {
+  position: relative;
+  background: var(--g-grid-bg);
+  border-radius: 6px;
+  padding: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.g-grid {
+  display: grid;
+  gap: 12px;
+}
+.g-grid[data-size="4"] { grid-template-columns: repeat(4, 1fr); }
+.g-grid[data-size="5"] { grid-template-columns: repeat(5, 1fr); }
+.g-grid[data-size="6"] { grid-template-columns: repeat(6, 1fr); }
+
+.g-cell {
+  background: var(--g-cell-bg);
+  border-radius: 4px;
+  aspect-ratio: 1 / 1;
+}
+
+/* Tile layer overlays the grid; tiles are absolutely positioned
+   using CSS vars --gx (column) / --gy (row), each in 0..n-1. */
+.g-tiles {
+  position: absolute;
+  inset: 12px;             /* match .g-board padding */
+  display: grid;
+  gap: 12px;
+  pointer-events: none;
+}
+.g-tiles[data-size="4"] { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+.g-tiles[data-size="5"] { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); }
+.g-tiles[data-size="6"] { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+
+.g-tile {
+  grid-column: calc(var(--gx) + 1);
+  grid-row:    calc(var(--gy) + 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--g-text);
+  background: #eee4da;
+  animation: tilePop .15s ease;
 }
-.rm-logo-icon::before {
-  content: '';
-  width: 20px; height: 20px;
-  border: 2px solid var(--rm-gold);
-  transform: rotate(45deg);
+.g-board.g-size-5 .g-tile { font-size: 28px; }
+.g-board.g-size-6 .g-tile { font-size: 22px; }
+.g-tile.g-med  { font-size: 28px; }
+.g-tile.g-small{ font-size: 22px; }
+.g-board.g-size-5 .g-tile.g-med  { font-size: 22px; }
+.g-board.g-size-5 .g-tile.g-small{ font-size: 18px; }
+.g-board.g-size-6 .g-tile.g-med  { font-size: 18px; }
+.g-board.g-size-6 .g-tile.g-small{ font-size: 14px; }
+
+@keyframes tilePop {
+  0%   { transform: scale(.85); }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
-.rm-logo-icon::after {
-  content: '';
+
+/* Tile color palette — classic 2048 */
+.g-v2    { background:#eee4da; color:var(--g-text); }
+.g-v4    { background:#ede0c8; color:var(--g-text); }
+.g-v8    { background:#f2b179; color:#f9f6f2; }
+.g-v16   { background:#f59563; color:#f9f6f2; }
+.g-v32   { background:#f67c5f; color:#f9f6f2; }
+.g-v64   { background:#f65e3b; color:#f9f6f2; }
+.g-v128  { background:#edcf72; color:#f9f6f2; box-shadow:0 0 24px 6px rgba(243,215,116,.30); }
+.g-v256  { background:#edcc61; color:#f9f6f2; box-shadow:0 0 24px 6px rgba(243,215,116,.36); }
+.g-v512  { background:#edc850; color:#f9f6f2; box-shadow:0 0 24px 6px rgba(243,215,116,.42); }
+.g-v1024 { background:#edc53f; color:#f9f6f2; box-shadow:0 0 28px 8px rgba(243,215,116,.50); }
+.g-v2048 { background:#edc22e; color:#f9f6f2; box-shadow:0 0 32px 10px rgba(243,215,116,.58); }
+.g-v4096 { background:#3c3a32; color:#f9f6f2; }
+.g-v8192 { background:#1f1c19; color:#f9f6f2; }
+
+/* Win/Lose overlay over the board */
+.g-message {
   position: absolute;
-  width: 10px; height: 10px;
-  border: 1.5px solid var(--rm-gold-light);
-  transform: rotate(45deg);
-}
-.rm-logo-text h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--rm-primary);
-  margin: 0;
-  letter-spacing: .03em;
-}
-.rm-logo-text p {
-  font-size: .7rem;
-  color: var(--rm-muted);
-  margin: 0;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-/* -- Nav -- */
-.rm-nav {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-.rm-nav a {
-  padding: 8px 16px;
-  color: var(--rm-text);
-  text-decoration: none;
-  font-size: .78rem;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: all .2s;
-}
-.rm-nav a:hover { background: var(--rm-sand); color: var(--rm-primary); }
-.rm-nav a.active { background: var(--rm-primary); color: #fff; }
-
-/* -- Main content -- */
-.rm-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-/* -- Stats cards -- */
-.rm-stat-card {
-  background: #fff;
-  border: 1px solid var(--rm-border);
-  border-radius: 10px;
-  padding: 18px 20px;
-  position: relative;
-  overflow: hidden;
-}
-.rm-stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--rm-gold);
-}
-.rm-stat-label {
-  font-size: .68rem;
-  color: var(--rm-muted);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin-bottom: 6px;
-}
-.rm-stat-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--rm-primary);
-}
-.rm-stat-sub {
-  font-size: .7rem;
-  color: var(--rm-muted);
-  margin-top: 4px;
-}
-.rm-stat-up { color: #27ae60; }
-.rm-stat-down { color: #c0392b; }
-
-/* -- Section titles -- */
-.rm-section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--rm-primary);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--rm-gold);
-  display: inline-block;
-}
-
-/* -- Search box (the secret field) -- */
-.rm-search-box {
-  background: #fff;
-  border: 1px solid var(--rm-border);
-  border-radius: 12px;
-  padding: 28px 32px;
-  margin-bottom: 28px;
-  position: relative;
-}
-.rm-search-box::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 24px; right: 24px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--rm-gold), transparent);
-}
-.rm-search-title {
-  font-family: 'Playfair Display', serif;
-  font-size: .95rem;
-  font-weight: 600;
-  color: var(--rm-primary);
-  margin-bottom: 14px;
-}
-.rm-search-row {
-  display: flex;
-  gap: 12px;
-  align-items: end;
-  flex-wrap: wrap;
-}
-.rm-search-field {
-  flex: 1;
-  min-width: 200px;
-}
-.rm-search-field label {
-  display: block;
-  font-size: .72rem;
-  color: var(--rm-muted);
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.rm-search-field input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--rm-border);
-  border-radius: 8px;
-  font-size: .88rem;
-  font-family: 'Inter', sans-serif;
-  color: var(--rm-text);
-  background: var(--rm-sand);
-  outline: none;
-  transition: border-color .3s, box-shadow .3s;
-}
-.rm-search-field input:focus {
-  border-color: var(--rm-primary);
-  box-shadow: 0 0 0 3px rgba(26,74,58,.1);
-}
-.rm-search-field input::placeholder { color: #bbb; }
-.rm-search-btn {
-  padding: 10px 28px;
-  background: var(--rm-primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: .82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .2s;
-  white-space: nowrap;
-}
-.rm-search-btn:hover { background: var(--rm-primary-light); }
-.rm-search-error {
-  font-size: .78rem;
-  color: #c0392b;
-  margin-top: 10px;
-  min-height: 20px;
-  opacity: 0;
-  transition: opacity .3s;
-}
-.rm-search-error.show { opacity: 1; }
-
-/* -- Tables -- */
-.rm-table {
-  background: #fff;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--rm-border);
-}
-.rm-table table { width: 100%; border-collapse: collapse; margin: 0; }
-.rm-table thead th {
-  background: var(--rm-sand-dark);
-  padding: 10px 14px;
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  color: var(--rm-muted);
-  font-weight: 600;
-  text-align: left;
-  border-bottom: 1px solid var(--rm-border);
-}
-.rm-table tbody td {
-  padding: 10px 14px;
-  font-size: .82rem;
-  border-bottom: 1px solid #f0ebe3;
-}
-.rm-table tbody tr:last-child td { border-bottom: none; }
-.rm-table tbody tr:hover { background: rgba(201,168,76,.04); }
-.rm-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: .68rem;
-  font-weight: 600;
-}
-.rm-badge.paid { background: rgba(39,174,96,.1); color: #27ae60; }
-.rm-badge.pending { background: rgba(243,156,18,.1); color: #f39c12; }
-.rm-badge.overdue { background: rgba(192,57,43,.1); color: #c0392b; }
-.rm-badge.confirmed { background: rgba(41,128,185,.1); color: #2980b9; }
-
-/* -- Footer -- */
-.rm-footer {
-  background: var(--rm-primary);
-  color: rgba(255,255,255,.7);
-  padding: 28px 0;
-  margin-top: 40px;
-  font-size: .74rem;
-}
-.rm-footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  justify-content: space-between;
+  inset: 0;
+  display: none;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.rm-footer strong { color: var(--rm-gold); }
-
-/* -- Moroccan ornament (subtle) -- */
-.rm-ornament {
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(238, 228, 218, .73);
+  border-radius: 6px;
+  z-index: 5;
+  padding: 16px;
   text-align: center;
-  margin: 20px 0 10px;
-  color: var(--rm-gold);
-  font-size: .7rem;
-  letter-spacing: .3em;
-  opacity: .5;
 }
+.g-message.show { display: flex; }
+.g-message.g-win  { background: rgba(237, 194, 46, .55); color: #f9f6f2; }
+.g-message.g-lose { background: rgba(238, 228, 218, .82); color: var(--g-text); }
+.g-message-text {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.g-message-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.g-btn {
+  appearance: none;
+  background: var(--g-btn);
+  color: #f9f6f2;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, transform .08s;
+}
+.g-btn:hover { background: var(--g-btn-hover); }
+.g-btn:active { transform: scale(.97); }
 
-/* -- Transition: hotel → reconciliation -- */
-.hotel-wrap {
-  transition: opacity .6s ease, transform .6s ease;
+/* Instructions strip */
+.game-tip {
+  font-size: 12.5px;
+  color: var(--g-text-soft);
+  margin-top: 14px;
+  line-height: 1.55;
 }
-.hotel-wrap.hide {
-  opacity: 0;
-  transform: scale(1.02);
-  pointer-events: none;
-}
+.game-tip strong { color: var(--g-text); font-weight: 700; }
 
 /* -- Loading overlay during decrypt -- */
 .decrypt-overlay {
   position: fixed; inset: 0; z-index: 10000;
-  background: rgba(26,74,58,.96);
+  background: rgba(187, 173, 160, .96);
   display: flex; align-items: center; justify-content: center;
   flex-direction: column;
   opacity: 0; pointer-events: none;
-  transition: opacity .4s;
+  transition: opacity .35s;
 }
 .decrypt-overlay.show { opacity: 1; pointer-events: all; }
 .decrypt-spinner {
-  width: 40px; height: 40px;
-  border: 3px solid rgba(255,255,255,.2);
-  border-top-color: var(--rm-gold);
+  width: 38px; height: 38px;
+  border: 3px solid rgba(255,255,255,.25);
+  border-top-color: #f9f6f2;
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.decrypt-text { color: #fff; font-size: .84rem; margin-top: 14px; }
+.decrypt-text { color: #f9f6f2; font-size: 14px; margin-top: 14px; font-weight: 600; }
 
-@media(max-width:768px) {
-  .rm-header-inner { flex-direction: column; text-align: center; }
-  .rm-nav { justify-content: center; }
-  .rm-stat-value { font-size: 1.3rem; }
-  .rm-main { padding: 16px; }
-  .rm-search-box { padding: 18px; }
-  .rm-footer-inner { flex-direction: column; text-align: center; }
+/* -- Mobile -- */
+@media (max-width: 480px) {
+  body.game-mode { padding: 16px 12px 24px; }
+  .cover-title h1 { font-size: 48px; }
+  .score-box { padding: 6px 10px; min-width: 56px; }
+  .score-box .v { font-size: 17px; }
+  .g-board { padding: 8px; }
+  .g-grid, .g-tiles { gap: 8px; }
+  .g-tiles { inset: 8px; }
+  .g-tile { font-size: 28px; }
+  .g-board.g-size-5 .g-tile { font-size: 22px; }
+  .g-board.g-size-6 .g-tile { font-size: 18px; }
+  .g-tile.g-med  { font-size: 22px; }
+  .g-tile.g-small{ font-size: 18px; }
+  .g-board.g-size-5 .g-tile.g-med  { font-size: 18px; }
+  .g-board.g-size-5 .g-tile.g-small{ font-size: 14px; }
+  .g-board.g-size-6 .g-tile.g-med  { font-size: 14px; }
+  .g-board.g-size-6 .g-tile.g-small{ font-size: 12px; }
+  .g-message-text { font-size: 22px; }
 }
 
 /* =============================== */
@@ -472,250 +519,69 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 @media(max-width:480px){.summary-row{grid-template-columns:1fr}.cards{grid-template-columns:1fr}}
 </style>
 </head>
-<body class="hotel-mode">
+<body class="game-mode">
 
 <!-- ============================================ -->
-<!-- HOTEL PORTAL — Riad Anwar (facade)            -->
+<!-- GAME COVER — Classic 2048 (facade)            -->
 <!-- ============================================ -->
-<div class="hotel-wrap" id="hotelWrap">
+<div class="cover-wrap" id="coverWrap">
 
-  <!-- Top bar -->
-  <div class="rm-topbar">
-    <div class="rm-topbar-inner">
-      <div class="rm-contact-info">
-        <span>+212 522 27 43 86</span>
-        <span>·</span>
-        <span>facturation@riadanwar.ma</span>
-      </div>
-      <div>
-        <span style="color:rgba(255,255,255,.5)">Connecté : Y. Benchekroun</span>
-      </div>
+  <!-- Title bar — always visible -->
+  <header class="cover-title">
+    <h1>2048</h1>
+    <div class="cover-scores">
+      <div class="score-box"><div class="l">Score</div><div class="v g-score-val" id="gameScore">0</div></div>
+      <div class="score-box"><div class="l">Best</div><div class="v g-best-val" id="gameBest">0</div></div>
+    </div>
+  </header>
+
+  <!-- Sub line — adapts depending on intro vs game state -->
+  <div class="cover-sub">
+    <p id="coverTagline">Réunis les tuiles, atteins la tuile cible.</p>
+    <div class="meta" id="coverMeta" style="display:none">
+      Joueur : <strong id="metaName">—</strong> · Mode : <strong id="metaMode">—</strong>
     </div>
   </div>
 
-  <!-- Header -->
-  <div class="rm-header">
-    <div class="rm-header-inner">
-      <div class="rm-logo">
-        <div class="rm-logo-icon"></div>
-        <div class="rm-logo-text">
-          <h1>Riad Anwar</h1>
-          <p>Portail Facturation &amp; Réservations</p>
-        </div>
+  <!-- INTRO PANEL — pseudo + difficulty + play -->
+  <section class="intro-panel" id="introPanel">
+    <div class="intro-row">
+      <div class="diff-row" role="radiogroup" aria-label="Difficulté">
+        <button type="button" class="diff-btn active" data-size="4" data-target="2048" role="radio" aria-checked="true">
+          <div class="grid-lbl">4×4</div>
+          <div class="target-lbl">Objectif 2048</div>
+        </button>
+        <button type="button" class="diff-btn" data-size="5" data-target="4096" role="radio" aria-checked="false">
+          <div class="grid-lbl">5×5</div>
+          <div class="target-lbl">Objectif 4096</div>
+        </button>
+        <button type="button" class="diff-btn" data-size="6" data-target="8192" role="radio" aria-checked="false">
+          <div class="grid-lbl">6×6</div>
+          <div class="target-lbl">Objectif 8192</div>
+        </button>
       </div>
-      <nav class="rm-nav">
-        <a href="#" class="active">Tableau de bord</a>
-        <a href="#">Réservations</a>
-        <a href="#">Factures</a>
-        <a href="#">Chambres</a>
-        <a href="#">Rapports</a>
-      </nav>
+
+      <input class="name-input" id="playerName" type="text" placeholder="Ton pseudo" autocomplete="off" spellcheck="false" maxlength="32" />
+
+      <button type="button" class="primary-btn" id="playBtn">Jouer</button>
+
+      <div class="cover-error" id="coverError">Pseudo refusé.</div>
     </div>
-  </div>
+  </section>
 
-  <!-- Main -->
-  <div class="rm-main">
-
-    <!-- Stats row -->
-    <div class="row g-3 mb-4">
-      <div class="col-lg-3 col-md-6 col-6">
-        <div class="rm-stat-card">
-          <div class="rm-stat-label">Taux d'occupation</div>
-          <div class="rm-stat-value">78%</div>
-          <div class="rm-stat-sub"><span class="rm-stat-up">+4.2%</span> vs mars</div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6 col-6">
-        <div class="rm-stat-card">
-          <div class="rm-stat-label">CA mensuel</div>
-          <div class="rm-stat-value">847 500</div>
-          <div class="rm-stat-sub">MAD · <span class="rm-stat-up">+12%</span></div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6 col-6">
-        <div class="rm-stat-card">
-          <div class="rm-stat-label">Factures en attente</div>
-          <div class="rm-stat-value">12</div>
-          <div class="rm-stat-sub">Montant : 94 200 MAD</div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6 col-6">
-        <div class="rm-stat-card">
-          <div class="rm-stat-label">Clients ce mois</div>
-          <div class="rm-stat-value">156</div>
-          <div class="rm-stat-sub">ADR : 1 420 MAD/nuit</div>
-        </div>
-      </div>
+  <!-- GAME PANEL — visible only after wrong-name unlock -->
+  <section class="game-panel" id="gamePanel">
+    <div class="game-actions">
+      <button type="button" class="restart-btn" id="restartBtn">Restart</button>
+      <span class="restart-hint">Retour à l'écran de pseudo</span>
     </div>
+    <div class="game-host" id="gameHost"><!-- game-2048.js mounts here --></div>
+    <p class="game-tip">
+      <strong>Comment jouer :</strong> flèches du clavier (ou swipe sur mobile) pour déplacer les tuiles. Deux tuiles identiques fusionnent.
+    </p>
+  </section>
 
-    <!-- Search reservation (SECRET FIELD) -->
-    <div class="rm-search-box">
-      <div class="rm-search-title">Rechercher une réservation</div>
-      <div class="rm-search-row">
-        <div class="rm-search-field">
-          <label for="resaSearch">N° de réservation</label>
-          <input type="text" id="resaSearch" placeholder="Ex : RA-2026-04187" autocomplete="off" spellcheck="false">
-        </div>
-        <div class="rm-search-field" style="max-width:180px">
-          <label for="resaDate">Date d'arrivée</label>
-          <input type="date" id="resaDate" value="2026-04-02">
-        </div>
-        <button class="rm-search-btn" id="resaBtn" type="button">Rechercher</button>
-      </div>
-      <div class="rm-search-error" id="resaError"></div>
-    </div>
-
-    <!-- Recent reservations -->
-    <div class="mb-4">
-      <div class="rm-section-title">Réservations récentes</div>
-      <div class="rm-table">
-        <table>
-          <thead>
-            <tr>
-              <th>N° Résa</th>
-              <th>Client</th>
-              <th>Chambre</th>
-              <th>Arrivée</th>
-              <th>Départ</th>
-              <th>Montant</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>RA-2026-04182</td>
-              <td>J. Lefèvre</td>
-              <td>Suite Habous</td>
-              <td>01/04/2026</td>
-              <td>05/04/2026</td>
-              <td style="font-weight:600">8 400 MAD</td>
-              <td><span class="rm-badge confirmed">Confirmée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04179</td>
-              <td>M. & Mme Berger</td>
-              <td>Chambre Safran</td>
-              <td>31/03/2026</td>
-              <td>03/04/2026</td>
-              <td style="font-weight:600">4 260 MAD</td>
-              <td><span class="rm-badge paid">Payée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04175</td>
-              <td>A. Williams</td>
-              <td>Suite Palmier</td>
-              <td>30/03/2026</td>
-              <td>06/04/2026</td>
-              <td style="font-weight:600">14 700 MAD</td>
-              <td><span class="rm-badge paid">Payée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04170</td>
-              <td>S. El Amrani</td>
-              <td>Chambre Zellige</td>
-              <td>29/03/2026</td>
-              <td>01/04/2026</td>
-              <td style="font-weight:600">3 540 MAD</td>
-              <td><span class="rm-badge paid">Payée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04168</td>
-              <td>C. Dupont</td>
-              <td>Suite Anwar</td>
-              <td>28/03/2026</td>
-              <td>02/04/2026</td>
-              <td style="font-weight:600">12 500 MAD</td>
-              <td><span class="rm-badge pending">En attente</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04163</td>
-              <td>F. Benkirane</td>
-              <td>Chambre Menthe</td>
-              <td>27/03/2026</td>
-              <td>30/03/2026</td>
-              <td style="font-weight:600">3 390 MAD</td>
-              <td><span class="rm-badge paid">Payée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04158</td>
-              <td>H. Müller</td>
-              <td>Suite Habous</td>
-              <td>25/03/2026</td>
-              <td>28/03/2026</td>
-              <td style="font-weight:600">6 300 MAD</td>
-              <td><span class="rm-badge paid">Payée</span></td>
-            </tr>
-            <tr>
-              <td>RA-2026-04151</td>
-              <td>R. Tazi</td>
-              <td>Chambre Atlas</td>
-              <td>24/03/2026</td>
-              <td>27/03/2026</td>
-              <td style="font-weight:600">3 900 MAD</td>
-              <td><span class="rm-badge overdue">Impayée</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Recent invoices summary -->
-    <div class="row g-4 mb-4">
-      <div class="col-lg-6">
-        <div class="rm-section-title">Factures du mois</div>
-        <div class="rm-table">
-          <table>
-            <thead>
-              <tr><th>N° Facture</th><th>Client</th><th>Montant</th><th>Statut</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>FAC-2026-0389</td><td>Agence Voyages Sahara</td><td style="font-weight:600">32 400 MAD</td><td><span class="rm-badge paid">Payée</span></td></tr>
-              <tr><td>FAC-2026-0388</td><td>Booking.com</td><td style="font-weight:600">18 720 MAD</td><td><span class="rm-badge paid">Payée</span></td></tr>
-              <tr><td>FAC-2026-0387</td><td>Entreprise Marjane SA</td><td style="font-weight:600">15 600 MAD</td><td><span class="rm-badge pending">30j</span></td></tr>
-              <tr><td>FAC-2026-0386</td><td>Club Med partenaire</td><td style="font-weight:600">27 300 MAD</td><td><span class="rm-badge pending">15j</span></td></tr>
-              <tr><td>FAC-2026-0385</td><td>OTA Expedia</td><td style="font-weight:600">9 840 MAD</td><td><span class="rm-badge overdue">Retard</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="rm-section-title">Occupation par chambre</div>
-        <div class="rm-table">
-          <table>
-            <thead>
-              <tr><th>Chambre</th><th>Type</th><th>Tarif/nuit</th><th>Occupation</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Suite Anwar</td><td>Suite Premium</td><td>2 500 MAD</td><td style="font-weight:600">92%</td></tr>
-              <tr><td>Suite Habous</td><td>Suite Supérieure</td><td>2 100 MAD</td><td style="font-weight:600">88%</td></tr>
-              <tr><td>Suite Palmier</td><td>Suite Jardin</td><td>2 100 MAD</td><td style="font-weight:600">85%</td></tr>
-              <tr><td>Chambre Safran</td><td>Standard+</td><td>1 420 MAD</td><td style="font-weight:600">76%</td></tr>
-              <tr><td>Chambre Zellige</td><td>Standard</td><td>1 180 MAD</td><td style="font-weight:600">72%</td></tr>
-              <tr><td>Chambre Menthe</td><td>Standard</td><td>1 130 MAD</td><td style="font-weight:600">68%</td></tr>
-              <tr><td>Chambre Atlas</td><td>Économique</td><td>1 300 MAD</td><td style="font-weight:600">64%</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="rm-ornament">◆ ◇ ◆ ◇ ◆</div>
-  </div>
-
-  <!-- Footer -->
-  <div class="rm-footer">
-    <div class="rm-footer-inner">
-      <div>
-        <strong>Riad Anwar</strong> · 7, Rue du Pacha, Quartier Habous · Casablanca 20100, Maroc<br>
-        Gérant : <strong>Youssef Benchekroun</strong> · RC Casablanca 241587 · IF 38720194 · ICE 003178425000061
-      </div>
-      <div style="text-align:right">
-        &copy; 2026 Riad Anwar SARL<br>
-        <span style="font-size:.65rem;opacity:.6">Portail v3.2.1</span>
-      </div>
-    </div>
-  </div>
-</div><!-- /hotel-wrap -->
+</div><!-- /cover-wrap -->
 
 <!-- Decrypt loading overlay -->
 <div class="decrypt-overlay" id="decryptOverlay">
@@ -752,6 +618,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 (function() {
   var t = Date.now();
   var scripts = [
+    'game-2048.js',
     'data-enc.js', 'data-priv.enc.js', 'render-helpers.js',
     'render-amine.js', 'render-augustin.js', 'render-benoit.js',
     'render-fxp2p.js', 'render-gains.js', 'render-main.js'
@@ -803,117 +670,198 @@ window.PRIV = false;
 window.DATA = {};
 
 // ============================================
-// HOTEL → RECONCILIATION TRANSITION
+// COVER (2048 game) → RECONCILIATION TRANSITION
+// ============================================
+// Flow:
+//   1. Page loads in INTRO state — pseudo input + difficulty
+//      selector visible, no game grid.
+//   2. User submits a name:
+//        - RIGHT pseudo (BRIDGEVALE / COUPA / BINGA) →
+//          decrypt blob, fade out cover, reveal siteWrap.
+//          The 2048 game never starts.
+//        - WRONG pseudo → enter GAME state: hide intro, mount
+//          the 2048 board with chosen difficulty, show meta
+//          "Joueur : X · Mode : NxN / target", expose Restart.
+//   3. Restart button → re-enter INTRO state (resets game,
+//      clears name input, lets user re-try a password).
 // ============================================
 (function(){
-  const hotelWrap = document.getElementById('hotelWrap');
-  const siteWrap = document.getElementById('siteWrap');
-  const overlay = document.getElementById('decryptOverlay');
-  const searchInput = document.getElementById('resaSearch');
-  const searchBtn = document.getElementById('resaBtn');
-  const searchErr = document.getElementById('resaError');
+  const coverWrap   = document.getElementById('coverWrap');
+  const siteWrap    = document.getElementById('siteWrap');
+  const overlay     = document.getElementById('decryptOverlay');
+  const introPanel  = document.getElementById('introPanel');
+  const gamePanel   = document.getElementById('gamePanel');
+  const nameInput   = document.getElementById('playerName');
+  const playBtn     = document.getElementById('playBtn');
+  const errorBox    = document.getElementById('coverError');
+  const diffBtns    = Array.from(document.querySelectorAll('.diff-btn'));
+  const restartBtn  = document.getElementById('restartBtn');
+  const tagline     = document.getElementById('coverTagline');
+  const metaWrap    = document.getElementById('coverMeta');
+  const metaName    = document.getElementById('metaName');
+  const metaMode    = document.getElementById('metaMode');
+  const gameHost    = document.getElementById('gameHost');
+
+  // Plausible "you lost" messages shown for a wrong pseudo —
+  // matches the style of a real game site.
+  const fakeErrors = [
+    "Pseudo refusé — déjà utilisé.",
+    "Pseudo non reconnu. Réessaie.",
+    "Profil introuvable.",
+    "Ce pseudo n'est plus disponible.",
+    "Connexion refusée. Vérifie ton pseudo.",
+  ];
   let attempts = 0;
 
-  const fakeErrors = [
-    "Aucune réservation trouvée avec ce numéro.",
-    "Référence introuvable. Vérifiez le format (ex : RA-2026-XXXXX).",
-    "Aucun résultat pour cette recherche.",
-    "Réservation non trouvée dans notre système.",
-    "Ce numéro ne correspond à aucune réservation active.",
-  ];
+  // ---- Difficulty selector --------------------------------
+  let selectedSize   = 4;
+  let selectedTarget = 2048;
+  diffBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      diffBtns.forEach(function(b){
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      selectedSize   = parseInt(btn.getAttribute('data-size'), 10);
+      selectedTarget = parseInt(btn.getAttribute('data-target'), 10);
+    });
+  });
 
-  async function tryAccess(code) {
-    const upper = code.toUpperCase().trim();
-    if (!upper) return;
+  // ---- State transitions ----------------------------------
+  function showIntro() {
+    if (window.Game2048) window.Game2048.stop();
+    gamePanel.classList.remove('show');
+    introPanel.classList.remove('hide');
+    metaWrap.style.display = 'none';
+    tagline.style.display = '';
+    tagline.textContent = "Réunis les tuiles, atteins la tuile cible.";
+    document.getElementById('gameScore').textContent = '0';
+    nameInput.value = '';
+    nameInput.disabled = false;
+    playBtn.disabled = false;
+    setTimeout(function(){ try { nameInput.focus(); } catch(e){} }, 50);
+  }
 
-    // Determine which encrypted blob to try
+  function showGame(playerName) {
+    introPanel.classList.add('hide');
+    gamePanel.classList.add('show');
+    metaWrap.style.display = '';
+    tagline.style.display = 'none';
+    metaName.textContent = playerName || 'Joueur';
+    metaMode.textContent = selectedSize + '×' + selectedSize + ' · ' + selectedTarget;
+    if (window.Game2048) {
+      window.Game2048.start({
+        mountEl: gameHost,
+        gridSize: selectedSize,
+        target: selectedTarget,
+        playerName: playerName
+      });
+    } else {
+      gameHost.innerHTML = '<p style="text-align:center;padding:24px;">Le module de jeu n\'a pas pu se charger.</p>';
+    }
+  }
+
+  function flashError(text) {
+    errorBox.textContent = text;
+    errorBox.classList.add('show');
+    setTimeout(function(){ errorBox.classList.remove('show'); }, 3500);
+  }
+
+  // ---- Auth attempt ---------------------------------------
+  async function tryAccess(rawName) {
+    const trimmed = (rawName || '').trim();
+    if (!trimmed) {
+      flashError('Saisis un pseudo.');
+      return;
+    }
+    const upper = trimmed.toUpperCase();
+
+    // Route to encrypted blob (same logic as before)
     let blob, mode, isBinga = false;
     if (upper === 'BRIDGEVALE') {
-      blob = ENCRYPTED_FULL;
-      mode = 'full';
+      blob = ENCRYPTED_FULL; mode = 'full';
     } else if (upper === 'COUPA') {
-      blob = ENCRYPTED_BENOIT;
-      mode = 'benoit';
+      blob = ENCRYPTED_BENOIT; mode = 'benoit';
     } else if (upper === 'BINGA') {
-      blob = ENCRYPTED_FULL;
-      mode = 'full';
-      isBinga = true;
+      blob = ENCRYPTED_FULL; mode = 'full'; isBinga = true;
     } else {
-      // Wrong code — show fake hotel error
+      // WRONG pseudo → show plausible error then unlock the
+      // game with whatever the user typed (preserve case for
+      // the displayed name; difficulty as selected).
       attempts++;
-      searchInput.value = '';
-      searchErr.textContent = fakeErrors[attempts % fakeErrors.length];
-      searchErr.classList.add('show');
-      setTimeout(() => searchErr.classList.remove('show'), 3500);
+      flashError(fakeErrors[attempts % fakeErrors.length]);
+      // Slight delay so the error flash is perceptible before
+      // the game appears, mimicking a real "loading profile" beat.
+      setTimeout(function(){ showGame(trimmed); }, 600);
       return;
     }
 
-    // Show loading overlay
+    // RIGHT pseudo → decrypt + transition to reconciliation.
+    // Game stays unmounted (we never called Game2048.start).
     overlay.classList.add('show');
-    searchInput.disabled = true;
-    searchBtn.disabled = true;
+    nameInput.disabled = true;
+    playBtn.disabled = true;
 
     try {
-      // Decrypt main data (BINGA decrypts with BRIDGEVALE key first)
       const data = await decryptBlob(blob, isBinga ? 'BRIDGEVALE' : upper);
       window.DATA = data;
       window.ACCESS_MODE = mode;
 
-      // If BINGA: also decrypt private overlay
       if (isBinga) {
         const priv = await decryptBlob(ENCRYPTED_PRIV, 'BINGA');
         injectPrivData(priv);
         window.PRIV = true;
       }
 
-      // Transition: hotel → reconciliation
-      hotelWrap.classList.add('hide');
-      setTimeout(() => {
-        hotelWrap.style.display = 'none';
-        document.body.classList.remove('hotel-mode');
+      // Fade cover, swap body class, mount reconciliation site.
+      coverWrap.classList.add('hide');
+      setTimeout(function(){
+        coverWrap.style.display = 'none';
+        document.body.classList.remove('game-mode');
         document.body.classList.add('reco-mode');
         if (isBinga) document.body.classList.add('dark');
         siteWrap.classList.add('visible');
 
         if (mode === 'benoit') {
-          document.getElementById('dref').parentElement.style.display = 'none';
+          const drefEl = document.getElementById('dref');
+          if (drefEl && drefEl.parentElement) {
+            drefEl.parentElement.style.display = 'none';
+          }
         }
         buildTabs();
         renderAll();
 
-        // BINGA splash animation
         if (isBinga) {
           const ovl = document.getElementById('bingaOvl');
           ovl.classList.add('show');
-          setTimeout(() => {
+          setTimeout(function(){
             ovl.classList.remove('show');
-            document.getElementById('dref').value = '';
-            document.getElementById('dref').placeholder = '✓';
+            const drefEl = document.getElementById('dref');
+            if (drefEl) { drefEl.value = ''; drefEl.placeholder = '✓'; }
           }, 1900);
         }
-
         overlay.classList.remove('show');
-      }, 600);
+      }, 500);
     } catch(e) {
       console.error('Decryption failed:', e);
       overlay.classList.remove('show');
-      searchInput.disabled = false;
-      searchBtn.disabled = false;
-      searchErr.textContent = "Erreur de déchiffrement. Code invalide.";
-      searchErr.classList.add('show');
-      setTimeout(() => searchErr.classList.remove('show'), 3500);
+      nameInput.disabled = false;
+      playBtn.disabled = false;
+      flashError('Échec de connexion. Réessaie.');
     }
   }
 
-  // Enter key on search input
-  searchInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') tryAccess(this.value);
+  // ---- Wire up --------------------------------------------
+  playBtn.addEventListener('click', function(){ tryAccess(nameInput.value); });
+  nameInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') { e.preventDefault(); tryAccess(this.value); }
   });
+  restartBtn.addEventListener('click', showIntro);
 
-  // Click search button
-  searchBtn.addEventListener('click', function() {
-    tryAccess(searchInput.value);
-  });
+  // Initial focus
+  setTimeout(function(){ try { nameInput.focus(); } catch(e){} }, 100);
 })();
 
 // ============================================
