@@ -237,11 +237,6 @@ body.game-mode {
 }
 .game-actions .restart-btn:hover { background: var(--g-btn-hover); }
 .game-actions .restart-btn:active { transform: scale(.97); }
-.game-actions .restart-hint {
-  font-size: 12px;
-  color: var(--g-text-soft);
-  font-style: italic;
-}
 
 /* Game module hosts its own .g-board / .g-grid / .g-tiles / .g-message */
 .game-host {
@@ -572,8 +567,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
   <!-- GAME PANEL — visible only after wrong-name unlock -->
   <section class="game-panel" id="gamePanel">
     <div class="game-actions">
-      <button type="button" class="restart-btn" id="restartBtn">Restart</button>
-      <span class="restart-hint">Retour à l'écran de pseudo</span>
+      <button type="button" class="restart-btn" id="restartBtn">Nouvelle partie</button>
     </div>
     <div class="game-host" id="gameHost"><!-- game-2048.js mounts here --></div>
     <p class="game-tip">
@@ -702,16 +696,10 @@ window.DATA = {};
   const metaMode    = document.getElementById('metaMode');
   const gameHost    = document.getElementById('gameHost');
 
-  // Plausible "you lost" messages shown for a wrong pseudo —
-  // matches the style of a real game site.
-  const fakeErrors = [
-    "Pseudo refusé — déjà utilisé.",
-    "Pseudo non reconnu. Réessaie.",
-    "Profil introuvable.",
-    "Ce pseudo n'est plus disponible.",
-    "Connexion refusée. Vérifie ton pseudo.",
-  ];
-  let attempts = 0;
+  // No "wrong pseudo" feedback: a casual visitor must perceive
+  // the name field as a normal "enter your nickname to play"
+  // input. Any rejection message would betray that names are
+  // gated against an allowlist.
 
   // ---- Difficulty selector --------------------------------
   let selectedSize   = 4;
@@ -756,7 +744,9 @@ window.DATA = {};
         mountEl: gameHost,
         gridSize: selectedSize,
         target: selectedTarget,
-        playerName: playerName
+        playerName: playerName,
+        scoreEl: document.getElementById('gameScore'),
+        bestEl:  document.getElementById('gameBest')
       });
     } else {
       gameHost.innerHTML = '<p style="text-align:center;padding:24px;">Le module de jeu n\'a pas pu se charger.</p>';
@@ -787,14 +777,11 @@ window.DATA = {};
     } else if (upper === 'BINGA') {
       blob = ENCRYPTED_FULL; mode = 'full'; isBinga = true;
     } else {
-      // WRONG pseudo → show plausible error then unlock the
-      // game with whatever the user typed (preserve case for
-      // the displayed name; difficulty as selected).
-      attempts++;
-      flashError(fakeErrors[attempts % fakeErrors.length]);
-      // Slight delay so the error flash is perceptible before
-      // the game appears, mimicking a real "loading profile" beat.
-      setTimeout(function(){ showGame(trimmed); }, 600);
+      // WRONG pseudo → silently start the game with the typed
+      // name and chosen difficulty. No error: from a casual
+      // visitor's POV they just entered their nickname and the
+      // game loaded — exactly what they expected.
+      showGame(trimmed);
       return;
     }
 

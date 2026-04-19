@@ -14,8 +14,11 @@
 //   - 6×6 grid, target 8192
 //
 // API (window.Game2048):
-//   start({mountEl, gridSize, target, playerName, onRestart})
-//     → builds DOM, attaches handlers, starts a new game
+//   start({mountEl, gridSize, target, playerName,
+//          scoreEl, bestEl})
+//     → builds DOM, attaches handlers, starts a new game.
+//       scoreEl/bestEl are external nodes (in the cover header,
+//       outside mountEl) updated on every move.
 //   stop()
 //     → detaches handlers, clears mount node
 //
@@ -31,6 +34,8 @@
   var keyHandler = null;       // bound document keydown handler
   var touchHandlers = null;    // bound touchstart/touchend handlers
   var mountEl = null;          // root container provided by caller
+  var scoreEl = null;          // external score display (caller-provided)
+  var bestEl  = null;          // external best display (caller-provided)
 
   // ---- helpers --------------------------------------------
   function makeGrid(n) {
@@ -159,7 +164,7 @@
     return html;
   }
 
-  function renderTiles(g, scoreEl, score, bestEl, best) {
+  function renderTiles(g, scoreNode, score, bestNode, best) {
     var n = g.length;
     var tilesLayer = mountEl.querySelector('.g-tiles');
     if (!tilesLayer) return;
@@ -180,8 +185,8 @@
       }
     }
     tilesLayer.innerHTML = html;
-    if (scoreEl) scoreEl.textContent = score;
-    if (bestEl) bestEl.textContent = best;
+    if (scoreNode) scoreNode.textContent = score;
+    if (bestNode) bestNode.textContent = best;
   }
 
   // ---- best score (per-grid-size, localStorage) -----------
@@ -292,8 +297,9 @@
   }
 
   function render() {
-    var scoreEl = mountEl.querySelector('.g-score-val');
-    var bestEl = mountEl.querySelector('.g-best-val');
+    // Score/best nodes were provided by the caller via start() opts —
+    // they live in the cover header, OUTSIDE mountEl, so we can't
+    // querySelector them locally.
     renderTiles(state.grid, scoreEl, state.score, bestEl, state.best);
   }
 
@@ -309,7 +315,9 @@
       return;
     }
     stop();  // idempotent if not running
-    mountEl = mount;
+    mountEl  = mount;
+    scoreEl  = opts.scoreEl || null;
+    bestEl   = opts.bestEl  || null;
 
     // Header (player + mode + score + restart) is owned by the
     // outer cover; we only own the grid + tiles + message overlay.
@@ -365,6 +373,8 @@
     if (mountEl) mountEl.innerHTML = '';
     state = null;
     mountEl = null;
+    scoreEl = null;
+    bestEl  = null;
   }
 
   window.Game2048 = {
