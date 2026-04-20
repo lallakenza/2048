@@ -126,22 +126,29 @@ async function radarLoad(manual) {
     const sell = sellRes.status === 'fulfilled' ? sellRes.value : null;
     const fx   = fxRes.status   === 'fulfilled' ? fxRes.value   : null;
 
-    // If we got nothing at all from Binance, go offline mode.
-    if (!buy && !sell) {
-      const err = buyRes.reason || sellRes.reason;
-      radarRenderOffline(err, fx);
-    } else {
-      radarRenderContent(buy, sell, fx);
-    }
+    // ALWAYS render — gauges don't depend on Binance, only on reference
+    // rates (peg = constant, USD/MAD = live or editable). Binance just
+    // pre-fills the "observed price" input so the gauge starts on the
+    // live market. If Binance fails, user can type the price they see.
+    radarRenderContent(buy, sell, fx);
+
+    // Per-source status for the header (transparent about what's live
+    // and what's falling back to manual input).
+    const parts = [];
+    parts.push(fx   ? '<span style="color:var(--green)">USD/MAD ✓</span>'   : '<span style="color:var(--yellow)">USD/MAD ⚠</span>');
+    parts.push(buy  ? '<span style="color:var(--green)">Binance AED ✓</span>'  : '<span style="color:var(--yellow)">Binance AED ⚠</span>');
+    parts.push(sell ? '<span style="color:var(--green)">Binance MAD ✓</span>' : '<span style="color:var(--yellow)">Binance MAD ⚠</span>');
 
     window._radarState.lastLoadAt = Date.now();
     const lastEl = document.getElementById('radarLastUpdate');
     if (lastEl) lastEl.textContent = radarFmtTime(new Date());
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✓ À jour</span>';
+    if (statusEl) statusEl.innerHTML = parts.join(' · ');
   } catch (e) {
     console.error('[radar] load failed:', e);
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">✗ Échec</span>';
-    radarRenderOffline(e, null);
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">✗ Échec global</span>';
+    // Even on full failure, render the manual-input form so the gauges
+    // are visible and the user can still use the tool.
+    radarRenderContent(null, null, null);
   } finally {
     window._radarState.inFlight = false;
     if (btn) btn.disabled = false;
@@ -157,8 +164,12 @@ function radarFmtTime(d) {
 }
 
 // ---- BINANCE P2P FETCH --------------------------------------------
-// Returns { topPrice, medianPrice, avgPrice, offers: [{merchant, price, minSingleTransAmount, maxSingleTransAmount, payMethods, finishRate}] }
-// or throws on network/CORS failure.
+// CORS workaround: Binance P2P's /bapi endpoint doesn't set CORS headers,
+// so direct fetch from github.io fails with "TypeError: Failed to fetch".
+// Route through corsproxy.io (verified working with POST body and JSON).
+// Tried: corsproxy.io ✓, allorigins ✗ (POST body dropped),
+//        thingproxy ✗ (unreliable). Direct-fetch fallback kept for cases
+// where the page is opened from a permissive origin (e.g. localhost).
 async function radarFetchBinanceP2P(fiat, tradeType) {
   const body = {
     proMerchantAds: false,
@@ -172,12 +183,28 @@ async function radarFetchBinanceP2P(fiat, tradeType) {
     asset: 'USDT',
     merchantCheck: false,
   };
-  const res = await fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Binance P2P ${fiat} ${tradeType}: HTTP ${res.status}`);
+  const target = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
+  const endpoints = [
+    'https://corsproxy.io/?' + encodeURIComponent(target),
+    target, // direct — only works if CORS is permissive for the origin
+  ];
+  let res = null, lastErr = null;
+  for (const url of endpoints) {
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) break;
+      lastErr = new Error(`HTTP ${res.status}`);
+      res = null;
+    } catch (e) {
+      lastErr = e;
+      res = null;
+    }
+  }
+  if (!res) throw lastErr || new Error(`Binance P2P ${fiat} ${tradeType}: all endpoints failed`);
   const j = await res.json();
   const ads = (j.data || []).filter(a => a && a.adv && a.advertiser);
   if (!ads.length) throw new Error(`Binance P2P ${fiat} ${tradeType}: no ads`);
@@ -386,99 +413,195 @@ function radarGaugeHTML(side, spread, opts) {
 }
 
 // ---- CONTENT RENDERER ---------------------------------------------
+// Always renders both cards + gauges. Binance data is OPTIONAL — when
+// present, it seeds the "observed price" inputs and adds a market-position
+// marker on the gauge. When absent, the user types the price manually.
+// The gauge + verdict update live on each keystroke (oninput handlers).
 function radarRenderContent(buy, sell, fx) {
   const peg = (DATA.fxP2P && DATA.fxP2P.leg2 && DATA.fxP2P.leg2.tauxMarche) || 3.6725;
 
-  // --- BUY side (AED → USDT) ---------------------------------
-  let buyCard = '';
-  if (buy) {
-    const buyPrice = buy.medianPrice;
-    const buySpread = ((buyPrice - peg) / peg) * 100;
-    const buyV = radarBuyVerdict(buySpread);
-    const buyGauge = radarGaugeHTML('buy', buySpread, { price: buyPrice, refRate: peg });
-    buyCard = `
-      <div style="background:var(--surface);border:2px solid ${buyV.color};border-radius:12px;padding:18px 20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
-          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🇦🇪 Achat AED → USDT · Dubai</div>
-          <div style="font-size:.78rem;font-weight:700;color:${buyV.color}">${buyV.em} ${buyV.label}</div>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-          <div style="font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;color:${buyV.color}">${buyPrice.toFixed(4).replace('.', ',')}</div>
-          <div style="font-size:.78rem;color:var(--muted)">AED/USDT · médiane top 10</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:.78rem">
-          <div><span style="color:var(--muted)">Peg AED/USD</span><br><strong>${peg.toFixed(4).replace('.', ',')}</strong></div>
-          <div><span style="color:var(--muted)">Meilleure offre</span><br><strong>${buy.topPrice.toFixed(4).replace('.', ',')}</strong></div>
-        </div>
-        ${buyGauge}
-        <div style="font-size:.75rem;color:var(--muted);line-height:1.5">${radarBuyAdvice(buyV.label, buySpread)}</div>
-      </div>
-    `;
-  } else {
-    buyCard = radarCardOffline('🇦🇪 Achat AED → USDT', 'Binance P2P AED indisponible');
-  }
+  // ---- Pick sensible defaults for the price inputs ----------
+  // Priority: Binance live median → user's historical average → neutral
+  // reference (peg for buy, mkt*1.035 for sell = middle of "Bon" zone).
+  const l2 = (DATA.fxP2P && DATA.fxP2P.leg2 && DATA.fxP2P.leg2.transactions) || [];
+  const l3 = (DATA.fxP2P && DATA.fxP2P.leg3 && DATA.fxP2P.leg3.transactions) || [];
+  const histBuyAvg  = l2.length ? l2.reduce((s,t) => s+t.prix, 0) / l2.length : peg * 1.003;
+  const histSellAvg = l3.length ? l3.reduce((s,t) => s+t.prix, 0) / l3.length : 0;
 
-  // --- SELL side (USDT → MAD) --------------------------------
-  let sellCard = '';
-  if (sell && fx) {
-    const sellPrice = sell.medianPrice;
-    const usdMad = fx.usdMad;
-    const sellSpread = ((sellPrice - usdMad) / usdMad) * 100;
-    const sellV = radarSellVerdict(sellSpread);
-    const sellGauge = radarGaugeHTML('sell', sellSpread, { price: sellPrice, refRate: usdMad });
-    sellCard = `
-      <div style="background:var(--surface);border:2px solid ${sellV.color};border-radius:12px;padding:18px 20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
-          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🇲🇦 Vente USDT → MAD · Maroc</div>
-          <div style="font-size:.78rem;font-weight:700;color:${sellV.color}">${sellV.em} ${sellV.label}</div>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-          <div style="font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;color:${sellV.color}">${sellPrice.toFixed(3).replace('.', ',')}</div>
-          <div style="font-size:.78rem;color:var(--muted)">MAD/USDT · médiane top 10</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:.78rem">
-          <div><span style="color:var(--muted)">USD/MAD live</span><br><strong>${usdMad.toFixed(4).replace('.', ',')}</strong>${fx.date ? ` <span style="font-size:.65rem;color:var(--muted)">(${fx.date})</span>` : ''}</div>
-          <div><span style="color:var(--muted)">Meilleure offre</span><br><strong>${sell.topPrice.toFixed(3).replace('.', ',')}</strong></div>
-        </div>
-        ${sellGauge}
-        <div style="font-size:.75rem;color:var(--muted);line-height:1.5">${radarSellAdvice(sellV.label, sellSpread)}</div>
-      </div>
-    `;
-  } else if (sell && !fx) {
-    sellCard = `
-      <div style="background:var(--surface);border:2px solid var(--yellow);border-radius:12px;padding:18px 20px">
-        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🇲🇦 Vente USDT → MAD · Maroc</div>
-        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-          <div style="font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums">${sell.medianPrice.toFixed(3).replace('.', ',')}</div>
-          <div style="font-size:.78rem;color:var(--muted)">MAD/USDT · médiane top 10</div>
-        </div>
-        <div style="margin-top:12px;padding:10px 12px;background:var(--yellow-bg);border-radius:8px;font-size:.78rem;color:var(--muted)">
-          ⚠️ Flux USD/MAD live indisponible — pas de verdict automatique. Réessaie dans quelques secondes.
-        </div>
-      </div>
-    `;
-  } else {
-    sellCard = radarCardOffline('🇲🇦 Vente USDT → MAD', 'Binance P2P MAD indisponible');
-  }
+  const defaultUsdMad = fx ? fx.usdMad : (l3.length && DATA.fxP2P.leg3.tauxMarche
+    ? (function() {
+        const entries = Object.entries(DATA.fxP2P.leg3.tauxMarche).sort((a,b) => a[0]<b[0]?1:-1);
+        return entries[0] ? entries[0][1] : 9.2;
+      })()
+    : 9.2);
+  const defaultBuyPrice  = buy  ? buy.medianPrice  : histBuyAvg;
+  const defaultSellPrice = sell ? sell.medianPrice : (histSellAvg || defaultUsdMad * 1.035);
 
-  // --- Historical context -----------------------------------
-  const histHtml = radarHistoricalContext(buy, sell, fx, peg);
-
-  // --- Top offers tables ------------------------------------
-  const buyTable  = buy  ? radarOffersTable(buy,  'BUY',  peg)      : '';
-  const sellTable = (sell && fx) ? radarOffersTable(sell, 'SELL', fx.usdMad) : '';
+  // ---- Seed state so the update handlers can read it --------
+  window._radarState.peg          = peg;
+  window._radarState.usdMad       = defaultUsdMad;
+  window._radarState.usdMadDate   = fx && fx.date || null;
+  window._radarState.usdMadIsLive = !!fx;
+  window._radarState.buyPrice     = defaultBuyPrice;
+  window._radarState.sellPrice    = defaultSellPrice;
+  window._radarState.buyData      = buy;
+  window._radarState.sellData     = sell;
 
   const body = document.getElementById('radarBody');
   if (!body) return;
   body.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:22px">
-      ${buyCard}
-      ${sellCard}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin-bottom:22px">
+      <div id="buyCardMount">${radarBuyCardHTML()}</div>
+      <div id="sellCardMount">${radarSellCardHTML()}</div>
     </div>
-    ${histHtml}
-    ${buyTable}
-    ${sellTable}
+    ${radarHistoricalContext(buy, sell, fx, peg)}
+    ${buy  ? radarOffersTable(buy,  'BUY',  peg) : ''}
+    ${sell && fx ? radarOffersTable(sell, 'SELL', fx.usdMad) : ''}
   `;
+}
+
+// ---- CARD BUILDERS (always render; handlers re-call these) --------
+function radarBuyCardHTML() {
+  const s = window._radarState;
+  const price = s.buyPrice;
+  const peg = s.peg;
+  const spread = ((price - peg) / peg) * 100;
+  const v = radarBuyVerdict(spread);
+  const gauge = radarGaugeHTML('buy', spread, { price: price, refRate: peg });
+
+  const binanceLine = s.buyData
+    ? `<span style="color:var(--muted)">Marché Binance live : </span><button type="button" onclick="radarUpdateBuy(${s.buyData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.buyData.medianPrice.toFixed(4).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.buyData.topPrice.toFixed(4).replace('.', ',')}</span>`
+    : `<span style="color:var(--yellow)">⚠ Binance indisponible — saisis le prix observé</span>`;
+
+  const priceStr = price.toFixed(4).replace('.', ',');
+
+  return `
+    <div style="background:var(--surface);border:2px solid ${v.color};border-radius:12px;padding:18px 20px;transition:border-color .25s">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🇦🇪 Achat AED → USDT · Dubai</div>
+        <div style="font-size:.8rem;font-weight:700;color:${v.color}" id="buyVerdictPill">${v.em} ${v.label}</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <input type="text" inputmode="decimal" value="${priceStr}" oninput="radarUpdateBuy(this.value)"
+               style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;width:140px;outline:none;font-family:inherit" />
+        <div>
+          <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Prix observé</div>
+          <div style="font-size:.78rem;color:var(--muted)">AED/USDT</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;font-size:.78rem;line-height:1.5">
+        <span style="color:var(--muted)">Peg AED/USD : </span><strong style="font-variant-numeric:tabular-nums">${peg.toFixed(4).replace('.', ',')}</strong><span style="color:var(--muted)"> (fixe)</span>
+        <br>${binanceLine}
+      </div>
+
+      ${gauge}
+      <div style="font-size:.75rem;color:var(--muted);line-height:1.5" id="buyAdvice">${radarBuyAdvice(v.label, spread)}</div>
+    </div>
+  `;
+}
+
+function radarSellCardHTML() {
+  const s = window._radarState;
+  const price = s.sellPrice;
+  const usdMad = s.usdMad;
+  const spread = ((price - usdMad) / usdMad) * 100;
+  const v = radarSellVerdict(spread);
+  const gauge = radarGaugeHTML('sell', spread, { price: price, refRate: usdMad });
+
+  const binanceLine = s.sellData
+    ? `<span style="color:var(--muted)">Marché Binance live : </span><button type="button" onclick="radarUpdateSell(${s.sellData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.sellData.medianPrice.toFixed(3).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.sellData.topPrice.toFixed(3).replace('.', ',')}</span>`
+    : `<span style="color:var(--yellow)">⚠ Binance indisponible — saisis le prix observé</span>`;
+
+  const fxStatus = s.usdMadIsLive
+    ? `<span style="color:var(--green);font-size:.65rem">● live${s.usdMadDate ? ` ${s.usdMadDate}` : ''}</span>`
+    : `<span style="color:var(--yellow);font-size:.65rem">● manuel</span>`;
+
+  const priceStr = price.toFixed(3).replace('.', ',');
+  const usdMadStr = usdMad.toFixed(4).replace('.', ',');
+
+  return `
+    <div style="background:var(--surface);border:2px solid ${v.color};border-radius:12px;padding:18px 20px;transition:border-color .25s">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">🇲🇦 Vente USDT → MAD · Maroc</div>
+        <div style="font-size:.8rem;font-weight:700;color:${v.color}" id="sellVerdictPill">${v.em} ${v.label}</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <input type="text" inputmode="decimal" value="${priceStr}" oninput="radarUpdateSell(this.value)"
+               style="background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;width:140px;outline:none;font-family:inherit" />
+        <div>
+          <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Prix observé</div>
+          <div style="font-size:.78rem;color:var(--muted)">MAD/USDT</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;font-size:.78rem;line-height:1.6;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="color:var(--muted)">USD/MAD :</span>
+        <input type="text" inputmode="decimal" value="${usdMadStr}" oninput="radarUpdateUsdMad(this.value)"
+               style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 7px;color:var(--text);font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;width:80px;outline:none;font-family:inherit" />
+        ${fxStatus}
+      </div>
+      <div style="margin-top:4px;font-size:.78rem;line-height:1.5">${binanceLine}</div>
+
+      ${gauge}
+      <div style="font-size:.75rem;color:var(--muted);line-height:1.5" id="sellAdvice">${radarSellAdvice(v.label, spread)}</div>
+    </div>
+  `;
+}
+
+// ---- LIVE UPDATE HANDLERS (called from inline oninput) ------------
+// Parse a user-entered value that may use comma or dot as decimal
+// separator. Silently ignore invalid input (keeps the last valid state).
+function radarParseNum(raw) {
+  const n = parseFloat(String(raw || '').replace(',', '.'));
+  return (isFinite(n) && n > 0) ? n : null;
+}
+
+window.radarUpdateBuy = function(raw) {
+  const n = radarParseNum(raw);
+  if (n == null) return;
+  window._radarState.buyPrice = n;
+  const mount = document.getElementById('buyCardMount');
+  if (mount) mount.innerHTML = radarBuyCardHTML();
+  // Move focus back to the input so the user can keep typing without
+  // the cursor jumping (re-rendering via innerHTML loses focus). Also
+  // place the cursor at the end.
+  radarRestoreFocus(mount, 'input', String(raw));
+};
+
+window.radarUpdateSell = function(raw) {
+  const n = radarParseNum(raw);
+  if (n == null) return;
+  window._radarState.sellPrice = n;
+  const mount = document.getElementById('sellCardMount');
+  if (mount) mount.innerHTML = radarSellCardHTML();
+  radarRestoreFocus(mount, 'input:first-of-type', String(raw));
+};
+
+window.radarUpdateUsdMad = function(raw) {
+  const n = radarParseNum(raw);
+  if (n == null) return;
+  window._radarState.usdMad = n;
+  window._radarState.usdMadIsLive = false; // user manual override
+  const mount = document.getElementById('sellCardMount');
+  if (mount) mount.innerHTML = radarSellCardHTML();
+  // Focus the USD/MAD input (second input in the sell card)
+  radarRestoreFocus(mount, 'input:nth-of-type(2)', String(raw));
+};
+
+// innerHTML destroys focus; re-find the target input and re-seat caret.
+function radarRestoreFocus(container, selector, displayValue) {
+  if (!container) return;
+  const el = container.querySelector(selector);
+  if (!el) return;
+  try {
+    el.focus();
+    // Put cursor at end of the input so typing continues naturally.
+    const len = (el.value || '').length;
+    el.setSelectionRange(len, len);
+  } catch (e) { /* some browsers/inputs don't support setSelectionRange */ }
 }
 
 function radarBuyAdvice(label, pct) {
