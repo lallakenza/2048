@@ -370,19 +370,21 @@ async function main() {
     },
   };
 
-  // ALERT logic — sellSpread > seuil + cooldown
+  // ALERT logic — sellSpread > seuil + cooldown.
+  // FORCE_ALERT bypasse le cooldown (utile pour tester depuis l'UI).
   const histStore = readHistory(pwd);
   let alertFired = false;
   if (forceAlert || (sellSpread != null && sellSpread > ALERT_SELL_THRESHOLD_PCT)) {
     const cooldownMs = ALERT_COOLDOWN_HOURS * 3600 * 1000;
-    const passed = !histStore.lastAlertTs ||
+    const cooldownPassed = !histStore.lastAlertTs ||
       (Date.now() - new Date(histStore.lastAlertTs).getTime()) > cooldownMs;
-    if (passed) {
+    if (forceAlert || cooldownPassed) {
       const { title, body } = buildAlertContent(sell, fx, sellSpread);
       writeAlertFile({ title, body });
       histStore.lastAlertTs = ts;
       alertFired = true;
-      console.log(`[alert] FIRED — sellSpread ${sellSpread.toFixed(2)}% > ${ALERT_SELL_THRESHOLD_PCT}%`);
+      const reason = forceAlert && !cooldownPassed ? ' (cooldown bypassed by FORCE_ALERT)' : '';
+      console.log(`[alert] FIRED — sellSpread ${sellSpread.toFixed(2)}% > ${ALERT_SELL_THRESHOLD_PCT}%${reason}`);
     } else {
       const next = new Date(new Date(histStore.lastAlertTs).getTime() + cooldownMs).toISOString();
       console.log(`[alert] Cooldown active (last ${histStore.lastAlertTs}, next ${next}). Skipping.`);
