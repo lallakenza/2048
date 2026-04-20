@@ -1,14 +1,12 @@
 name: Poll P2P rates (every hour)
 
-# Cron schedule: toutes les heures, à HH:00 UTC.
-# GitHub n'exécute pas pile à l'heure (peut décaler de 5-15 min selon la charge).
 on:
   schedule:
     - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       force_alert:
-        description: 'Force une alerte test (données fictives)'
+        description: 'Force une alerte test (donnees fictives)'
         type: boolean
         default: false
 
@@ -32,8 +30,14 @@ jobs:
       - name: Run poll script
         env:
           BINGA_PASSWORD: ${{ secrets.BINGA_PASSWORD }}
-          FORCE_ALERT: ${{ inputs.force_alert == true && '1' || '' }}
-        run: node scripts/poll-p2p.js
+          INPUT_FORCE_ALERT: ${{ inputs.force_alert }}
+        run: |
+          if [ "$INPUT_FORCE_ALERT" = "true" ]; then
+            echo "FORCE_ALERT mode (test avec donnees fictives)"
+            node scripts/poll-p2p.js --force-alert
+          else
+            node scripts/poll-p2p.js
+          fi
 
       - name: Create alert issue if ALERT.md exists
         if: hashFiles('ALERT.md') != ''
