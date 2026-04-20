@@ -513,6 +513,33 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 .site-wrap { display: none; }
 .site-wrap.visible { display: block; }
 
+/* Radar gauge tooltip — affiché au hover du wrapper de la jauge.
+   Position absolue ancrée bottom du conteneur, flotte au-dessus. */
+.radar-tip-wrap { position: relative; cursor: help; }
+.radar-tip-wrap:hover .radar-tip { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.radar-tip {
+  opacity: 0; pointer-events: none;
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translate(-50%, 4px);
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-size: .72rem; line-height: 1.55;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  z-index: 50;
+  transition: opacity .15s, transform .15s;
+}
+.radar-tip strong { color: var(--text); font-weight: 700; }
+.radar-tip .tip-row { display: flex; justify-content: space-between; gap: 14px; }
+.radar-tip .tip-row + .tip-row { margin-top: 3px; }
+.radar-tip .tip-row .tip-key { color: var(--muted); }
+.radar-tip .tip-row .tip-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.radar-tip::after {
+  content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-top: 5px solid var(--border);
+}
+
 @media(max-width:768px){.content{padding:14px}.tabs{padding:0 10px}.tab{padding:10px 12px;font-size:.72rem}table{font-size:.72rem}thead th,tbody td{padding:6px 7px}.cards{grid-template-columns:repeat(2,1fr)}.hero-card .hero-value{font-size:1.6rem}.summary-row{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.summary-row{grid-template-columns:1fr}.cards{grid-template-columns:1fr}}
 </style>
@@ -614,7 +641,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v7';
+  window.APP_VERSION = 'v7.1';
   window.APP_VERSION_DATE = '2026-04-20';
 </script>
 

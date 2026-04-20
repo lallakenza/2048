@@ -549,6 +549,77 @@ function radarRenderContent(buy, sell, fx) {
   `;
 }
 
+// ---- MES STATS PERSO (depuis leg2/leg3 transactions) --------------
+// Sur hover de la gauge, on montre 3 chiffres clés calculés depuis
+// l'historique de l'utilisateur lui-même (pas l'historique market):
+//   • Dernière tx : spread de la transaction la plus récente
+//   • Moyenne 30j : spread moyen sur les tx des 30 derniers jours
+//   • Moyenne globale : spread moyen sur toutes les tx historiques
+// Pour BUY (leg2): spread = (prix - peg) / peg × 100 (peg fixe 3.6725)
+// Pour SELL (leg3): spread = (prix - mkt) / mkt × 100 (mkt = leg3.tauxMarche[date])
+function radarComputeMyStats(side) {
+  const fx = DATA.fxP2P;
+  if (!fx) return null;
+  const peg = (fx.leg2 && fx.leg2.tauxMarche) || 3.6725;
+
+  let txs = [];
+  if (side === 'buy') {
+    const raw = (fx.leg2 && fx.leg2.transactions) || [];
+    txs = raw.map(t => ({
+      date: t.date,
+      ts: new Date(t.date).getTime(),
+      spread: ((t.prix - peg) / peg) * 100,
+    }));
+  } else {
+    const raw = (fx.leg3 && fx.leg3.transactions) || [];
+    const mktMap = (fx.leg3 && fx.leg3.tauxMarche) || {};
+    txs = raw.map(t => {
+      const mkt = mktMap[t.date] || 0;
+      return {
+        date: t.date,
+        ts: new Date(t.date).getTime(),
+        spread: mkt > 0 ? ((t.prix - mkt) / mkt) * 100 : null,
+      };
+    }).filter(t => t.spread != null);
+  }
+  if (!txs.length) return null;
+
+  // Tri chronologique pour identifier la dernière tx
+  txs.sort((a, b) => a.ts - b.ts);
+  const last = txs[txs.length - 1];
+
+  const now = Date.now();
+  const cutoff30d = now - 30 * 24 * 3600 * 1000;
+  const last30 = txs.filter(t => t.ts >= cutoff30d);
+  const avg30 = last30.length ? last30.reduce((s,t) => s + t.spread, 0) / last30.length : null;
+  const avgAll = txs.reduce((s,t) => s + t.spread, 0) / txs.length;
+
+  return {
+    last:  { date: last.date, spread: last.spread },
+    last30:{ count: last30.length, avg: avg30 },
+    all:   { count: txs.length, avg: avgAll },
+  };
+}
+
+// HTML helper: rend le tooltip "Mes stats" pour un côté donné
+function radarMyStatsTooltip(side) {
+  const s = radarComputeMyStats(side);
+  if (!s) return '';
+  const fmtSpread = (v) => v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+  const isBuy = side === 'buy';
+  // Pour BUY (vs peg): bas spread = bon (vert si ≤ 0.35)
+  // Pour SELL (vs marché): haut spread = bon (vert si ≥ 3)
+  const goodFn = (v) => v == null ? false : (isBuy ? v <= 0.35 : v >= 3.0);
+  const colorFn = (v) => v == null ? 'var(--muted)' : (goodFn(v) ? 'var(--green)' : 'var(--yellow)');
+  return `<div class="radar-tip">
+    <strong>Mes stats — ${isBuy ? 'achats AED→USDT' : 'ventes USDT→MAD'}</strong>
+    <div style="height:6px"></div>
+    <div class="tip-row"><span class="tip-key">Dernière tx (${s.last.date})</span><span class="tip-val" style="color:${colorFn(s.last.spread)}">${fmtSpread(s.last.spread)}</span></div>
+    <div class="tip-row"><span class="tip-key">Moyenne 30j (${s.last30.count} tx)</span><span class="tip-val" style="color:${colorFn(s.last30.avg)}">${fmtSpread(s.last30.avg)}</span></div>
+    <div class="tip-row"><span class="tip-key">Moyenne globale (${s.all.count} tx)</span><span class="tip-val" style="color:${colorFn(s.all.avg)}">${fmtSpread(s.all.avg)}</span></div>
+  </div>`;
+}
+
 // ---- CARD BUILDERS (always render; handlers re-call these) --------
 function radarBuyCardHTML() {
   const s = window._radarState;
@@ -585,7 +656,10 @@ function radarBuyCardHTML() {
         <br>${binanceLine}
       </div>
 
-      ${gauge}
+      <div class="radar-tip-wrap" style="margin-top:6px">
+        ${gauge}
+        ${radarMyStatsTooltip('buy')}
+      </div>
       <div style="font-size:.75rem;color:var(--muted);line-height:1.5" id="buyAdvice">${radarBuyAdvice(v.label, spread)}</div>
     </div>
   `;
@@ -634,7 +708,10 @@ function radarSellCardHTML() {
       </div>
       <div style="margin-top:4px;font-size:.78rem;line-height:1.5">${binanceLine}</div>
 
-      ${gauge}
+      <div class="radar-tip-wrap" style="margin-top:6px">
+        ${gauge}
+        ${radarMyStatsTooltip('sell')}
+      </div>
       <div style="font-size:.75rem;color:var(--muted);line-height:1.5" id="sellAdvice">${radarSellAdvice(v.label, spread)}</div>
     </div>
   `;
