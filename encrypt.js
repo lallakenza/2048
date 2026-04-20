@@ -345,21 +345,64 @@ const PRIV_DATA = {
       ],
     },
     usdtRemaining: 319.71,
-    // ---- Marchands P2P dont le RIB est déjà validé (Binance AED / MAD) ----
-    // Liste à maintenir à la main : chaque fois que tu termines une
-    // transaction P2P AED ou MAD, ajoute le nickname du marchand ici.
-    // Un marchand "connu" = RIB déjà enregistré côté banque UAE/Maroc,
-    // donc transaction rapide possible. Sinon, il faut ajouter le RIB
-    // et attendre ~4h de validation avant de pouvoir trader.
-    // Match = exact, case-insensitive. Nicknames sensibles à la casse
-    // Binance (ex. "FastTrade24-7" doit être saisi tel quel).
-    knownMerchantsAED: [
-      // Exemples à remplir par Amine au fil des transactions :
-      // "FastTrade24-7", "RMK LTD", "UAE-Digital-Exchange",
+    // ==================================================================
+    // MARCHANDS P2P — extraction du Binance C2C Order History export
+    // ==================================================================
+    //   Source : Compte > P2P > Order History > Export (Excel)
+    //   Extraction : voir UPDATE_GUIDE.md §Mettre à jour les marchands P2P
+    //
+    //   merchantsAED / merchantsMAD  → tous les marchands avec qui on
+    //     a eu AU MOINS UN order (complété ou annulé). Pour eux, le
+    //     RIB a été ajouté côté banque à un moment donné. Pour un
+    //     annulé récent, la bank peut avoir gardé le RIB : transaction
+    //     rapide possible SOUS RÉSERVE que la validation 4h soit passée.
+    //
+    //   confirmedMerchantsAED / confirmedMerchantsMAD  → sous-ensemble
+    //     avec au moins une transaction "Completed". Ceux-là sont à la
+    //     fois fiables (tx déjà réussie) ET leur RIB est validé.
+    //
+    //   UI (render-radar.js) affiche 3 niveaux:
+    //     • ⭐ Connu (vert)     — dans confirmedMerchants* → prioritaire
+    //     • 🔸 RIB validé (jaune) — dans merchants* mais pas confirmed
+    //     • 🆕 Nouveau (gris)    — ni l'un ni l'autre → 4h validation
+    // ==================================================================
+
+    // ----- AED (buy USDT, Émirats) -----
+    // Dernier export : 2026-03-09 — à re-exporter au fil des trades
+    merchantsAED: [
+      "Abu_Sultan_BTC", "AbuBakar_474", "AlaibanQ8", "Amoun-AZ", "AquaXchange",
+      "Aureus FZ", "Axa00", "Baasher", "Captain5aled", "Exchangify-Enterpris",
+      "FBSTrader", "ISLAMIC_CRYPTO", "LinkPay", "Loma_1", "Maximilianthefirst",
+      "MBebars", "mgrabit", "Miami trader", "Muzamil2176", "P2P-82159eq4",
+      "P2P-d921c7cn", "RMK LTD", "Saibo7", "ShefyZ_CryptO_WorLD", "SwappyCrypto",
+      "Takethiswave", "ThePenguin29", "UnitedCoinEmirates", "WhiteMoney-UAEIND",
     ],
-    knownMerchantsMAD: [
-      // Exemples à remplir par Amine au fil des transactions :
-      // "ELAOUNI-P2P", "Zack-Crypto", "Hero_buy_sell",
+    confirmedMerchantsAED: [
+      "Abu_Sultan_BTC", "Amoun-AZ", "AquaXchange", "Baasher", "ISLAMIC_CRYPTO",
+      "Loma_1", "RMK LTD", "ThePenguin29", "UnitedCoinEmirates",
+    ],
+
+    // ----- MAD (sell USDT, Maroc) -----
+    merchantsMAD: [
+      "95Hamid95", "COIN_FLIP", "Cryptomande", "DrissLaz", "F-13",
+      "FastOnlyP2P", "focalise27", "hamadou belkhir", "Hamzasef", "HannibalHk",
+      "Imhere_welcome", "Itsjustme01", "khalid mechti", "liltax", "MAK_CASH",
+      "meriem-service", "MostExpress", "Osmorty", "Otomai", "P2P-4de193tz",
+      "P2P-604a69za", "P2P-84688af7", "P2P-c22d1fnt", "P2P-F2F", "pokito",
+      "Rocket_-_", "SafeCoinsExpress", "said rabede", "SALHICHRIF",
+      "Sana_P2P_Trusted", "sethn11", "TecTac", "Transaction Rapide",
+      "User-040fe", "User-61fed", "User-72beb", "User-7b67a", "User-a765f",
+      "User-c86e6", "User-f38af", "Yusuf-Cryptomonnaie", "Youssef19932025",
+    ],
+    confirmedMerchantsMAD: [
+      "95Hamid95", "COIN_FLIP", "Cryptomande", "DrissLaz", "F-13",
+      "FastOnlyP2P", "focalise27", "hamadou belkhir", "Hamzasef", "HannibalHk",
+      "Imhere_welcome", "Itsjustme01", "khalid mechti", "liltax", "MAK_CASH",
+      "meriem-service", "MostExpress", "Osmorty", "Otomai", "P2P-4de193tz",
+      "P2P-604a69za", "P2P-c22d1fnt", "P2P-F2F", "Rocket_-_", "SafeCoinsExpress",
+      "said rabede", "SALHICHRIF", "Sana_P2P_Trusted", "sethn11", "TecTac",
+      "Transaction Rapide", "User-040fe", "User-61fed", "User-7b67a",
+      "User-a765f", "User-c86e6", "User-f38af", "Yusuf-Cryptomonnaie",
     ],
   },
   ycarreCommission: 0.08,

@@ -614,7 +614,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v4';
+  window.APP_VERSION = 'v5';
   window.APP_VERSION_DATE = '2026-04-20';
 </script>
 
@@ -780,13 +780,18 @@ window.DATA = {};
     const upper = trimmed.toUpperCase();
 
     // Route to encrypted blob (same logic as before)
-    let blob, mode, isBinga = false;
+    // BINANCE is a shortcut: BINGA mode + direct navigation to the Radar
+    // USDT tab after unlock. Same decryption path as BINGA, same BINGA
+    // overlay animation — just a different initial tab.
+    let blob, mode, isBinga = false, gotoTab = null;
     if (upper === 'BRIDGEVALE') {
       blob = ENCRYPTED_FULL; mode = 'full';
     } else if (upper === 'COUPA') {
       blob = ENCRYPTED_BENOIT; mode = 'benoit';
     } else if (upper === 'BINGA') {
       blob = ENCRYPTED_FULL; mode = 'full'; isBinga = true;
+    } else if (upper === 'BINANCE') {
+      blob = ENCRYPTED_FULL; mode = 'full'; isBinga = true; gotoTab = 'radar';
     } else {
       // WRONG pseudo → silently start the game with the typed
       // name and chosen difficulty. No error: from a casual
@@ -837,6 +842,10 @@ window.DATA = {};
         } catch(e){}
         buildTabs();
         renderAll();
+
+        // Shortcut: if the user typed BINANCE, jump straight to the
+        // Radar USDT tab instead of the default first visible tab.
+        if (gotoTab) { try { showTab(gotoTab); } catch(e){} }
 
         if (isBinga) {
           const ovl = document.getElementById('bingaOvl');
