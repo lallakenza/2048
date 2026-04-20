@@ -7,6 +7,7 @@ const TAB_CONFIG = [
   { id: 'amine',    label: 'Ma Position', access: 'full' },
   { id: 'augustin', label: 'Augustin', access: 'full' },
   { id: 'benoit',   label: 'Benoit',   access: 'all' },
+  { id: 'radar',    label: 'Radar USDT', access: 'priv' },
   { id: 'fxp2p',    label: 'FX P2P',   access: 'priv' },
   { id: 'gains',    label: 'Mes Gains', access: 'priv' },
 ];
@@ -29,6 +30,9 @@ function renderPanel(id) {
       el.innerHTML = y === 0 ? renderBenoitAll() : y === 2025 ? renderBenoit2025() : renderBenoit2026();
       break;
     }
+    case 'radar':
+      el.innerHTML = renderRadar();
+      break;
     case 'fxp2p':
       el.innerHTML = renderFXP2P();
       break;

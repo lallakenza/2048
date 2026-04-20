@@ -452,8 +452,11 @@ body.reco-mode {
 @keyframes bingaLine{to{width:260px}}
 
 body.reco-mode *{transition:background-color .5s ease,color .3s ease,border-color .4s ease}
-.header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:20px 32px}
-.header h1{font-size:1.4rem;font-weight:700;color:#fff} .header p{color:rgba(255,255,255,.7);font-size:.82rem;margin-top:3px}
+.header{background:var(--header-grad);border-bottom:1px solid var(--border);padding:20px 32px;position:relative}
+.header h1{font-size:1.4rem;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:10px} .header p{color:rgba(255,255,255,.7);font-size:.82rem;margin-top:3px}
+.header .version-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:20px;font-size:.6rem;font-weight:600;color:rgba(255,255,255,.92);letter-spacing:.04em;text-transform:uppercase;font-variant-numeric:tabular-nums;vertical-align:middle}
+.header .version-badge .dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,.7)}
+.header .version-badge .date{font-weight:400;opacity:.7;text-transform:none;letter-spacing:0;margin-left:2px}
 .tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);padding:0 32px;flex-wrap:wrap}
 .tab{padding:12px 20px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.82rem;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;user-select:none}
 .tab:hover{color:var(--text);background:var(--surface2)} .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -588,7 +591,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 <!-- ============================================ -->
 <div class="site-wrap" id="siteWrap">
 <div class="header">
-  <h1>Réconciliation Facturation 2025–2026</h1>
+  <h1>Réconciliation Facturation 2025–2026 <span class="version-badge" id="versionBadge" title="Version du site"><span class="dot"></span><span id="versionTag">—</span><span class="date" id="versionDate"></span></span></h1>
   <p>Suivi des paiements et positions · Taux de conversion : 10 000 DH = 1 000 €</p>
 </div>
 <div class="tabs" id="tabBar"></div>
@@ -607,6 +610,14 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 </div>
 </div><!-- /site-wrap -->
 
+<!-- Site version — single source of truth, displayed in the header
+     once the user unlocks the reconciliation view. Bump on every
+     substantive deploy (see project README / commit history). -->
+<script>
+  window.APP_VERSION = 'v1';
+  window.APP_VERSION_DATE = '2026-04-19';
+</script>
+
 <!-- Scripts: dynamic loader with auto cache-busting (no manual ?v= needed) -->
 <script>
 (function() {
@@ -615,7 +626,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
     'game-2048.js',
     'data-enc.js', 'data-priv.enc.js', 'render-helpers.js',
     'render-amine.js', 'render-augustin.js', 'render-benoit.js',
-    'render-fxp2p.js', 'render-gains.js', 'render-main.js'
+    'render-radar.js', 'render-fxp2p.js', 'render-gains.js', 'render-main.js'
   ];
   scripts.forEach(function(src) {
     document.write('<script src="' + src + '?t=' + t + '"><\/script>');
@@ -817,6 +828,13 @@ window.DATA = {};
             drefEl.parentElement.style.display = 'none';
           }
         }
+        // Populate version badge now that the site is visible
+        try {
+          const tagEl = document.getElementById('versionTag');
+          const dateEl = document.getElementById('versionDate');
+          if (tagEl) tagEl.textContent = window.APP_VERSION || 'dev';
+          if (dateEl && window.APP_VERSION_DATE) dateEl.textContent = ' · ' + window.APP_VERSION_DATE;
+        } catch(e){}
         buildTabs();
         renderAll();
 
