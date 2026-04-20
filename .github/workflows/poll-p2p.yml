@@ -44,6 +44,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh label create alert --color "ff6b6b" --description "Alerte automatique P2P" 2>/dev/null || true
+          gh label create p2p --color "4ecdc4" --description "Binance P2P" 2>/dev/null || true
           TITLE=$(head -1 ALERT.md)
           BODY=$(awk 'BEGIN{p=0} /^---$/{if(!p){p=1;next}} p==1{print}' ALERT.md)
           echo "$BODY" > /tmp/issue-body.md
