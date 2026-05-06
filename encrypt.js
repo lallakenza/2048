@@ -142,6 +142,7 @@ const FULL_DATA = {
       { date: "03/02/2026", beneficiaire: "Jean Augustin", dh: 10000 },
       { date: "03/03/2026", beneficiaire: "Jean Augustin", dh: 30000 },
       { date: "02/04/2026", beneficiaire: "Jean Augustin", dh: 10000 },
+      { date: "23/04/2026", beneficiaire: "Jean Augustin", dh: 20000 },
     ],
     rtl: [
       { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350, dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },

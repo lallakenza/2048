@@ -9,6 +9,23 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.5` — 2026-04-23
+
+### Données — Augustin 2026
+- Nouveau virement Maroc : **20 000 DH** envoyés à Jean Augustin le 23/04/2026.
+  → Total 2026 : 80 000 DH (5 virements depuis janvier).
+
+### Header — fix sous-titre incorrect
+Le sous-titre claimait "Taux de conversion : 10 000 DH = 1 000 €", ce qui
+implique un taux fixe 10:1 inexistant. Les vrais taux varient (10,26 pour
+Augustin 2026, 10,5–10,6 pour les Councils Benoit, etc.).
+Remplacé par : "Suivi des paiements et positions multi-devises ·
+EUR · MAD · USDT (taux du jour)".
+
+Bump : v7.4 → v7.5
+
+---
+
 ## `v7.4` — 2026-04-23
 
 ### 2048 cover — Thème Stitch
