@@ -6,7 +6,7 @@ chiffrées AES-256-GCM côté repo.
 
 **URL live** : https://lallakenza.github.io/2048/
 **Repo** : `lallakenza/2048` (branche `main` déploie automatiquement)
-**Version actuelle** : `v3` (voir badge dans le header après login)
+**Version actuelle** : `v7.6` (voir badge dans le header après login)
 
 ---
 
@@ -18,7 +18,7 @@ chiffrées AES-256-GCM côté repo.
 | [`DATA_MODEL.md`](./DATA_MODEL.md) | Schémas complets de `FULL_DATA`, `PRIV_DATA`, `fxP2P`, localStorage bridge |
 | [`UPDATE_GUIDE.md`](./UPDATE_GUIDE.md) | Comment ajouter/mettre à jour virements, Councils, RTL, FX P2P, etc. |
 | [`BUG_TRACKER.md`](./BUG_TRACKER.md) | Bugs connus, root cause, fix, tests de régression |
-| [`CHANGELOG.md`](./CHANGELOG.md) | Historique des versions v1 → v3 |
+| [`CHANGELOG.md`](./CHANGELOG.md) | Historique des versions v1 → v7.6 |
 
 ---
 
@@ -140,8 +140,8 @@ dans le dashboard patrimonial. Voir [`DATA_MODEL.md`](./DATA_MODEL.md) §Bridge.
 Source de vérité : `index.html` (en-tête)
 ```html
 <script>
-  window.APP_VERSION = 'v3';
-  window.APP_VERSION_DATE = '2026-04-20';
+  window.APP_VERSION = 'v7.6';
+  window.APP_VERSION_DATE = '2026-05-06';
 </script>
 ```
 

@@ -44,6 +44,10 @@ const FULL_DATA = {
   augustin2025: {
     title: "Clôture Augustin 2025 — Réconciliation mois par mois",
     subtitle: "Basé sur le fichier Excel Augustin v2 (mis à jour). Pour chaque mois : revenus RTL, dépenses déclarées (B+Y+M, Maroc, Divers), virements réels, et commentaires.",
+    // tauxMaroc = taux contractuel négocié avec Augustin (deal interne).
+    // Ce N'EST PAS le taux marché EUR/MAD — c'est le ratio convenu entre
+    // Amine et Augustin pour comptabiliser les virements Maroc côté pro.
+    // Renégocié chaque année : 10,000 en 2025 → 10,260 en 2026.
     tauxMaroc: 10,
     rtl: [
       { ref: "INVRTL001", periode: "Jan", jours: 12, montant: 10200, datePaiement: "20/03", recu: 10200 },
@@ -136,6 +140,10 @@ const FULL_DATA = {
   augustin2026: {
     title: "Augustin 2026 — En cours",
     report2025: -1683,
+    // tauxMaroc = deal contractuel 2026 avec Augustin : 1 000€ pro = 10 260 MAD.
+    // Différent du taux 2025 (10) — la deal est renégociée chaque année.
+    // Le marché EUR/MAD est typiquement ~10,5–10,8 en 2026 ; ce ratio reflète
+    // un accord interne, pas une conversion FX.
     tauxMaroc: 10.26,
     virementsMaroc: [
       { date: "02/01/2026", beneficiaire: "Jean Augustin", dh: 10000 },

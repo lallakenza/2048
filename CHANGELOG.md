@@ -9,6 +9,40 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.6` — 2026-05-06
+
+### Doc refresh + clarification deal Augustin
+Suite à un audit complet du site, plusieurs incohérences documentaires ont
+été corrigées (le runtime n'a pas changé) :
+
+**`encrypt.js` — clarification `tauxMaroc`** :
+Commentaires ajoutés sur `augustin2025.tauxMaroc: 10` et
+`augustin2026.tauxMaroc: 10.26` pour expliquer que ce ratio est un **deal
+contractuel négocié annuellement avec Augustin**, pas un taux marché EUR/MAD.
+
+**`Architecture.md` — refresh majeur** :
+- Mention du repo `lallakenza/2048` (et non plus `lallakenza/facturation`)
+- Façade : jeu 2048 (et non plus "portail Riad Anwar" — supprimé en v6.1)
+- Passwords : `TIGRE` (remplace `BRIDGEVALE` depuis v6), `COUPA`, `BINGA`,
+  `BINANCE` (mode radar-only, ajouté en v6)
+- TAB_CONFIG mis à jour avec `radar`
+- Section "Fonctionnalités UI" : ajout Radar USDT, cover 2048 avec thème
+  Stitch, cron P2P horaire avec alerte mail
+- Cache-busting : auto via `<script>`-loader (suppression mention `?v=N`)
+- Structure des fichiers : ajout `assets/`, `data-history.enc.js`, `scripts/`,
+  `.github/workflows/`
+- `tauxMaroc` documenté comme deal annuel (10 en 2025 → 10,26 en 2026)
+
+**`README.md`** : version actuelle bumpée v3 → v7.6.
+
+### Pas de changement runtime
+Aucun `.js` ni `.html` modifié hors le bump version + commentaires data.
+Le déploiement reste identique fonctionnellement.
+
+Bump : v7.5 → v7.6
+
+---
+
 ## `v7.5` — 2026-04-23
 
 ### Données — Augustin 2026
