@@ -9,6 +9,40 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.7` — 2026-05-11
+
+### Bug fix — USD/MAD stale date sur le Radar (cache jsdelivr)
+**Symptôme** : le badge `live YYYY-MM-DD` à côté du taux USD/MAD sur le
+Radar pouvait afficher une date vieille de plusieurs jours, même après
+hard-refresh, sans aucun signal d'erreur.
+
+**Root cause** : l'API `fawazahmed0/currency-api` est servie via jsdelivr
+avec le header `cache-control: public, max-age=604800, s-maxage=43200`
+— donc **7 jours en cache navigateur** + 12h au CDN edge sur le tag
+`@latest`. Une fois `@latest` mis en cache localement, le browser sert
+la même réponse pendant une semaine sans rappeler l'API, et la date
+`j.date` retournée est figée à celle du premier fetch.
+
+**Fix** : pointer vers des URLs **date-pinnées** `@YYYY-MM-DD/...` (donc
+immuables, le cache TTL est inoffensif puisque l'URL change chaque jour).
+Cascade : `today` → `yesterday` (au cas où le snapshot du jour n'est pas
+encore publié vers 16h UTC) → `@latest` (filet) → mirror `pages.dev`.
+
+Appliqué dans :
+- `render-radar.js` (`radarFetchUsdMad`) — affichage live sur le Radar
+- `scripts/poll-p2p.js` (`fetchUsdMad`) — cron horaire qui alimente
+  l'historique du spread (le CDN edge `s-maxage=43200`/12h pouvait aussi
+  fausser la date dans `data-history.enc.js`)
+
+**Vérif manuelle** :
+- `@2026-05-09/.../usd.json` → `date: 2026-05-09, usd.mad: 9.1204`
+- `@2026-05-11/.../usd.json` → `date: 2026-05-11, usd.mad: 9.1214`
+- `@latest/.../usd.json` (réponse fresh) → `date: 2026-05-11, usd.mad: 9.1214`
+
+Bump : v7.6 → v7.7
+
+---
+
 ## `v7.6` — 2026-05-06
 
 ### Doc refresh + clarification deal Augustin

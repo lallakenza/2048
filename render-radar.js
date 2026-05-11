@@ -406,8 +406,21 @@ const RADAR_CFG = {
 const RADAR_MIN_AMOUNT = { AED: 10000, MAD: 5000 };
 
 // ---- USD/MAD LIVE -------------------------------------------------
+// jsdelivr cache @latest aggressivement :
+//   cache-control: public, max-age=604800, s-maxage=43200
+//   → 7 jours navigateur + 12h CDN. Conséquence : une fois que le browser
+//   a tapé @latest une fois, il sert la même réponse pendant 7j même si
+//   le snapshot quotidien a été mis à jour entre temps.
+// Fix : on tape les URLs **date-pinnées** `@YYYY-MM-DD/...` qui sont
+// immuables (cache TTL inoffensif puisque l'URL change chaque jour).
+// Cascade : today → yesterday (au cas où today pas encore publié, vers
+// 16h UTC) → @latest (filet) → pages.dev (miroir).
 async function radarFetchUsdMad() {
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const urls = [
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${today}/v1/currencies/usd.json`,
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${yesterday}/v1/currencies/usd.json`,
     'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
     'https://latest.currency-api.pages.dev/v1/currencies/usd.json',
   ];

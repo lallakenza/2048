@@ -171,7 +171,14 @@ async function fetchBinanceP2P(fiat, userSide, cfg) {
 }
 
 async function fetchUsdMad() {
+  // Cascade date-pinnée pour contourner le cache CDN @latest (s-maxage=43200
+  // = 12h sur les edges jsdelivr) — chaque URL `@YYYY-MM-DD/...` est immuable,
+  // donc le cache TTL est inoffensif. today → yesterday → @latest → mirror.
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const urls = [
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${today}/v1/currencies/usd.json`,
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${yesterday}/v1/currencies/usd.json`,
     'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
     'https://latest.currency-api.pages.dev/v1/currencies/usd.json',
   ];
