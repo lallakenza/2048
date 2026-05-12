@@ -9,6 +9,28 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.8` — 2026-05-12
+
+### Données — Augustin + Benoit (rapprochement banque)
+
+**Correction date Augustin** : le virement 20 000 DH à Jean Augustin
+était daté `23/04/2026` (v7.5). Le commit ayant été fait le 6 mai mais
+avec un system date erroné (snapshot Apr 23 dans le contexte session),
+la date a été figée 13 jours trop tôt. La banque confirme exécution
+**06/05/2026** — date corrigée pour matcher.
+
+**Ajout 3 virements Benoit (Badrecheikh Elmouksit)** :
+- 11/05/2026 — 50 000 DH (remboursement)
+- 11/05/2026 — 50 000 DH (remboursement)
+- 12/05/2026 — 50 000 DH (remboursement)
+
+Cumul Benoit 2026 passe de **100 000 DH → 250 000 DH** payés.
+Cumul Augustin 2026 reste 80 000 DH (date corrigée, montant inchangé).
+
+Bump : v7.7 → v7.8
+
+---
+
 ## `v7.7` — 2026-05-11
 
 ### Bug fix — USD/MAD stale date sur le Radar (cache jsdelivr)
