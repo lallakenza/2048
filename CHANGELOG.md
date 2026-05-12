@@ -9,6 +9,41 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.9` — 2026-05-12
+
+### Données FX P2P — import export Binance C2C
+Import des transactions Completed 2026 depuis l'export Binance C2C
+(file UTC+10, dates converties en Morocco time UTC+1).
+
+**Leg 2 (AED → USDT) — +4 transactions** :
+- 2026-04-20 — RMK LTD — 10 000 AED → 2 713,70 USDT @ 3,685
+- 2026-05-11 — Abdulla_Saif_Mohamme — 5 000 AED → 1 357,22 USDT @ 3,684
+- 2026-05-11 — Abdulla_Saif_Mohamme — 14 400 AED → 3 908,79 USDT @ 3,684
+- 2026-05-11 — amro_sd — 13 250 AED → 3 597,61 USDT @ 3,683
+
+**Leg 3 (USDT → MAD) — +8 transactions** :
+- 2026-04-22 — User-859a0 — 2 085,50 USDT → 20 000 MAD @ 9,59
+- 2026-05-11 — 7 ventes (5k, 20k, 6k, 9k, 8k, 24k, 13,5k MAD) @ 9,63–9,64
+
+**Cours USD/MAD marché (fawazahmed0)** :
+- 2026-04-22 : 9,2545
+- 2026-05-11 : 9,1214
+
+**`usdtRemaining`** : 319,71 → **937,10 USDT**
+  (+11 577,32 leg2 / −10 959,93 leg3 = +617,39 net)
+
+**Marchands P2P** :
+- AED `merchants` +8 (-Pro-Merchant, abdullah_trader2, Abdulla_Saif_Mohamme,
+  amro_sd, M7usdt, Mooddy, OFFICIAL__MERCHANT, SalimCapital)
+- AED `confirmedMerchants` +2 (Abdulla_Saif_Mohamme, amro_sd)
+- MAD `merchants` +8 (P2P-59dbaepc, P2P-76c3f3dh, P2P-fc2d6fbv, R-A-H-I-L,
+  Rachid_Erin, User-35404, User-732eb, User-859a0)
+- MAD `confirmedMerchants` +7 (tous sauf P2P-fc2d6fbv qui est Cancelled)
+
+Bump : v7.8 → v7.9
+
+---
+
 ## `v7.8` — 2026-05-12
 
 ### Données — Augustin + Benoit (rapprochement banque)
