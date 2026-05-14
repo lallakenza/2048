@@ -200,11 +200,12 @@ const FULL_DATA = {
     tjm: 625,
     councils: [
       { ref: "AZCS0001", mois: "Janvier 2026", jours: 8, htEUR: 5000, dateFacture: "30/01/2026", dateDue: "16/03/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 11/02" },
-      { ref: "AZCS0002", mois: "Février 2026", jours: 8, htEUR: 5000, dateFacture: "27/02/2026", dateDue: "13/04/2026", tauxApplique: 10.600, statut: "w", statutText: "Invoiced" },
+      { ref: "AZCS0002", mois: "Février 2026", jours: 8, htEUR: 5000, dateFacture: "27/02/2026", dateDue: "13/04/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 13/05" },
       { ref: "AZCS0003", mois: "Octobre 2025", jours: 9, htEUR: 5625, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
       { ref: "AZCS0004", mois: "Novembre 2025", jours: 10, htEUR: 6250, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
       { ref: "AZCS0005", mois: "Décembre 2025", jours: 13, htEUR: 8125, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
       { ref: "AZCS0006", mois: "Mars 2026", jours: 9, htEUR: 5625, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03" },
+      { ref: "AZCS0007", mois: "Avril 2026", jours: 8.5, htEUR: 5312.50, dateFacture: "30/04/2026", dateDue: "14/06/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 13/05" },
     ],
     virements: [
       { date: "09/03/2026", beneficiaire: "Benoit Chevalier", dh: 50000, motif: "Remboursement" },
@@ -243,8 +244,13 @@ const PRIV_DATA = {
     tauxApplique: 10.700,
     commissionRate: 0.10,
     councilsTauxMarche: [
-      { mois: "Janvier", tauxMarche: 10.836 },
-      { mois: "Février", tauxMarche: null },
+      { mois: "Janvier 2026",        tauxMarche: 10.836  }, // index 0 → AZCS0001
+      { mois: "Février 2026",        tauxMarche: 10.7214 }, // index 1 → AZCS0002 (payé 13/05/2026, EUR/MAD fawazahmed0)
+      { mois: "Octobre 2025 backlog",  tauxMarche: null    }, // index 2 → AZCS0003 (paid 27/03, à backfiller)
+      { mois: "Novembre 2025 backlog", tauxMarche: null    }, // index 3 → AZCS0004
+      { mois: "Décembre 2025 backlog", tauxMarche: null    }, // index 4 → AZCS0005
+      { mois: "Mars 2026",            tauxMarche: null    }, // index 5 → AZCS0006 (paid 27/03, à backfiller)
+      { mois: "Avril 2026",           tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
     ],
   },
   fxP2P: {

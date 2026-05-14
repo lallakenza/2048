@@ -9,6 +9,40 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.10` — 2026-05-14
+
+### Benoit 2026 — paiement AZCS0002 + nouvelle facture AZCS0007
+
+Trois PDFs reçus de Badre : 1 facture Azarkan + 2 reçus de paiement
+BNP Paribas Fortis (Majalis → AZCS, pay-on-behalf model).
+
+**AZCS0002 — passé à PAYÉ** :
+- 5 000 € HT (8j × 625) — invoicée 27/02/2026
+- Payée par Majalis le **13/05/2026** (6 050 € TTC = 5000 × 1,21)
+- `statut: "w" → "ok"`, `statutText: "Invoiced" → "Paid 13/05"`
+
+**AZCS0007 — nouvelle facture (Avril 2026), DIRECTEMENT PAYÉE** :
+- 8,5 jours × 625€ = **5 312,50 € HT** (TTC 6 428,13 €)
+- Invoicée 30/04/2026, échéance 14/06/2026
+- Payée par Majalis le **13/05/2026** (same-day après AZCS0002)
+- Tauxapplique : 10,600 (conv. EUR/MAD interne Amine-Badre, inchangée)
+
+**`tauxMarche` PRIV** :
+- AZCS0002 : `null → 10,7214` (EUR/MAD du 13/05/2026 via fawazahmed0)
+- AZCS0007 : `10,7214` (même date de paiement)
+- Backlog AZCS0003-6 : entrées explicites avec `null` (placeholder pour
+  backfill futur). Le rendu Mes Gains montrera `—` jusqu'à backfill.
+
+**Impact** :
+- Benoit councils 2026 passe de **6 → 7 entrées**
+- AZCS payés 2026 : 5 → **7** (sur 7) — Fév + Avril sont les nouveaux paid
+- HT total payé : 30 625 € → **40 937,50 €** (+5000 + 5312,50)
+- Net dû Benoit (90%) augmente, virements Amine→Badre inchangés (250k DH)
+
+Bump : v7.9 → v7.10 (2026-05-14)
+
+---
+
 ## `v7.9` — 2026-05-12
 
 ### Données FX P2P — import export Binance C2C
