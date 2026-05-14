@@ -243,14 +243,18 @@ const PRIV_DATA = {
   benoit2026: {
     tauxApplique: 10.700,
     commissionRate: 0.10,
+    // Convention : pour Badre, tauxMarche par défaut = 10,6 (= taux deal
+    // Amine-Badre, identique à tauxApplique → 0 gain FX sur ces lignes).
+    // On ne met un autre tauxMarche QUE quand un cours marché réel est
+    // disponible pour la date de paiement (ex: AZCS0001 / 0002 / 0007).
     councilsTauxMarche: [
-      { mois: "Janvier 2026",        tauxMarche: 10.836  }, // index 0 → AZCS0001
-      { mois: "Février 2026",        tauxMarche: 10.7214 }, // index 1 → AZCS0002 (payé 13/05/2026, EUR/MAD fawazahmed0)
-      { mois: "Octobre 2025 backlog",  tauxMarche: null    }, // index 2 → AZCS0003 (paid 27/03, à backfiller)
-      { mois: "Novembre 2025 backlog", tauxMarche: null    }, // index 3 → AZCS0004
-      { mois: "Décembre 2025 backlog", tauxMarche: null    }, // index 4 → AZCS0005
-      { mois: "Mars 2026",            tauxMarche: null    }, // index 5 → AZCS0006 (paid 27/03, à backfiller)
-      { mois: "Avril 2026",           tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
+      { mois: "Janvier 2026",          tauxMarche: 10.836  }, // index 0 → AZCS0001 (paid 11/02, taux marché réel)
+      { mois: "Février 2026",          tauxMarche: 10.7214 }, // index 1 → AZCS0002 (paid 13/05/2026, EUR/MAD fawazahmed0)
+      { mois: "Octobre 2025 backlog",  tauxMarche: 10.6    }, // index 2 → AZCS0003 (paid 27/03, default 10.6)
+      { mois: "Novembre 2025 backlog", tauxMarche: 10.6    }, // index 3 → AZCS0004
+      { mois: "Décembre 2025 backlog", tauxMarche: 10.6    }, // index 4 → AZCS0005
+      { mois: "Mars 2026",             tauxMarche: 10.6    }, // index 5 → AZCS0006 (paid 27/03, default 10.6)
+      { mois: "Avril 2026",            tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
     ],
   },
   fxP2P: {

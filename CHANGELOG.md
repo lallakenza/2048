@@ -9,6 +9,29 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.11` — 2026-05-14
+
+### Backfill — taux marché par défaut pour Badre
+Les 4 placeholders `null` dans `PRIV_DATA.benoit2026.councilsTauxMarche`
+(AZCS0003-6, backlog 2025 paid en mars 2026) sont remplis avec **10,6**
+— le taux deal Amine-Badre par défaut.
+
+Conséquence : pas de gain FX comptabilisé sur ces 4 transactions (tauxMarche
+== tauxApplique → diff = 0). Si un cours marché réel devient disponible
+pour ces dates, il pourra remplacer la valeur 10,6.
+
+Convention documentée en commentaire dans `encrypt.js` :
+> Pour Badre, tauxMarche par défaut = 10,6 (= taux deal Amine-Badre,
+> identique à tauxApplique → 0 gain FX sur ces lignes). On ne met un
+> autre tauxMarche QUE quand un cours marché réel est disponible.
+
+Pour Azarkan (`augustin2026.tauxMaroc: 10.26`) : rien à changer, déjà
+correct par convention deal annuel (v7.6).
+
+Bump : v7.10 → v7.11
+
+---
+
 ## `v7.10` — 2026-05-14
 
 ### Benoit 2026 — paiement AZCS0002 + nouvelle facture AZCS0007
