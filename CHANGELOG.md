@@ -9,6 +9,35 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.12` — 2026-05-14
+
+### Augustin 2026 — INVRTL015 payé + INVRTL016 facturé
+
+Source : 2 PDFs reçus de RTL/Bairok.
+
+**INVRTL015 (Mars, 20j, 17 000€ HT)** :
+- Précédemment placeholder `ref: "—" / statut: "à facturer"`
+- Confirmée : facturée 01/04/2026, due 01/05/2026
+- **Payée 13/05/2026** (payment advice CLT-UFA 17 000€, doc 1700001468)
+- `statut: "ok", statutText: "Paid 13/05"`
+
+**INVRTL016 (Avril, 15j, 12 750€ HT)** : **NOUVELLE FACTURE**
+- Period: April 2026 invoicing from 16/03 to 10/04
+- 15j × 850€ = 12 750€ HT (TVA 0%)
+- Facturée 04/05/2026, due 04/06/2026 (30 jours)
+- `statut: "w", statutText: "Invoiced"` — paiement attendu sous ~30j
+
+**Récap RTL 2026** :
+- Total facturé : 9350 + 17000 + 17000 + 12750 = **56 100€ HT**
+- Total reçu : 9350 + 17000 + 17000 = **43 350€** (INVRTL013/014/015)
+- En attente : 12 750€ (INVRTL016)
+
+L'insight Factures RTL 2026 mis à jour : "3 payées, 1 en attente".
+
+Bump : v7.11 → v7.12
+
+---
+
 ## `v7.11` — 2026-05-14
 
 ### Backfill — taux marché par défaut pour Badre
