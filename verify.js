@@ -93,11 +93,11 @@ console.log('\n=== AUGUSTIN 2026 ===');
 const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
-check('Total MAD 2026', totalMAD26, 60000);
+check('Total MAD 2026', totalMAD26, 80000); // 02/01 10k + 03/02 10k + 03/03 30k + 02/04 10k + 06/05 20k
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(60000 / 10.26 * 100));
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(80000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
-check('Total RTL facturé 2026', totalRTL26, 26350);
+check('Total RTL facturé 2026', totalRTL26, 56100); // INVRTL013+014+015+016
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
 check('Divers net montant 2026', diversNet26, 5600); // +800 - 1200 + 6000
@@ -107,15 +107,15 @@ check('Divers count 2026 (Oum + Zak + Nezha)', az26.divers.length, 3);
 const azcsAll26 = DATA.benoit2026.councils;
 const azcsPaid26 = azcsAll26.filter(c => c.statut === 'ok');
 const azcsRecuPaid26 = sum(azcsPaid26, 'htEUR');
-check('AZCS paid via Majalis 2026', azcsRecuPaid26, 30625);
+check('AZCS paid via Majalis 2026', azcsRecuPaid26, 46562.5); // AZCS0001..0008 payés
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 26350);
+check('RTL paid 2026', amineRecu26, 43350); // INVRTL013+014+015 payés
 
 // Position Entreprise (paid) = RTL paid - Majalis→AZCS paid + report2025
 const posEntreprise = amineRecu26 - azcsRecuPaid26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, -5958);
+check('Position Entreprise (paid)', posEntreprise, -4895.5); // 43350 RTL − 46562.5 AZCS − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
@@ -195,8 +195,8 @@ check('Report 2025 (computed)', soldeBenoit, 4754);
 
 // Benoit 2026 virements (including 50k MAD payment 02/04/2026)
 const totalPaye26 = sum(ba26.virements, 'dh');
-check('Benoit 2026 virements total', totalPaye26, 100000);
-check('Benoit 2026 virements count', ba26.virements.length, 2);
+check('Benoit 2026 virements total', totalPaye26, 300000); // 6 × 50k DH
+check('Benoit 2026 virements count', ba26.virements.length, 6);
 
 // Summary
 console.log(`\n=============================`);

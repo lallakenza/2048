@@ -207,6 +207,7 @@ const FULL_DATA = {
       { ref: "AZCS0005", mois: "Décembre 2025", jours: 13, htEUR: 8125, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03", backlog: true },
       { ref: "AZCS0006", mois: "Mars 2026", jours: 9, htEUR: 5625, dateFacture: "27/03/2026", dateDue: "11/05/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 27/03" },
       { ref: "AZCS0007", mois: "Avril 2026", jours: 8.5, htEUR: 5312.50, dateFacture: "30/04/2026", dateDue: "14/06/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 13/05" },
+      { ref: "AZCS0008", mois: "Mai 2026", jours: 9, htEUR: 5625, dateFacture: "29/05/2026", dateDue: "13/07/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid" },
     ],
     virements: [
       { date: "09/03/2026", beneficiaire: "Benoit Chevalier", dh: 50000, motif: "Remboursement" },
@@ -293,6 +294,7 @@ const PRIV_DATA = {
       { mois: "Décembre 2025 backlog", tauxMarche: 10.6    }, // index 4 → AZCS0005
       { mois: "Mars 2026",             tauxMarche: 10.6    }, // index 5 → AZCS0006 (paid 27/03, default 10.6)
       { mois: "Avril 2026",            tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
+      { mois: "Mai 2026",              tauxMarche: 10.6    }, // index 7 → AZCS0008 (payé — date non fournie, default 10.6 → 0 gain FX)
     ],
   },
   // Overlay privé Bob (Hamza) — taux marché réels par facture, masqués à Bob
