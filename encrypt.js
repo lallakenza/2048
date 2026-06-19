@@ -145,6 +145,11 @@ const FULL_DATA = {
     // Le marché EUR/MAD est typiquement ~10,5–10,8 en 2026 ; ce ratio reflète
     // un accord interne, pas une conversion FX.
     tauxMaroc: 10.26,
+    // ⚠️ DOUBLE-COMPTE : certains virements bancaires vers « Mohammed Azarkan » sont
+    // en réalité des DISPATCH pour Hamza (Bob), PAS des virements Maroc d'Augustin.
+    // Ils vivent dans bob2026.virements (dispatchFor:'bob'). Exclus connus (→ Hamza) :
+    //   11/06/2026 20 000 + 11/06/2026 10 000 + 12/06/2026 15 000 = 45 000 DH.
+    // NE PAS les ajouter ici. (Les virements Maroc d'Augustin vont à « Jean Augustin ».)
     virementsMaroc: [
       { date: "02/01/2026", beneficiaire: "Jean Augustin", dh: 10000 },
       { date: "03/02/2026", beneficiaire: "Jean Augustin", dh: 10000 },
@@ -246,7 +251,13 @@ const FULL_DATA = {
       { mois: "Versement 1", htEUR: 3600, tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
     ],
     virements: [
-      // À remplir : { date: "JJ/MM/2026", beneficiaire: "...", dh: X, motif: "..." }
+      // Virements dispatchés à Hamza VIA Azarkan : le bénéficiaire bancaire est
+      // « Mohammed Azarkan », mais c'est de l'argent destiné à Hamza. Le flag
+      // dispatchFor:'bob' les marque explicitement → NE JAMAIS les recompter dans
+      // augustin2026.virementsMaroc (même bénéficiaire bancaire = risque de double).
+      { date: "11/06/2026", beneficiaire: "Mohammed Azarkan", dh: 20000, motif: "Dispatch Hamza (via Azarkan)", dispatchFor: "bob" },
+      { date: "11/06/2026", beneficiaire: "Mohammed Azarkan", dh: 10000, motif: "Dispatch Hamza (via Azarkan)", dispatchFor: "bob" },
+      { date: "12/06/2026", beneficiaire: "Mohammed Azarkan", dh: 15000, motif: "Dispatch Hamza (via Azarkan)", dispatchFor: "bob" },
     ],
     notes: [
       "Amine facture Hamza via Bridgevale Consulting (société UK). Flux international HT — pas de TVA (Hamza basé en Belgique, Bridgevale au UK).",
