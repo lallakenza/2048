@@ -156,7 +156,7 @@ const FULL_DATA = {
       { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350,  dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },
       { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "ok", statutText: "Paid 01/04" },
       { ref: "INVRTL015", periode: "Mars",    jours: 20, montant: 17000, dateFacture: "01/04/2026", dateDue: "01/05/2026", statut: "ok", statutText: "Paid 13/05" },
-      { ref: "INVRTL016", periode: "Avril",   jours: 15, montant: 12750, dateFacture: "04/05/2026", dateDue: "04/06/2026", statut: "w",  statutText: "Invoiced" },
+      { ref: "INVRTL016", periode: "Avril",   jours: 15, montant: 12750, dateFacture: "04/05/2026", dateDue: "04/06/2026", statut: "ok", statutText: "Paid 10/06" },
     ],
     divers: [
       { label: "Oumaima → Azarkan (remboursement reçu 2026)", montant: 800 },
@@ -165,7 +165,7 @@ const FULL_DATA = {
     ],
     insights: [
       { type: "neutral", titre: "💸 Flux cash 2026 : 3 transactions Amine ↔ Azarkan", desc: "<strong>Reçu d'Azarkan :</strong> Oumaima +800€ · Zakaria −1 200€ = <strong>−400€ net</strong>.<br><strong>Envoyé à Azarkan :</strong> 6 000€ via Nezha → Hanane (virement perso).<br><strong>Net perso :</strong> +800 − 1 200 + 6 000 = <strong>5 600€</strong>." },
-      { type: "pass", titre: "📄 Factures RTL 2026 : 3 payées, 1 en attente", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, due 04/06/2026 — en attente. <strong>Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
+      { type: "pass", titre: "📄 Factures RTL 2026 : 4 payées (toutes à jour)", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, payée 10/06/2026 (payment advice CLT-UFA 1700001784, 12 750€). <strong>Total RTL 2026 = 56 100€ HT, 100% encaissé. Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
     ],
   },
 

@@ -111,11 +111,11 @@ check('AZCS paid via Majalis 2026', azcsRecuPaid26, 46562.5); // AZCS0001..0008 
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 43350); // INVRTL013+014+015 payés
+check('RTL paid 2026', amineRecu26, 56100); // INVRTL013+014+015+016 payés (016 payée 10/06)
 
 // Position Entreprise (paid) = RTL paid - Majalis→AZCS paid + report2025
 const posEntreprise = amineRecu26 - azcsRecuPaid26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, -4895.5); // 43350 RTL − 46562.5 AZCS − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 7854.5); // 56100 RTL − 46562.5 AZCS − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
