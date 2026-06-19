@@ -65,6 +65,20 @@ function renderAmine() {
   const azOwedPerso = -posNetPerso;
   const azOwedMAD = -posNetMAD;
 
+  // Commission Augustin sur le flux Bob (dispatch 3 %) : Amine encaisse l'argent
+  // de Bob, retient sa commission, puis VERSE à Augustin sa part de 3 %. Amine
+  // doit donc ce montant à Augustin → réduit ce qu'Augustin doit à Amine.
+  // Montants au taux Bob (ligne séparée, PAS soumise au facteur 0.95).
+  const _bobAz = DATA.bob2026;
+  const _bobMRate = _bobAz ? (_bobAz.commissionMohammedRate || 0) : 0;
+  const _bobPaidAz = _bobAz ? (_bobAz.councils || []).filter(c => c.statut === 'ok') : [];
+  const bobCommAugDH = _bobPaidAz.reduce((s, c) => s + Math.round(Math.round(c.htEUR * (c.tauxApplique || 0)) * _bobMRate), 0);
+  const bobCommAugEUR = Math.round(_bobPaidAz.reduce((s, c) => s + c.htEUR * _bobMRate, 0) * 100) / 100;
+  // Position Augustin TOTALE = RTL/AZCS + commission Bob due à Augustin
+  const azOwedProTot   = azOwedPro   - bobCommAugEUR;
+  const azOwedPersoTot = azOwedPerso - bobCommAugEUR;
+  const azOwedMADTot   = azOwedMAD   - bobCommAugDH;
+
   // ============================================================
   // 2. BADRE (Benoit 2026) — uses shared computeBenoitSolde()
   // ============================================================
@@ -132,6 +146,11 @@ function renderAmine() {
     Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).
     <strong>Net Pro = ${fmtSigned(Math.round(posNetPro))} · Perso = Pro × ${PERSO_FACTOR} = ${fmtSigned(Math.round(posNetPerso))} · MAD = Pro × ${az.tauxMaroc} = ${fmtSigned(Math.round(posNetMAD), 'MAD')}</strong>
   </div>`;
+  if (bobCommAugDH > 0) {
+    html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
+      <strong>+ Commission dispatch Bob (3 %) :</strong> Amine reverse à Augustin sa part de la commission Bob → Amine doit <strong>${fmtPlain(Math.round(bobCommAugEUR))} €</strong> / <strong>${fmtPlain(bobCommAugDH)} DH</strong> à Augustin. <strong>Position Augustin totale : ${fmtSigned(Math.round(azOwedPersoTot))} (perso) · ${fmtSigned(Math.round(azOwedMADTot), 'MAD')}.</strong>
+    </div>`;
+  }
   html += `</div>`;
 
   // ---- BADRE SECTION ----
@@ -200,10 +219,9 @@ function renderAmine() {
   // Bob : factures € HT converties en DH (~10.6 comme Badre)
   const tauxBob = 10.6;
   const bobOwedEUR = bobOwedDH / tauxBob;
-  const combinedEUR = azOwedPerso + baOwedEUR + bobOwedEUR;
-  // Combined in MAD: Azarkan MAD + Badre DH + Bob DH (already in DH)
-  const azOwedMADval = -posNetMAD;
-  const combinedMAD = azOwedMADval + baOwedDH + bobOwedDH;
+  const combinedEUR = azOwedPersoTot + baOwedEUR + bobOwedEUR;
+  // Combined in MAD: Augustin (incl. commission Bob) + Badre DH + Bob DH
+  const combinedMAD = azOwedMADTot + baOwedDH + bobOwedDH;
   const combSign = combinedEUR >= 0;
   const combColor = combSign ? 'var(--green)' : 'var(--red)';
   const combLabel = combSign ? 'On me doit au total' : 'Je dois au total';
@@ -213,7 +231,7 @@ function renderAmine() {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;align-items:center">
       <div style="text-align:center">
         <div style="font-size:.72rem;color:var(--muted)">vs Augustin (perso)</div>
-        <div style="font-size:1.1rem;font-weight:700;color:${azColor}">${fmtSigned(Math.round(azOwedPerso))}</div>
+        <div style="font-size:1.1rem;font-weight:700;color:${azColor}">${fmtSigned(Math.round(azOwedPersoTot))}</div>
       </div>
       <div style="text-align:center">
         <div style="font-size:.72rem;color:var(--muted)">vs Benoit (DH)</div>
@@ -244,11 +262,23 @@ function renderAmine() {
   try {
     localStorage.setItem('facturation_positions', JSON.stringify({
       updatedAt: new Date().toISOString(),
+      // Schéma "counterparts" (préféré par networth) : 1 entrée par tiers,
+      // signedMAD = position en MAD natif (+ = me doit / créance, − = je dois / dette).
+      // Augustin inclut sa commission dispatch Bob. networth somme les 3
+      // automatiquement (créances/dettes + NW via combined.mad).
+      counterparts: {
+        augustin: { label: 'Augustin', signedMAD: Math.round(azOwedMADTot) },
+        benoit:   { label: 'Benoit',   signedMAD: Math.round(-soldeBadre) },
+        bob:      { label: 'Bob',      signedMAD: Math.round(bobOwedDH) },
+      },
       augustin: {
-        proEUR: Math.round(-posNetPro),         // positive = Augustin me doit (EUR PRO)
-        persoEUR: Math.round(-posNetPerso),      // positive = Augustin me doit (EUR PERSO/cash)
-        mad: Math.round(-posNetMAD),             // positive = Augustin me doit (MAD)
+        // Inclut la commission dispatch Bob (Amine doit sa part 3% à Augustin)
+        // en plus de la position RTL/AZCS. Positif = Augustin me doit.
+        proEUR: Math.round(azOwedProTot),
+        persoEUR: Math.round(azOwedPersoTot),
+        mad: Math.round(azOwedMADTot),
         tauxMaroc: az.tauxMaroc,
+        bobCommissionDH: bobCommAugDH,           // part commission Bob reversée à Augustin (info)
       },
       benoit: {
         dh: Math.round(-soldeBadre),             // positive = Benoit me doit, négatif = je lui dois
@@ -259,9 +289,8 @@ function renderAmine() {
         tauxBob: tauxBob,
       },
       combined: {
-        // 'combined' inclut Bob côté affichage facturation. networth NE lit PAS
-        // cette clé (il agrège augustin.mad + benoit.dh) → bob reste hors NW
-        // tant qu'on ne le câble pas explicitement côté networth.
+        // 'combined.mad' = somme des 3 positions (Augustin incl. commission Bob
+        // + Benoit + Bob). networth lit cette clé pour le NW (amineFacturationNet).
         eur: Math.round(combinedEUR),            // net position EUR (perso)
         mad: Math.round(combinedMAD),            // net position MAD
       },

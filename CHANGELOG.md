@@ -9,6 +9,32 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.15` — 2026-06-19
+
+### Bob : fusion colonnes commission + commission Augustin dans sa position + networth somme les 3 tiers
+
+**Onglet Bob** : les 2 colonnes « Comm. Amine 10 % » et « Comm. Augustin 3 % »
+fusionnées en une seule **« Commission 13 % »** (table + réconciliation). La
+réconciliation précise que **c'est Amine qui paie Bob** (Amine encaisse l'argent).
+
+**Commission Augustin sur le flux Bob** : modèle clarifié — Amine encaisse, retient
+sa commission (10 %), **reverse à Augustin sa part (3 %)**, puis paie Bob (87 %).
+La part Augustin est désormais **intégrée à la position Augustin** (dashboard « Ma
+Position ») : ligne « Commission dispatch Bob », Amine doit **+108 € / +1 145 DH**
+à Augustin → réduit ce qu'Augustin doit à Amine (ligne séparée, montants au taux
+Bob, hors facteur 0,95). Augustin n'est plus présenté comme partie dans la
+réconciliation Bob.
+
+**Bridge networth — somme des 3 tiers** : le bridge localStorage émet désormais le
+schéma **`counterparts`** (Augustin incl. commission Bob + Benoit + Bob, chacun en
+`signedMAD`). networth (déjà conçu pour ce schéma) somme automatiquement les 3 dans
+les créances/dettes, et le NW via `combined.mad` (Σ = −123 410 DH). **Aucune
+modification côté networth nécessaire.**
+
+Fichiers : `render-bob.js`, `render-amine.js`, `index.html`. Bump v7.14 → v7.15.
+
+---
+
 ## `v7.14` — 2026-06-19
 
 ### Bob : mot de passe `EPONGE` → `TESLA` + 1er versement Hamza
