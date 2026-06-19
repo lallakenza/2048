@@ -130,9 +130,19 @@ function renderMesGains() {
   const p2pSavingBenoit26 = totalNetBenoit26 * (1 - mkt26 / eff26);
   const p2pSavingBenoit = p2pSavingBenoit25 + p2pSavingBenoit26;
 
+  // ===== 7. BOB (Hamza) — gain Amine = commission 10 % + écart taux (2026) =====
+  // Le 3 % Augustin (dispatch) n'est PAS un gain Amine → exclu du calcul.
+  const bobData = DATA.bob2026;
+  const bobRateA = bobData ? (bobData.commissionAmineRate || 0) : 0;
+  const bobPctA = Math.round(bobRateA * 100);
+  const bobPaid = bobData ? (bobData.councils || []).filter(m => m.statut === 'ok') : [];
+  const commBob26 = bobPaid.reduce((s, m) => s + Math.round(m.htEUR * (m.tauxApplique || 0) * bobRateA), 0);
+  const fxBob26 = bobPaid.filter(m => m.tauxMarche).reduce((s, m) => s + Math.round(m.htEUR * (m.tauxMarche - (m.tauxApplique || 0))), 0);
+  const totalBob = commBob26 + fxBob26;
+
   // ===== YEAR TOTALS =====
   const gains2025 = gainMAD_az25 + commYcarréMAD + commBenoit25 + fxBenoit25 + Math.round(p2pSavingBenoit25);
-  const gains2026 = gainMAD_az26 + commBenoit26 + fxBenoit26 + Math.round(p2pSavingBenoit26);
+  const gains2026 = gainMAD_az26 + commBenoit26 + fxBenoit26 + Math.round(p2pSavingBenoit26) + commBob26 + fxBob26;
   const grandTotal = gains2025 + gains2026;
 
   // ===== YEAR FILTER =====
@@ -187,6 +197,7 @@ function renderMesGains() {
     html += `<tr><td><strong>Commission Benoit ${benoitPct25}%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtV(commBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(commBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalComm, grandTotal)}</td></tr>`;
     html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalFxBenoit, grandTotal)}</td></tr>`;
     html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit, grandTotal)}</td></tr>`;
+    html += `<tr><td><strong>Bob ${bobPctA}% + taux</strong></td><td>Bridgevale · part Amine (hors 3% Augustin)</td><td class="a">—</td><td class="a" style="color:var(--green)">${fmtV(totalBob, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalBob, grandTotal)}</td></tr>`;
     html += `<tr class="tr"><td><strong>SOUS-TOTAL 2025</strong></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2025, gains2025, ' DH')}</td><td></td><td></td></tr>`;
     html += `<tr class="tr"><td><strong>SOUS-TOTAL 2026</strong></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2026, gains2026, ' DH')}</td><td></td></tr>`;
     html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL GAINS</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(grandTotal, grandTotal, ' DH')}</td></tr>`;
@@ -202,6 +213,7 @@ function renderMesGains() {
     html += `<tr><td><strong>Commission Benoit ${benoitPct25}%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? commBenoit25 : commBenoit26, base)}</td></tr>`;
     html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? fxBenoit25 : fxBenoit26, base)}</td></tr>`;
     html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtV(gy===2025 ? p2pSavingBenoit25 : p2pSavingBenoit26, base)}</td></tr>`;
+    if (gy === 2026) html += `<tr><td><strong>Bob ${bobPctA}% + taux</strong></td><td>Bridgevale · part Amine (hors 3% Augustin)</td><td class="a" style="color:var(--green)">${fmtV(totalBob, base)}</td></tr>`;
     html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL ${gy}</strong></td><td></td><td class="a" style="color:var(--green)">${fmtVb(filteredTotal, base, ' DH')}</td></tr>`;
     html += `</tbody></table></div>`;
   }
@@ -247,6 +259,21 @@ function renderMesGains() {
   if (!gy) html += `<tr class="tr"><td><strong>Total</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(sumComm)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(sumFxB, '')}</strong></td></tr>`;
   html += `</tbody></table></div>`;
 
+  // ===== BREAKDOWN BOB (guarded — only once Bob a des factures payées) =====
+  if (bobPaid.length > 0 && (show26 || !gy)) {
+    html += `<div class="s"><div class="st">Détail — Gains Bob (Hamza) · part Amine ${bobPctA}% + écart taux</div>`;
+    html += `<table><thead><tr><th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Commission ${bobPctA}% (DH)</th><th data-sort="num" style="text-align:right">Gain taux (DH)</th></tr></thead><tbody>`;
+    bobPaid.forEach(m => {
+      const dh = Math.round(m.htEUR * (m.tauxApplique || 0));
+      const comm = Math.round(dh * bobRateA);
+      const fx = m.tauxMarche ? Math.round(m.htEUR * (m.tauxMarche - (m.tauxApplique || 0))) : 0;
+      html += `<tr><td>${m.mois || m.date || ''}</td><td class="a">${fmtPlain(m.htEUR)}</td><td class="a">${fmtRate(m.tauxApplique)}</td><td class="a">${m.tauxMarche ? fmtRate(m.tauxMarche) : '—'}</td><td class="a" style="color:var(--green)">${fmtPlain(comm)}</td><td class="a" style="color:var(--green)">${m.tauxMarche ? fmtSigned(fx, '') : '—'}</td></tr>`;
+    });
+    html += `<tr class="tr"><td><strong>Total 2026</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${fmtPlain(commBob26)}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(fxBob26, '')}</strong></td></tr>`;
+    html += `</tbody></table>`;
+    html += `<div class="n">Le 3 % Augustin (dispatch) n'est pas un gain Amine — exclu de ce tableau.</div></div>`;
+  }
+
   // ===== INSIGHTS =====
   html += `<div class="s"><div class="st">Insights${gy ? ' — ' + gy : ''}</div>`;
 
@@ -285,7 +312,8 @@ function renderMesGains() {
   const fComm = gy === 2025 ? commBenoit25 : gy === 2026 ? commBenoit26 : totalComm;
   const fFx = gy === 2025 ? fxBenoit25 : gy === 2026 ? fxBenoit26 : totalFxBenoit;
   const fP2P = gy === 2025 ? p2pSavingBenoit25 : gy === 2026 ? p2pSavingBenoit26 : p2pSavingBenoit;
-  html += `<div class="insight"><div class="t">📊 Répartition ${gy || 'globale'}</div><div class="d">Augustin : <strong>${(fAz/refTotal*100).toFixed(1)}%</strong>${fYsq ? ` · Ycarré 8% : <strong>${(fYsq/refTotal*100).toFixed(1)}%</strong>` : ''} · Commission Benoit : <strong>${(fComm/refTotal*100).toFixed(1)}%</strong> · Écart taux : <strong>${(fFx/refTotal*100).toFixed(1)}%</strong> · P2P Benoit : <strong>${(fP2P/refTotal*100).toFixed(1)}%</strong></div></div>`;
+  const fBob = gy === 2025 ? 0 : totalBob; // Bob = 2026 only
+  html += `<div class="insight"><div class="t">📊 Répartition ${gy || 'globale'}</div><div class="d">Augustin : <strong>${(fAz/refTotal*100).toFixed(1)}%</strong>${fYsq ? ` · Ycarré 8% : <strong>${(fYsq/refTotal*100).toFixed(1)}%</strong>` : ''} · Commission Benoit : <strong>${(fComm/refTotal*100).toFixed(1)}%</strong> · Écart taux : <strong>${(fFx/refTotal*100).toFixed(1)}%</strong> · P2P Benoit : <strong>${(fP2P/refTotal*100).toFixed(1)}%</strong>${fBob ? ` · Bob : <strong>${(fBob/refTotal*100).toFixed(1)}%</strong>` : ''}</div></div>`;
 
   // Monthly average
   const months = gy === 2025 ? 11 : gy === 2026 ? 2 : 13;

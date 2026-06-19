@@ -100,15 +100,40 @@ function computeBenoitSolde() {
   return { report25, netPaid26, totalPaye26, solde, paidCount: paidCouncils26.length };
 }
 
+// ---- SHARED: Bob (Hamza) position calculation ----
+// Single source of truth — called by render-amine.js (dashboard) AND
+// render-bob.js (tab). Two-tier commission (Amine + Augustin), report = 0.
+// Guarded: returns zeros when bob2026 is absent (e.g. COUPA/benoit blob).
+function computeBobSolde() {
+  const b = (typeof DATA !== 'undefined') ? DATA.bob2026 : null;
+  if (!b) return { report: 0, netPaid: 0, totalPaye: 0, solde: 0, paidCount: 0 };
+  const rA = b.commissionAmineRate || 0;
+  const rM = b.commissionMohammedRate || 0;
+  const report = b.report2025 || 0;
+
+  const paid = (b.councils || []).filter(c => c.statut === 'ok');
+  const netPaid = paid.reduce((s, c) => {
+    const dh = Math.round(c.htEUR * (c.tauxApplique || 0));
+    return s + dh - Math.round(dh * rA) - Math.round(dh * rM);
+  }, 0);
+  const totalPaye = sum(b.virements || [], 'dh');
+  const solde = report + netPaid - totalPaye;
+
+  return { report, netPaid, totalPaye, solde, paidCount: paid.length };
+}
+
 // ---- NICKNAME MAPPING (noms réels → nicknames) ----
 // Règle : on n'affiche JAMAIS les vrais noms sur le site, uniquement les nicknames
 const NICK_MAP = {
   'jean augustin':          'Augustin',
   'mohammed azarkan':       'Augustin',
+  'mohammed':               'Augustin',
   'azarkan':                'Augustin',
   'benoit chevalier':       'Benoit',
   'badrecheikh elmouksit':  'Benoit',
   'badre':                  'Benoit',
+  'hamza el azzouzi':       'Bob',
+  'hamza':                  'Bob',
   'amine':                  'Amine',
   'nezha':                  'Nezha',
   'hanane':                 'Hanane',
@@ -120,9 +145,12 @@ const nick = (name) => {
 };
 // Replace ALL real names in a free-text string (labels, descriptions, etc.)
 const NICK_REPLACE = [
-  [/\bAzarkan\b/gi, 'Augustin'], [/\bMohammed Azarkan\b/gi, 'Augustin'],
-  [/\bBadre\b/gi, 'Benoit'], [/\bBadrecheikh\b/gi, 'Benoit'],
+  // Multi-word forms FIRST so bare-name rules don't partially rewrite them.
+  [/\bMohammed Azarkan\b/gi, 'Augustin'], [/\bHamza El Azzouzi\b/gi, 'Bob'],
   [/\bBadrecheikh Elmouksit\b/gi, 'Benoit'],
+  [/\bAzarkan\b/gi, 'Augustin'], [/\bMohammed\b/gi, 'Augustin'],
+  [/\bBadre\b/gi, 'Benoit'], [/\bBadrecheikh\b/gi, 'Benoit'],
+  [/\bHamza\b/gi, 'Bob'],
 ];
 const nickText = (text) => {
   if (!text) return '';

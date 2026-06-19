@@ -221,12 +221,48 @@ const FULL_DATA = {
       "Factures AZCS0003/0004/0005 = backlog 2025 (Oct/Nov/Déc) facturées et payées en mars 2026.",
     ],
   },
+
+  // ==================== BOB 2026 (Hamza El Azzouzi) ====================
+  // Amine facture Hamza via Bridgevale Consulting (société UK). Flux
+  // international HT (Hamza est en Belgique, Bridgevale est UK) → PAS de TVA.
+  // Azarkan (Mohammed = alias "Augustin") récupère les fonds et les dispatche
+  // temporairement à Hamza, en attendant qu'il ait son propre compte.
+  // Commission TOTALE 13% = 10% Amine + 3% Mohammed ("Augustin").
+  //   net Hamza = brut DH − 13%.
+  // Tracking multidevise comme Badre : factures HT en €, converties en DH au
+  // tauxApplique de chaque ligne, payées en DH (virements).
+  // Relation récente → report2025 = 0.
+  bob2026: {
+    title: "Bob 2026 — En cours (facturé via Bridgevale Consulting)",
+    report2025: 0,
+    commissionAmineRate: 0.10,
+    commissionMohammedRate: 0.03,
+    councils: [
+      // À remplir (Amine fournit les données) :
+      // { ref: "BVC0001", mois: "Mois 2026", jours: N, htEUR: X,
+      //   dateFacture: "JJ/MM/2026", dateDue: "JJ/MM/2026",
+      //   tauxApplique: 10.6, statut: "ok"|"w", statutText: "Paid JJ/MM"|"Invoiced" }
+    ],
+    virements: [
+      // À remplir : { date: "JJ/MM/2026", beneficiaire: "...", dh: X, motif: "..." }
+    ],
+    notes: [
+      "Amine facture Hamza via Bridgevale Consulting (société UK). Flux international HT — pas de TVA (Hamza basé en Belgique, Bridgevale au UK).",
+      "Azarkan récupère et dispatche temporairement les fonds à Hamza, en attendant qu'il ait son propre compte.",
+      "Commission totale 13 % : 10 % Amine + 3 % Augustin (dispatch). Net Hamza = brut − 13 %.",
+    ],
+  },
 };
 
 // ---- BENOIT-ONLY data (for COUPA mode) ----
 const BENOIT_DATA = {
   benoit2025: FULL_DATA.benoit2025,
   benoit2026: FULL_DATA.benoit2026,
+};
+
+// ---- BOB-ONLY data (for EPONGE mode — Hamza logs in, sees only his tab) ----
+const BOB_DATA = {
+  bob2026: FULL_DATA.bob2026,
 };
 
 // ---- Private data (BINGA overlay) ----
@@ -257,6 +293,17 @@ const PRIV_DATA = {
       { mois: "Décembre 2025 backlog", tauxMarche: 10.6    }, // index 4 → AZCS0005
       { mois: "Mars 2026",             tauxMarche: 10.6    }, // index 5 → AZCS0006 (paid 27/03, default 10.6)
       { mois: "Avril 2026",            tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
+    ],
+  },
+  // Overlay privé Bob (Hamza) — taux marché réels par facture, masqués à Bob
+  // (visibles seulement côté Amine/BINGA). councilsTauxMarche est aligné par
+  // index sur bob2026.councils, exactement comme pour Benoit. Vide pour
+  // l'instant : à remplir au fil des factures avec le cours EUR/MAD réel.
+  bob2026: {
+    commissionAmineRate: 0.10,
+    commissionMohammedRate: 0.03,
+    councilsTauxMarche: [
+      // { mois: "Mois 2026", tauxMarche: 10.7xxx }, // index N → councils[N]
     ],
   },
   fxP2P: {
@@ -493,7 +540,11 @@ async function main() {
   const benoitB64 = encryptData(BENOIT_DATA, 'COUPA');
   console.log(`BENOIT (COUPA): ${JSON.stringify(BENOIT_DATA).length} bytes → ${benoitB64.length} base64 chars`);
 
-  // 3) Private overlay → BINGA
+  // 3) Bob-only → EPONGE (Hamza logs in, sees only his own tab)
+  const bobB64 = encryptData(BOB_DATA, 'EPONGE');
+  console.log(`BOB (EPONGE): ${JSON.stringify(BOB_DATA).length} bytes → ${bobB64.length} base64 chars`);
+
+  // 4) Private overlay → BINGA
   const privB64 = encryptData(PRIV_DATA, 'BINGA');
   console.log(`PRIV (BINGA): ${JSON.stringify(PRIV_DATA).length} bytes → ${privB64.length} base64 chars`);
 
@@ -502,6 +553,7 @@ async function main() {
 // Encrypted main data (AES-256-GCM, PBKDF2, password uppercased)
 const ENCRYPTED_FULL = "${fullB64}";
 const ENCRYPTED_BENOIT = "${benoitB64}";
+const ENCRYPTED_BOB = "${bobB64}";
 `;
   fs.writeFileSync('data-enc.js', encOutput);
   console.log('\n→ Written to data-enc.js');

@@ -3,10 +3,15 @@
 // ============================================================
 
 // ---- TAB CONFIGURATION (single source of truth) ----
+// access: 'full' → visible en mode full (TIGRE/BINGA). 'priv' → BINGA only.
+// soloMode: si présent, le tab est AUSSI visible quand ACCESS_MODE === soloMode
+//   (porte dédiée d'un tiers). Garantit l'isolement : COUPA (benoit) ne voit
+//   que Benoit, EPONGE (bob) ne voit que Bob — jamais les deux.
 const TAB_CONFIG = [
   { id: 'amine',    label: 'Ma Position', access: 'full' },
   { id: 'augustin', label: 'Augustin', access: 'full' },
-  { id: 'benoit',   label: 'Benoit',   access: 'all' },
+  { id: 'benoit',   label: 'Benoit',   access: 'full', soloMode: 'benoit' },
+  { id: 'bob',      label: 'Bob',      access: 'full', soloMode: 'bob' },
   { id: 'radar',    label: 'Radar USDT', access: 'priv' },
   { id: 'fxp2p',    label: 'FX P2P',   access: 'priv' },
   { id: 'gains',    label: 'Mes Gains', access: 'priv' },
@@ -30,6 +35,9 @@ function renderPanel(id) {
       el.innerHTML = y === 0 ? renderBenoitAll() : y === 2025 ? renderBenoit2025() : renderBenoit2026();
       break;
     }
+    case 'bob':
+      el.innerHTML = renderBob();
+      break;
     case 'radar':
       el.innerHTML = renderRadar();
       break;
@@ -49,9 +57,12 @@ function isTabVisible(t) {
   if (window.RADAR_ONLY) return t.id === 'radar';
   const mode = window.ACCESS_MODE;
   const priv = window.PRIV;
-  return t.access === 'all' ||
-    (t.access === 'full' && mode === 'full') ||
-    (t.access === 'priv' && priv);
+  // Priv tabs (Radar / FX / Gains) need BINGA.
+  if (t.access === 'priv') return !!priv;
+  // Full mode (TIGRE / BINGA) sees every 'full' tab — incl. counterparty tabs.
+  if (mode === 'full') return t.access === 'full';
+  // Counterparty solo modes (COUPA → benoit, EPONGE → bob) see ONLY their tab.
+  return !!(t.soloMode && mode === t.soloMode);
 }
 
 // ---- Render all visible panels (skip hidden ones to avoid missing-data crashes) ----

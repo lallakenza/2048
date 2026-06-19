@@ -9,6 +9,51 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.13` — 2026-06-19
+
+### Nouveau tiers : Bob (Hamza El Azzouzi) — onglet + porte dédiée
+
+Introduction d'un 3ème tiers à côté d'Augustin (Azarkan) et Benoit (Badre).
+Alias **Bob** (= Hamza El Azzouzi), suivant la convention d'obfuscation : les
+vrais noms n'apparaissent jamais en clair (id `bob`, clé `bob2026`,
+`render-bob.js`) ; `nick()`/`nickText()` traduisent à l'affichage.
+
+**Modèle comptable (`bob2026`, 2026 uniquement, en-cours)** :
+- Amine facture Hamza via **Bridgevale Consulting** (société UK) → flux
+  international **HT, pas de TVA** (Hamza en BE, Bridgevale au UK).
+- **Azarkan (Augustin)** récupère et dispatche temporairement les fonds à
+  Hamza (en attendant qu'il ait son propre compte).
+- **Commission 13 % = 10 % Amine + 3 % Augustin** (dispatch). Net Hamza = brut
+  − 13 %. Le 3 % Augustin n'est PAS un gain Amine (exclu de "Mes Gains").
+- Tracking multidevise comme Badre : factures HT en €, converties en DH au
+  `tauxApplique` de chaque ligne, payées en DH. `report2025 = 0`.
+- Données initiales vides — scaffold prêt à recevoir Councils/virements.
+
+**Accès & isolement (refactor visibilité)** :
+- Nouvelle **porte `EPONGE`** → blob `ENCRYPTED_BOB` (chiffré AES-256-GCM),
+  mode `bob` : Hamza ne voit QUE son onglet.
+- `isTabVisible` refactoré avec `soloMode` : `COUPA`→Benoit seul,
+  `EPONGE`→Bob seul (plus de fuite croisée entre tiers). Vérifié : EPONGE ne
+  décrypte pas Benoit, COUPA ne décrypte pas Bob.
+- `TIGRE`/`BINGA` (Amine) voient Bob avec les autres. PRIV (`BINGA`) injecte
+  les taux marché Bob (`bob2026.councilsTauxMarche`) → gain FX, masqué à Bob.
+
+**Intégrations** :
+- Dashboard "Ma Position" : section Bob + colonne "vs Bob" (grille 5 colonnes)
+  + Bob inclus dans le total combiné EUR/MAD affiché.
+- "Mes Gains" : ligne Bob (commission 10 % Amine + écart taux) dans le récap
+  2026 ; détail par facture quand des données existent.
+- Bridge localStorage : nouvelle clé `bob` (additive). **networth inchangé**
+  (il agrège `augustin.mad` + `benoit.dh`, ne lit pas `combined`) → Bob reste
+  hors NW tant qu'on ne le câble pas explicitement côté networth.
+
+Fichiers : `encrypt.js`, `render-bob.js` (nouveau), `render-helpers.js`,
+`render-main.js`, `render-amine.js`, `render-gains.js`, `index.html`.
+
+Bump : v7.12 → v7.13
+
+---
+
 ## `v7.12` — 2026-05-14
 
 ### Augustin 2026 — INVRTL015 payé + INVRTL016 facturé

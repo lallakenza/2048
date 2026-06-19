@@ -812,8 +812,8 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v7.12';
-  window.APP_VERSION_DATE = '2026-05-14';
+  window.APP_VERSION = 'v7.13';
+  window.APP_VERSION_DATE = '2026-06-19';
 </script>
 
 <!-- Scripts: dynamic loader with auto cache-busting (no manual ?v= needed) -->
@@ -823,7 +823,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
   var scripts = [
     'game-2048.js',
     'data-enc.js', 'data-priv.enc.js', 'data-history.enc.js', 'render-helpers.js',
-    'render-amine.js', 'render-augustin.js', 'render-benoit.js',
+    'render-amine.js', 'render-augustin.js', 'render-benoit.js', 'render-bob.js',
     'render-radar.js', 'render-fxp2p.js', 'render-gains.js', 'render-main.js'
   ];
   scripts.forEach(function(src) {
@@ -1022,6 +1022,10 @@ window.DATA = {};
       blob = ENCRYPTED_FULL; mode = 'full';
     } else if (upper === 'COUPA') {
       blob = ENCRYPTED_BENOIT; mode = 'benoit';
+    } else if (upper === 'EPONGE') {
+      // Porte dédiée Bob (Hamza) : décrypte le blob bob-only, UI restreinte
+      // au seul tab Bob (cf. soloMode dans render-main.js).
+      blob = ENCRYPTED_BOB; mode = 'bob';
     } else if (upper === 'BINGA') {
       blob = ENCRYPTED_FULL; mode = 'full'; isBinga = true;
     } else if (upper === 'BINANCE') {
@@ -1082,8 +1086,8 @@ window.DATA = {};
         if (isBinga && !radarOnly) document.body.classList.add('dark');
         siteWrap.classList.add('visible');
 
-        if (mode === 'benoit' || radarOnly) {
-          // En vue Benoit ou Radar-only, on cache la "Réf. dossier"
+        if (mode === 'benoit' || mode === 'bob' || radarOnly) {
+          // En vue Benoit, Bob ou Radar-only, on cache la "Réf. dossier"
           // (porte BINGA) — pas pertinent pour ces audiences.
           const drefEl = document.getElementById('dref');
           if (drefEl && drefEl.parentElement) {
@@ -1224,6 +1228,17 @@ function injectPrivData(priv) {
       DATA.benoit2026.councils[i].tauxMarche = t.tauxMarche;
     }
   });
+
+  // Inject Bob 2026 private fields (taux marché FX par facture, masqués à Bob).
+  // Guardé : priv.bob2026 absent des anciens blobs, DATA.bob2026 absent en
+  // mode benoit/radar-only. Aligné par index sur councils, comme Benoit.
+  if (priv.bob2026 && DATA.bob2026) {
+    if (priv.bob2026.commissionAmineRate != null) DATA.bob2026.commissionAmineRate = priv.bob2026.commissionAmineRate;
+    if (priv.bob2026.commissionMohammedRate != null) DATA.bob2026.commissionMohammedRate = priv.bob2026.commissionMohammedRate;
+    (priv.bob2026.councilsTauxMarche || []).forEach((t, i) => {
+      if (DATA.bob2026.councils[i]) DATA.bob2026.councils[i].tauxMarche = t.tauxMarche;
+    });
+  }
 
   // Inject full FX P2P data
   DATA.fxP2P = priv.fxP2P;
