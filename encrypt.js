@@ -239,10 +239,10 @@ const FULL_DATA = {
     commissionAmineRate: 0.10,
     commissionMohammedRate: 0.03,
     councils: [
-      // À remplir (Amine fournit les données) :
-      // { ref: "BVC0001", mois: "Mois 2026", jours: N, htEUR: X,
-      //   dateFacture: "JJ/MM/2026", dateDue: "JJ/MM/2026",
-      //   tauxApplique: 10.6, statut: "ok"|"w", statutText: "Paid JJ/MM"|"Invoiced" }
+      // ZOR Consulting SRL (société de Hamza) → Bridgevale. Versement 1 = 3 600 € HT,
+      // déjà payé (reçu sur le compte Bridgevale via Wise). Période exacte / réf facture
+      // Bridgevale / date de paiement : à préciser (non fournies). tauxApplique 10.6 (comme Badre).
+      { mois: "Versement 1", htEUR: 3600, tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
     ],
     virements: [
       // À remplir : { date: "JJ/MM/2026", beneficiaire: "...", dh: X, motif: "..." }
@@ -261,7 +261,7 @@ const BENOIT_DATA = {
   benoit2026: FULL_DATA.benoit2026,
 };
 
-// ---- BOB-ONLY data (for EPONGE mode — Hamza logs in, sees only his tab) ----
+// ---- BOB-ONLY data (for TESLA mode — Hamza logs in, sees only his tab) ----
 const BOB_DATA = {
   bob2026: FULL_DATA.bob2026,
 };
@@ -305,7 +305,7 @@ const PRIV_DATA = {
     commissionAmineRate: 0.10,
     commissionMohammedRate: 0.03,
     councilsTauxMarche: [
-      // { mois: "Mois 2026", tauxMarche: 10.7xxx }, // index N → councils[N]
+      { mois: "Versement 1", tauxMarche: 10.6 }, // index 0 → councils[0] (default 10.6 → 0 gain FX, pas de cours réel daté)
     ],
   },
   fxP2P: {
@@ -542,9 +542,9 @@ async function main() {
   const benoitB64 = encryptData(BENOIT_DATA, 'COUPA');
   console.log(`BENOIT (COUPA): ${JSON.stringify(BENOIT_DATA).length} bytes → ${benoitB64.length} base64 chars`);
 
-  // 3) Bob-only → EPONGE (Hamza logs in, sees only his own tab)
-  const bobB64 = encryptData(BOB_DATA, 'EPONGE');
-  console.log(`BOB (EPONGE): ${JSON.stringify(BOB_DATA).length} bytes → ${bobB64.length} base64 chars`);
+  // 3) Bob-only → TESLA (Hamza logs in, sees only his own tab)
+  const bobB64 = encryptData(BOB_DATA, 'TESLA');
+  console.log(`BOB (TESLA): ${JSON.stringify(BOB_DATA).length} bytes → ${bobB64.length} base64 chars`);
 
   // 4) Private overlay → BINGA
   const privB64 = encryptData(PRIV_DATA, 'BINGA');

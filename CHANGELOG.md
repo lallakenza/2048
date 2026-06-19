@@ -9,6 +9,31 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.14` — 2026-06-19
+
+### Bob : mot de passe `EPONGE` → `TESLA` + 1er versement Hamza
+
+**Mot de passe** : la porte dédiée de Bob passe de `EPONGE` à `TESLA` (demande
+d'Amine). Changé dans `index.html` (`tryAccess`) ET `encrypt.js` (chiffrement du
+blob `ENCRYPTED_BOB`) — les deux doivent rester synchrones. `EPONGE` ne décrypte
+plus rien (vérifié). Bump v7.13 → v7.14 (changement de code dans l'inline script).
+
+**1er versement Bob (data)** : ZOR Consulting SRL (société de Hamza) a payé
+**3 600 € HT** à Bridgevale (reçu via Wise). Enregistré comme council payé dans
+`bob2026` :
+- HT 3 600 € × taux 10,6 = **38 160 DH** brut.
+- Commission 13 % : 3 816 DH (Amine 10 %) + 1 145 DH (Augustin 3 %).
+- **Net Bob = 33 199 DH** → Amine doit dispatcher ce montant à Hamza (via Azarkan).
+- Solde Bob 2026 : **+33 199 DH** (Amine doit Bob). Visible dashboard + Mes Gains
+  (part Amine 3 816 DH).
+- **À préciser** (non fournis) : période exacte de la prestation, réf facture
+  Bridgevale, date de paiement. Libellé provisoire « Versement 1 ». tauxMarche =
+  10,6 par défaut (0 gain FX tant qu'aucun cours réel daté n'est disponible).
+
+Bump : v7.13 → v7.14
+
+---
+
 ## `v7.13` — 2026-06-19
 
 ### Nouveau tiers : Bob (Hamza El Azzouzi) — onglet + porte dédiée
