@@ -446,6 +446,75 @@ body.theme-stitch .stitch-face { display: block; }
 }
 @media(max-width:480px) { .stitch-face img { width: 108px; max-height: 145px; } }
 
+/* ==================================================== */
+/* HAKIMI THEME — couleurs de l'équipe du Maroc (rouge/vert/or) */
+/* ==================================================== */
+body.game-mode.theme-hakimi {
+  --g-bg:        #6d0f16;   /* champ rouge du drapeau */
+  --g-text:      #fff3e6;
+  --g-text-soft: #f3c9a8;
+  --g-grid-bg:   #4e0b11;   /* board + score boxes (texte blanc) */
+  --g-cell-bg:   rgba(255, 243, 230, 0.08);
+  --g-btn:       #006233;   /* vert Maroc */
+  --g-btn-hover: #00773f;
+  --g-input-bg:  #5e0d13;
+  --g-input-bd:  #c1272d;
+  --g-error:     #f4c542;   /* or (l'étoile) */
+}
+/* Fond — champ rouge avec halo vert central (l'étoile du drapeau) */
+body.game-mode.theme-hakimi {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(0, 122, 61, 0.30), transparent 46%),
+    radial-gradient(circle at 14% 88%, rgba(0, 98, 51, 0.20), transparent 42%),
+    linear-gradient(180deg, #7d121a 0%, #5e0d13 100%);
+}
+/* Tuiles Maroc — sable → rouge → vert → étoile dorée */
+body.theme-hakimi .g-v2    { background:#f3e6cf; color:#5e0d13; }
+body.theme-hakimi .g-v4    { background:#ecd2a6; color:#5e0d13; }
+body.theme-hakimi .g-v8    { background:#e0897c; color:#fff3e6; }
+body.theme-hakimi .g-v16   { background:#d35a4e; color:#fff3e6; }
+body.theme-hakimi .g-v32   { background:#c1272d; color:#fff3e6; }   /* rouge Maroc */
+body.theme-hakimi .g-v64   { background:#9e1b22; color:#fff3e6; }
+body.theme-hakimi .g-v128  { background:#1f9d57; color:#fff3e6; box-shadow:0 0 24px 6px rgba(0,122,61,.34); }
+body.theme-hakimi .g-v256  { background:#118a47; color:#fff3e6; box-shadow:0 0 24px 6px rgba(0,122,61,.42); }
+body.theme-hakimi .g-v512  { background:#006233; color:#fff3e6; box-shadow:0 0 26px 7px rgba(0,98,51,.48); }  /* vert Maroc */
+body.theme-hakimi .g-v1024 { background:#00502a; color:#fff3e6; box-shadow:0 0 28px 8px rgba(0,80,42,.52); }
+body.theme-hakimi .g-v2048 { background:#e3b53e; color:#5e0d13; box-shadow:0 0 34px 10px rgba(227,181,62,.60); }  /* étoile dorée */
+body.theme-hakimi .g-v4096 { background:#1a1410; color:#fff3e6; }
+body.theme-hakimi .g-v8192 { background:#0d0a08; color:#fff3e6; }
+
+/* Overlay message — vert (win) vs rouge (lose) */
+body.theme-hakimi .g-message       { background: rgba(94, 13, 19, .78); color: #fff3e6; }
+body.theme-hakimi .g-message.g-win { background: rgba(0, 98, 51, .82); color: #fff3e6; }
+body.theme-hakimi .g-message.g-lose{ background: rgba(94, 13, 19, .86); color: #fff3e6; }
+
+/* Switcher en thème Hakimi */
+body.theme-hakimi .theme-switch { background: rgba(255,255,255,.14); border-color: rgba(255,243,230,.25); }
+body.theme-hakimi .theme-switch .theme-opt.active { background: linear-gradient(135deg, #c1272d, #006233); }
+
+/* Badge "Lions de l'Atlas" — visible seulement en thème Hakimi */
+.hakimi-mascot { display: none; }
+body.theme-hakimi .hakimi-mascot {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+  color: #f4c542;
+  padding: 3px 10px;
+  background: rgba(0, 98, 51, .30);
+  border: 1px solid rgba(244, 197, 66, .40);
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+/* Étoile verte (pentagramme du drapeau) au-dessus du titre — Hakimi only */
+.hakimi-face { display: none; text-align: center; margin: 0 0 6px; line-height: 0; }
+body.theme-hakimi .hakimi-face { display: block; }
+.hakimi-star {
+  display: inline-block; font-size: 96px; line-height: 1; color: #0f7a43;
+  text-shadow: 0 0 24px rgba(0,122,61,.70), 0 0 50px rgba(193,39,45,.40);
+  animation: stitchBob 3.6s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
+@media(max-width:480px) { .hakimi-star { font-size: 72px; } }
+
 /* Win/Lose overlay over the board */
 .g-message {
   position: absolute;
@@ -714,6 +783,10 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
     <img src="assets/stitch.png" alt="" draggable="false" />
   </div>
 
+  <!-- Hakimi (Maroc) — badge + étoile verte du drapeau, visibles seulement en thème Hakimi -->
+  <div class="hakimi-mascot">🇲🇦 Lions de l'Atlas</div>
+  <div class="hakimi-face" aria-hidden="true" title="Dima Maghrib"><span class="hakimi-star">★</span></div>
+
   <!-- Title bar — always visible -->
   <header class="cover-title">
     <h1>2048</h1>
@@ -728,6 +801,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
     <div class="theme-switch" role="tablist" aria-label="Choix du thème">
       <button type="button" class="theme-opt" data-theme="classic" role="tab">🟫 Classique</button>
       <button type="button" class="theme-opt" data-theme="stitch" role="tab">👾 Stitch</button>
+      <button type="button" class="theme-opt" data-theme="hakimi" role="tab">🇲🇦 Hakimi</button>
     </div>
   </div>
 
@@ -812,7 +886,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v7.17';
+  window.APP_VERSION = 'v7.18';
   window.APP_VERSION_DATE = '2026-06-19';
 </script>
 
@@ -873,20 +947,22 @@ window.PRIV = false;
 window.DATA = {};
 
 // ============================================
-// 2048 COVER — THEME SWITCHER (classic / stitch)
+// 2048 COVER — THEME SWITCHER (classic / stitch / hakimi)
 // ============================================
-// Stitch = bleu/rose/violet palette inspirée du perso Disney.
-// Persistance via localStorage['fx_2048_theme'] ('classic'|'stitch').
-// Appliqué en ajoutant/retirant body.theme-stitch. Tous les CSS
+// Stitch = bleu/rose/violet (perso Disney). Hakimi = rouge/vert/or (Maroc).
+// Persistance via localStorage['fx_2048_theme'] ('classic'|'stitch'|'hakimi').
+// Appliqué via body.theme-stitch / body.theme-hakimi. Tous les CSS
 // variables (--g-*) + les tile backgrounds .g-v2..g-v8192 sont
-// overridés via ce sélecteur dans le <style> en haut de la page.
+// overridés via ces sélecteurs dans le <style> en haut de la page.
 (function(){
   var STORE_KEY = 'fx_2048_theme';
+  var THEMES = ['classic', 'stitch', 'hakimi'];
   function applyTheme(theme) {
     var b = document.body;
+    b.classList.remove('theme-stitch', 'theme-hakimi');
     if (theme === 'stitch') b.classList.add('theme-stitch');
-    else b.classList.remove('theme-stitch');
-    // Sync active state on both buttons
+    else if (theme === 'hakimi') b.classList.add('theme-hakimi');
+    // Sync active state across all theme buttons
     var btns = document.querySelectorAll('.theme-opt');
     btns.forEach(function(btn) {
       btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
@@ -896,7 +972,7 @@ window.DATA = {};
   // Read saved preference (defaults to classic)
   var saved = null;
   try { saved = localStorage.getItem(STORE_KEY); } catch(e) {}
-  applyTheme(saved === 'stitch' ? 'stitch' : 'classic');
+  applyTheme(THEMES.indexOf(saved) >= 0 ? saved : 'classic');
 
   // Wire up the toggle buttons
   document.querySelectorAll('.theme-opt').forEach(function(btn) {

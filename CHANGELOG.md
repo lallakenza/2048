@@ -9,6 +9,25 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.18` — 2026-06-19
+
+### 🇲🇦 3ème thème 2048 : « Hakimi » (couleurs de l'équipe du Maroc)
+
+Ajout d'un 3ème thème au jeu 2048 (façade), à côté de Classique et Stitch :
+**Hakimi** — rouge/vert/or aux couleurs des Lions de l'Atlas.
+- Fond champ rouge (#6d0f16) + halo vert central (l'étoile du drapeau), boutons
+  verts (#006233), tuiles sable → rouge (#c1272d) → vert (#006233) → étoile dorée
+  pour la 2048. Étoile verte (pentagramme) + badge « 🇲🇦 Lions de l'Atlas » au-dessus
+  du titre, visibles seulement dans ce thème.
+- `applyTheme()` généralisé (3 thèmes), persistance `localStorage['fx_2048_theme']`
+  = `classic|stitch|hakimi`. Switcher à 3 boutons (tient sur une ligne à 375px).
+- Aucune image (pas de photo joueur — droits) : l'étoile est un caractère ★ stylé.
+  Vérifié : lisibilité OK, Classique/Stitch intacts, 0 erreur console.
+
+Bump v7.17 → v7.18.
+
+---
+
 ## `v7.17` — 2026-06-19
 
 ### 🔒 SÉCURITÉ : zéro vrai nom dans les fichiers servis (NICK_MAP → blob chiffré)
