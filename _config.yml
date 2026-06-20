@@ -1,0 +1,37 @@
+# ============================================================
+# GitHub Pages (Jekyll) — SECURITY exclude list
+#
+# Pages serves from main:/ (root). Without this, Jekyll copies EVERY file to
+# the public site → the build sources and docs were all fetchable, bypassing
+# the AES encryption entirely:
+#   • encrypt.js  = the ENTIRE cleartext database (FULL_DATA + PRIV_DATA:
+#                   every amount, every real name, every transaction)
+#   • verify.js   = decrypt method + hardcoded real amounts
+#   • *.md        = real names + amounts in prose (CHANGELOG, ARCHITECTURE…)
+#   • scripts/    = poll-p2p.js (GitHub Actions cron, Node — never the browser)
+#   • render.js   = legacy monolith, NOT loaded by index.html (dead)
+#
+# These files stay in the repo (version-controlled) but are NOT published.
+#
+# ⚠️ NEVER add a `.nojekyll` file: it disables Jekyll, which would copy every
+#    file raw again and re-expose encrypt.js. Keep Jekyll ON for this exclude.
+#
+# Runtime files that MUST keep serving (do not add here):
+#   index.html · game-2048.js · data-enc.js · data-priv.enc.js ·
+#   data-history.enc.js · render-helpers.js · render-amine.js ·
+#   render-augustin.js · render-benoit.js · render-bob.js · render-radar.js ·
+#   render-fxp2p.js · render-gains.js · render-main.js · assets/
+# ============================================================
+exclude:
+  - encrypt.js
+  - verify.js
+  - render.js
+  - scripts/
+  - content_escaped.json
+  - "*.md"
+  - Architecture.md
+  - BUG_TRACKER.md
+  - CHANGELOG.md
+  - DATA_MODEL.md
+  - README.md
+  - UPDATE_GUIDE.md

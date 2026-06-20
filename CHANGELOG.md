@@ -9,6 +9,36 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.16` — 2026-06-19
+
+### 🔒 SÉCURITÉ : encrypt.js (base en clair) n'est plus servi publiquement + alias Molenbeck
+
+**Faille corrigée** : GitHub Pages servait depuis `main:/` SANS exclusion → tous
+les fichiers source étaient téléchargeables publiquement, dont **`encrypt.js`** qui
+contient **toute la base en clair** (`FULL_DATA` + `PRIV_DATA` : montants, vrais
+noms, transactions). Le chiffrement AES (TIGRE/COUPA/BINGA/TESLA) était donc
+**entièrement contournable** par `lallakenza.github.io/2048/encrypt.js`. Idem pour
+`verify.js` et les `*.md` (noms + montants en clair).
+
+**Fix** : ajout d'un `_config.yml` (Jekyll) qui exclut du build Pages : `encrypt.js`,
+`verify.js`, `render.js` (mort), `scripts/`, `content_escaped.json`, tous les `*.md`.
+Fichiers gardés en version (repo) mais **plus publiés**. Vérifié post-déploiement :
+`encrypt.js` → 404, fichiers runtime → 200, site fonctionnel. ⚠️ Ne JAMAIS ajouter
+de `.nojekyll` (réexposerait tout).
+
+**Reste à traiter (suivi)** : `render-helpers.js` (servi, runtime) expose encore le
+`NICK_MAP` (mapping vrais noms ↔ alias). Le masquer nécessite de déplacer la map
+dans le blob chiffré — chantier séparé.
+
+**Anonymat Molenbeck** : la société de Hamza (réelle = ZOR Consulting) est désormais
+nommée **« Molenbeck »** partout (alias, comme Augustin/Benoit/Bob pour les personnes).
+ZOR n'apparaît dans aucun fichier servi ; le mapping ZOR↔Molenbeck reste local
+(mémoire), jamais dans `NICK_MAP` public.
+
+Bump v7.15 → v7.16.
+
+---
+
 ## `v7.15` — 2026-06-19
 
 ### Bob : fusion colonnes commission + commission Augustin dans sa position + networth somme les 3 tiers
@@ -44,7 +74,7 @@ d'Amine). Changé dans `index.html` (`tryAccess`) ET `encrypt.js` (chiffrement d
 blob `ENCRYPTED_BOB`) — les deux doivent rester synchrones. `EPONGE` ne décrypte
 plus rien (vérifié). Bump v7.13 → v7.14 (changement de code dans l'inline script).
 
-**1er versement Bob (data)** : ZOR Consulting SRL (société de Hamza) a payé
+**1er versement Bob (data)** : Molenbeck (société de Hamza) a payé
 **3 600 € HT** à Bridgevale (reçu via Wise). Enregistré comme council payé dans
 `bob2026` :
 - HT 3 600 € × taux 10,6 = **38 160 DH** brut.

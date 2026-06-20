@@ -245,7 +245,7 @@ const FULL_DATA = {
     commissionAmineRate: 0.10,
     commissionMohammedRate: 0.03,
     councils: [
-      // ZOR Consulting SRL (société de Hamza) → Bridgevale. Versement 1 = 3 600 € HT,
+      // Molenbeck (société de Hamza) → Bridgevale. Versement 1 = 3 600 € HT,
       // déjà payé (reçu sur le compte Bridgevale via Wise). Période exacte / réf facture
       // Bridgevale / date de paiement : à préciser (non fournies). tauxApplique 10.6 (comme Badre).
       { mois: "Versement 1", htEUR: 3600, tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
@@ -260,7 +260,7 @@ const FULL_DATA = {
       { date: "12/06/2026", beneficiaire: "Mohammed Azarkan", dh: 15000, motif: "Dispatch Hamza (via Azarkan)", dispatchFor: "bob" },
     ],
     notes: [
-      "Amine facture Hamza via Bridgevale Consulting (société UK). Flux international HT — pas de TVA (Hamza basé en Belgique, Bridgevale au UK).",
+      "Amine facture la société de Hamza (Molenbeck) via Bridgevale Consulting (société UK). Flux international HT — pas de TVA (Hamza en Belgique, Bridgevale au UK).",
       "Azarkan récupère et dispatche temporairement les fonds à Hamza, en attendant qu'il ait son propre compte.",
       "Commission totale 13 % : 10 % Amine + 3 % Augustin (dispatch). Net Hamza = brut − 13 %.",
     ],
