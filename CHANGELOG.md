@@ -9,6 +9,43 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.17` — 2026-06-19
+
+### 🔒 SÉCURITÉ : zéro vrai nom dans les fichiers servis (NICK_MAP → blob chiffré)
+
+Suite logique du fix v7.16. Les vrais noms n'apparaissent désormais **dans AUCUN
+fichier servi publiquement** (vérifié : 0 occurrence).
+
+**1. Table d'alias déplacée dans le blob chiffré.** `render-helpers.js` ne contient
+plus le `NICK_MAP` (vrais noms ↔ alias). La table vit maintenant dans chaque blob
+chiffré (`_nick`), injectée au runtime par `applyNick()` après déchiffrement.
+**Isolement par contrepartie** : le blob Benoit (COUPA) ne contient QUE les alias
+augustin+benoit (aucun Bob), le blob Bob (TESLA) que augustin+bob (aucun Benoit) —
+une contrepartie authentifiée ne peut pas décoder l'identité des autres. Le blob
+full (TIGRE/BINGA) a tout.
+
+**2. Commentaires de code scrubés.** Tous les vrais noms dans les commentaires des
+fichiers servis (render-amine/augustin/bob/gains/helpers, index.html) remplacés par
+les alias (plusieurs étaient des « decoder rings » explicites type « Azarkan = alias
+Augustin »).
+
+**3. `commissionMohammedRate` → `commissionAugustinRate`** (le nom de propriété
+exposait « Mohammed »). Renommé dans les données + les 5 lecteurs.
+
+**4. Couverture `nickText()` complétée.** 2 chaînes rendues + plusieurs champs data
+(insights/divers/commentaires Augustin, subtitle/notes Benoit) affichaient encore
+les vrais noms dans le DOM post-login faute de `nickText()` ; corrigé. Vérifié dans
+les 4 modes (TIGRE/COUPA/TESLA/BINGA) + bascules d'année : 0 vrai nom rendu.
+
+**5. Alias société** : ZOR Consulting → « Molenbeck » désormais aussi dans la table
+`_nick` (chiffrée) → toute occurrence « ZOR » dans les données s'affiche « Molenbeck ».
+
+Reste exposés (acceptable) : les **alias** (Augustin/Benoit/Bob) et noms de sociétés
+non anonymisés (Bridgevale/AZCS/Majalis). Fichiers : render-helpers/amine/augustin/
+benoit/bob/gains.js, index.html, encrypt.js. Bump v7.16 → v7.17.
+
+---
+
 ## `v7.16` — 2026-06-19
 
 ### 🔒 SÉCURITÉ : encrypt.js (base en clair) n'est plus servi publiquement + alias Molenbeck

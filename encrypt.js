@@ -36,9 +36,34 @@ const fs = require('fs');
 const SALT = 'facturation-augustin-2025'; // fixed salt for reproducibility
 
 // ============================================================
+// NICK — real→alias mapping. Lives ONLY inside the encrypted blobs (injected at
+// runtime by render-helpers.applyNick). NEVER hardcode real names in the public
+// served JS. Each blob carries ONLY the aliases its tab needs (isolation): the
+// Benoit blob has no Bob entries and vice-versa, so an authenticated counterparty
+// can't decode the others' identities.
+//   map     = exact-match lookup for nick(beneficiaire)
+//   replace = ordered free-text patterns for nickText() (LONGEST match first)
+// Family first-names (Amine/Nezha/Hanane) pass through unchanged (no entry needed).
+// ============================================================
+const _NICK_AUG_MAP = { 'jean augustin': 'Augustin', 'mohammed azarkan': 'Augustin', 'mohammed': 'Augustin', 'azarkan': 'Augustin' };
+const _NICK_BEN_MAP = { 'benoit chevalier': 'Benoit', 'badrecheikh elmouksit': 'Benoit', 'badre': 'Benoit' };
+const _NICK_BOB_MAP = { 'hamza el azzouzi': 'Bob', 'hamza': 'Bob', 'zor consulting srl': 'Molenbeck', 'zor consulting': 'Molenbeck', 'zor': 'Molenbeck' };
+const _NICK_AUG_REP = [['Mohammed Azarkan', 'Augustin'], ['Azarkan', 'Augustin'], ['Mohammed', 'Augustin']];
+const _NICK_BEN_REP = [['Badrecheikh Elmouksit', 'Benoit'], ['Badrecheikh', 'Benoit'], ['Badre', 'Benoit']];
+const _NICK_BOB_REP = [['Hamza El Azzouzi', 'Bob'], ['Hamza', 'Bob'], ['ZOR Consulting SRL', 'Molenbeck'], ['ZOR Consulting', 'Molenbeck'], ['ZOR', 'Molenbeck']];
+const _byLenDesc = (a, b) => b[0].length - a[0].length;
+const NICK_FULL = {
+  map: Object.assign({}, _NICK_AUG_MAP, _NICK_BEN_MAP, _NICK_BOB_MAP),
+  replace: [].concat(_NICK_BEN_REP, _NICK_BOB_REP, _NICK_AUG_REP).sort(_byLenDesc),
+};
+const NICK_BEN = { map: Object.assign({}, _NICK_AUG_MAP, _NICK_BEN_MAP), replace: [].concat(_NICK_BEN_REP, _NICK_AUG_REP).sort(_byLenDesc) };
+const NICK_BOB = { map: Object.assign({}, _NICK_AUG_MAP, _NICK_BOB_MAP), replace: [].concat(_NICK_BOB_REP, _NICK_AUG_REP).sort(_byLenDesc) };
+
+// ============================================================
 // FULL PUBLIC DATA (replaces data.js — now encrypted)
 // ============================================================
 const FULL_DATA = {
+  _nick: NICK_FULL,
 
   // ==================== AUGUSTIN 2025 ====================
   augustin2025: {
@@ -243,7 +268,7 @@ const FULL_DATA = {
     title: "Bob 2026 — En cours (facturé via Bridgevale Consulting)",
     report2025: 0,
     commissionAmineRate: 0.10,
-    commissionMohammedRate: 0.03,
+    commissionAugustinRate: 0.03,
     councils: [
       // Molenbeck (société de Hamza) → Bridgevale. Versement 1 = 3 600 € HT,
       // déjà payé (reçu sur le compte Bridgevale via Wise). Période exacte / réf facture
@@ -269,12 +294,14 @@ const FULL_DATA = {
 
 // ---- BENOIT-ONLY data (for COUPA mode) ----
 const BENOIT_DATA = {
+  _nick: NICK_BEN,   // benoit + augustin aliases only (no Bob — isolation)
   benoit2025: FULL_DATA.benoit2025,
   benoit2026: FULL_DATA.benoit2026,
 };
 
 // ---- BOB-ONLY data (for TESLA mode — Hamza logs in, sees only his tab) ----
 const BOB_DATA = {
+  _nick: NICK_BOB,   // bob + augustin aliases only (no Benoit — isolation)
   bob2026: FULL_DATA.bob2026,
 };
 
@@ -315,7 +342,7 @@ const PRIV_DATA = {
   // l'instant : à remplir au fil des factures avec le cours EUR/MAD réel.
   bob2026: {
     commissionAmineRate: 0.10,
-    commissionMohammedRate: 0.03,
+    commissionAugustinRate: 0.03,
     councilsTauxMarche: [
       { mois: "Versement 1", tauxMarche: 10.6 }, // index 0 → councils[0] (default 10.6 → 0 gain FX, pas de cours réel daté)
     ],

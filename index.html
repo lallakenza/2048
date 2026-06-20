@@ -812,7 +812,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v7.16';
+  window.APP_VERSION = 'v7.17';
   window.APP_VERSION_DATE = '2026-06-19';
 </script>
 
@@ -1023,7 +1023,7 @@ window.DATA = {};
     } else if (upper === 'COUPA') {
       blob = ENCRYPTED_BENOIT; mode = 'benoit';
     } else if (upper === 'TESLA') {
-      // Porte dédiée Bob (Hamza) : décrypte le blob bob-only, UI restreinte
+      // Porte dédiée Bob (Bob) : décrypte le blob bob-only, UI restreinte
       // au seul tab Bob (cf. soloMode dans render-main.js).
       blob = ENCRYPTED_BOB; mode = 'bob';
     } else if (upper === 'BINGA') {
@@ -1053,6 +1053,7 @@ window.DATA = {};
       const data = await decryptBlob(blob, isBinga ? 'TIGRE' : upper);
       window.DATA = data;
       window.ACCESS_MODE = mode;
+      applyNick(data);   // inject real→alias map from the decrypted blob (never in public JS)
 
       if (isBinga) {
         const priv = await decryptBlob(ENCRYPTED_PRIV, 'BINGA');
@@ -1234,7 +1235,7 @@ function injectPrivData(priv) {
   // mode benoit/radar-only. Aligné par index sur councils, comme Benoit.
   if (priv.bob2026 && DATA.bob2026) {
     if (priv.bob2026.commissionAmineRate != null) DATA.bob2026.commissionAmineRate = priv.bob2026.commissionAmineRate;
-    if (priv.bob2026.commissionMohammedRate != null) DATA.bob2026.commissionMohammedRate = priv.bob2026.commissionMohammedRate;
+    if (priv.bob2026.commissionAugustinRate != null) DATA.bob2026.commissionAugustinRate = priv.bob2026.commissionAugustinRate;
     (priv.bob2026.councilsTauxMarche || []).forEach((t, i) => {
       if (DATA.bob2026.councils[i]) DATA.bob2026.councils[i].tauxMarche = t.tauxMarche;
     });

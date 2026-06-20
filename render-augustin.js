@@ -1,5 +1,5 @@
 // ============================================================
-// RENDER-AUGUSTIN.JS — Rendering for Augustin (Azarkan) reconciliation
+// RENDER-AUGUSTIN.JS — Rendering for Augustin (Augustin) reconciliation
 //
 // 2025: Clôture (month-by-month: RTL, B+Y+M, Maroc, Divers)
 // 2026: En cours — Reco table with signed additive display
@@ -143,7 +143,7 @@ function renderAugustin2025(embedded) {
       <td class="a"${diversStyle}>${m.divers === 0 ? '—' : (m.divers < 0 ? '−' + fmtPlain(Math.abs(m.divers)) : fmtPlain(m.divers))}</td>
       <td class="a">${fmtPlain(dep)}</td>
       <td class="a" style="color:${soldeColor}">${fmtSigned(solde, '')}</td>
-      <td style="font-size:.7rem;color:var(--muted)">${badge(m.badge, m.badgeText)} ${m.commentaire}</td></tr>`;
+      <td style="font-size:.7rem;color:var(--muted)">${badge(m.badge, m.badgeText)} ${nickText(m.commentaire)}</td></tr>`;
   });
 
   moisHtml += `<tr class="tr"><td><strong>Total</strong></td>
@@ -163,7 +163,7 @@ function renderAugustin2025(embedded) {
   let insightsHtml = '';
   d.insights.forEach(ins => {
     const cls = ins.type === 'pass' ? 'pass' : ins.type === 'warn' ? 'warn' : ins.type === 'fail' ? 'fail' : '';
-    insightsHtml += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
+    insightsHtml += `<div class="insight ${cls}"><div class="t">${nickText(ins.titre)}</div><div class="d">${nickText(ins.desc)}</div></div>`;
   });
   html += collapsible('Insights clés — Fichier v2 vs v1', insightsHtml);
 
@@ -216,7 +216,7 @@ function renderAugustin2025(embedded) {
   d.divers.forEach(dv => {
     const rowStyle = dv.preuve === 'ok' ? ' style="background:var(--green-bg)"' : '';
     const montantStr = dv.montant < 0 ? '−' + fmtPlain(Math.abs(dv.montant)) : fmtPlain(dv.montant);
-    diversHtml += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.date || '—'}</td><td>${dv.label}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
+    diversHtml += `<tr${rowStyle}><td>${dv.mois}</td><td>${dv.date || '—'}</td><td>${nickText(dv.label)}</td><td class="a">${montantStr}</td><td>${badge(dv.preuve, dv.preuveText)}</td></tr>`;
   });
   diversHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalDiversCalc)}</strong></td><td><strong style="color:var(--green)">✓ 100% vérifié EBS</strong></td></tr></tbody></table>`;
   diversHtml += `<div class="n ok"><strong>100% vérifié EBS</strong> — ${d.divers.length} opérations, ${fmtPlain(d.diversVerifie)}€ en valeur absolue. Vols ✓, iPhone ✓, virements Nov/Déc ✓, prêts ✓. <strong>0€ sans preuve.</strong></div>`;
@@ -255,7 +255,7 @@ function renderAugustin2026(embedded) {
   const rtlPaidTTC = amineRecu;
   const rtlPaidPerso = amineRecu;
 
-  // --- AZCS (Majalis→AZCS via Badre, 21% TVA belge) : TTC = HT×1.21, Perso = HT ---
+  // --- AZCS (Majalis→AZCS via Benoit, 21% TVA belge) : TTC = HT×1.21, Perso = HT ---
   const azcsAll = (b26 && b26.councils) ? b26.councils : [];
   const azcsPaid = azcsAll.filter(c => c.statut === 'ok');
   const azcsInvoiced = azcsAll.filter(c => c.statut === 'ok' || c.statut === 'w');
@@ -469,7 +469,7 @@ function renderAugustin2026(embedded) {
       <td class="a">${pill(fmtSigned(-totalMAD, ''), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
-    // Divers itemized — negate for additive display: positive data (money to Azarkan) → negative display
+    // Divers itemized — negate for additive display: positive data (money to Augustin) → negative display
     diversItems.forEach(x => {
       const dp = -Math.round(x.pro);
       const dpe = -Math.round(x.perso);
@@ -596,7 +596,7 @@ function renderAugustin2026(embedded) {
     let insightsHtml2026 = '';
     d.insights.forEach(ins => {
       const cls = ins.type === 'pass' ? 'pass' : ins.type === 'warn' ? 'warn' : ins.type === 'fail' ? 'fail' : '';
-      insightsHtml2026 += `<div class="insight ${cls}"><div class="t">${ins.titre}</div><div class="d">${ins.desc}</div></div>`;
+      insightsHtml2026 += `<div class="insight ${cls}"><div class="t">${nickText(ins.titre)}</div><div class="d">${nickText(ins.desc)}</div></div>`;
     });
     html += collapsible('Insights', insightsHtml2026);
   }

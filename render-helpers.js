@@ -14,7 +14,7 @@
 //
 // DISPLAY:
 //   badge(type, text)         — Status badge HTML
-//   nick(name)                — Real name → nickname (Azarkan → Augustin)
+//   nick(name)                — Real name → nickname (Augustin → Augustin)
 //   nickText(text)            — Replace all real names in free text
 //   collapsible(title, html)  — Collapsible section
 //   yearToggle3(section, y)   — Year toggle (Tout/2025/2026)
@@ -25,7 +25,7 @@
 // SIGN CONVENTION in reco table:
 //   All amounts are ADDITIVE — sum all rows to get the total.
 //   + = money received, − = money paid out.
-//   Divers: data positive = money to Azarkan = display NEGATIVE (negate for display)
+//   Divers: data positive = money to Augustin = display NEGATIVE (negate for display)
 // ============================================================
 
 // ---- MODE ----
@@ -100,7 +100,7 @@ function computeBenoitSolde() {
   return { report25, netPaid26, totalPaye26, solde, paidCount: paidCouncils26.length };
 }
 
-// ---- SHARED: Bob (Hamza) position calculation ----
+// ---- SHARED: Bob (Bob) position calculation ----
 // Single source of truth — called by render-amine.js (dashboard) AND
 // render-bob.js (tab). Two-tier commission (Amine + Augustin), report = 0.
 // Guarded: returns zeros when bob2026 is absent (e.g. COUPA/benoit blob).
@@ -108,7 +108,7 @@ function computeBobSolde() {
   const b = (typeof DATA !== 'undefined') ? DATA.bob2026 : null;
   if (!b) return { report: 0, netPaid: 0, totalPaye: 0, solde: 0, paidCount: 0 };
   const rA = b.commissionAmineRate || 0;
-  const rM = b.commissionMohammedRate || 0;
+  const rM = b.commissionAugustinRate || 0;
   const report = b.report2025 || 0;
 
   const paid = (b.councils || []).filter(c => c.statut === 'ok');
@@ -122,39 +122,33 @@ function computeBobSolde() {
   return { report, netPaid, totalPaye, solde, paidCount: paid.length };
 }
 
-// ---- NICKNAME MAPPING (noms réels → nicknames) ----
-// Règle : on n'affiche JAMAIS les vrais noms sur le site, uniquement les nicknames
-const NICK_MAP = {
-  'jean augustin':          'Augustin',
-  'mohammed azarkan':       'Augustin',
-  'mohammed':               'Augustin',
-  'azarkan':                'Augustin',
-  'benoit chevalier':       'Benoit',
-  'badrecheikh elmouksit':  'Benoit',
-  'badre':                  'Benoit',
-  'hamza el azzouzi':       'Bob',
-  'hamza':                  'Bob',
-  'amine':                  'Amine',
-  'nezha':                  'Nezha',
-  'hanane':                 'Hanane',
-};
+// ---- NICKNAME MAPPING (real → alias) ----
+// Règle : on n'affiche JAMAIS les vrais noms, uniquement les alias. La table
+// réelle→alias vit dans le BLOB CHIFFRÉ (jamais dans ce fichier servi en clair) ;
+// elle est injectée au runtime par applyNick() après déchiffrement. Tant qu'elle
+// n'est pas injectée, nick()/nickText() = identité (le site ne rend rien avant
+// login de toute façon). Chaque blob ne porte que les alias de son onglet.
+window._NICK_MAP = window._NICK_MAP || {};
+window._NICK_REPLACE = window._NICK_REPLACE || [];
+// Appelé par index.html (tryAccess) avec les données déchiffrées (data._nick).
+function applyNick(data) {
+  if (data && data._nick) {
+    window._NICK_MAP = data._nick.map || {};
+    window._NICK_REPLACE = data._nick.replace || [];
+  }
+}
 const nick = (name) => {
   if (!name) return '—';
-  const key = name.toLowerCase().trim();
-  return NICK_MAP[key] || name;
+  return window._NICK_MAP[name.toLowerCase().trim()] || name;
 };
+const _escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Replace ALL real names in a free-text string (labels, descriptions, etc.)
-const NICK_REPLACE = [
-  // Multi-word forms FIRST so bare-name rules don't partially rewrite them.
-  [/\bMohammed Azarkan\b/gi, 'Augustin'], [/\bHamza El Azzouzi\b/gi, 'Bob'],
-  [/\bBadrecheikh Elmouksit\b/gi, 'Benoit'],
-  [/\bAzarkan\b/gi, 'Augustin'], [/\bMohammed\b/gi, 'Augustin'],
-  [/\bBadre\b/gi, 'Benoit'], [/\bBadrecheikh\b/gi, 'Benoit'],
-  [/\bHamza\b/gi, 'Bob'],
-];
 const nickText = (text) => {
   if (!text) return '';
-  return NICK_REPLACE.reduce((t, [re, nick]) => t.replace(re, nick), text);
+  return (window._NICK_REPLACE || []).reduce(
+    (t, pair) => t.replace(new RegExp('\\b' + _escRe(pair[0]) + '\\b', 'gi'), pair[1]),
+    text
+  );
 };
 
 // ---- SORTABLE TABLE SUPPORT ----

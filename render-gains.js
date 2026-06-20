@@ -130,7 +130,7 @@ function renderMesGains() {
   const p2pSavingBenoit26 = totalNetBenoit26 * (1 - mkt26 / eff26);
   const p2pSavingBenoit = p2pSavingBenoit25 + p2pSavingBenoit26;
 
-  // ===== 7. BOB (Hamza) — gain Amine = commission 10 % + écart taux (2026) =====
+  // ===== 7. BOB (Bob) — gain Amine = commission 10 % + écart taux (2026) =====
   // Le 3 % Augustin (dispatch) n'est PAS un gain Amine → exclu du calcul.
   const bobData = DATA.bob2026;
   const bobRateA = bobData ? (bobData.commissionAmineRate || 0) : 0;
@@ -261,7 +261,7 @@ function renderMesGains() {
 
   // ===== BREAKDOWN BOB (guarded — only once Bob a des factures payées) =====
   if (bobPaid.length > 0 && (show26 || !gy)) {
-    html += `<div class="s"><div class="st">Détail — Gains Bob (Hamza) · part Amine ${bobPctA}% + écart taux</div>`;
+    html += `<div class="s"><div class="st">Détail — Gains Bob · part Amine ${bobPctA}% + écart taux</div>`;
     html += `<table><thead><tr><th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">Taux appliqué</th><th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Commission ${bobPctA}% (DH)</th><th data-sort="num" style="text-align:right">Gain taux (DH)</th></tr></thead><tbody>`;
     bobPaid.forEach(m => {
       const dh = Math.round(m.htEUR * (m.tauxApplique || 0));

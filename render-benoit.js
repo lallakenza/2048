@@ -85,7 +85,7 @@ function renderBenoitYear(dataKey, opts = {}) {
       : `Report ${year - 1} : ${fmtSigned(report, 'DH')} (dû à Benoit).`;
     html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${subtitleExtra}</p>`;
   } else {
-    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${d.subtitle}</p>`;
+    html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">${nickText(d.subtitle)}</p>`;
   }
 
   // ---- HERO CARD ----
@@ -203,7 +203,7 @@ function renderBenoitYear(dataKey, opts = {}) {
       </tbody></table>`;
     // Footer notes from data (if any)
     if (d.notes) {
-      d.notes.forEach(n => { recoHtml += `<div class="n">${n}</div>`; });
+      d.notes.forEach(n => { recoHtml += `<div class="n">${nickText(n)}</div>`; });
     }
   }
   html += collapsible(`Réconciliation Benoit ${year}${!isClotured ? ' (payé uniquement)' : ''}`, recoHtml);

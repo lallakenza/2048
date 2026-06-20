@@ -3,12 +3,12 @@
 // Vue consolidée : combien je dois à chacun / on me doit
 //
 // SECTIONS:
-//   1. Augustin (Azarkan) — 3 hero cards: Pro / Perso / MAD
+//   1. Augustin (Augustin) — 3 hero cards: Pro / Perso / MAD
 //      Calcul local: posNetPro = posEntreprise − virementsEUR − diversPro
-//   2. Benoit (Badre) — 1 hero card: DH
+//   2. Benoit (Benoit) — 1 hero card: DH
 //      Utilise computeBenoitSolde() (render-helpers.js) — même calcul que tab Benoit
 //   3. Position globale — 4 colonnes: vs Augustin, vs Benoit, Total EUR, Total MAD
-//      MAD combiné = Azarkan MAD + Badre DH (somme directe)
+//      MAD combiné = Augustin MAD + Benoit DH (somme directe)
 //
 // CONVENTIONS:
 //   azOwedPro/Perso/MAD = -posNet (positif = Augustin me doit)
@@ -21,7 +21,7 @@ function renderAmine() {
   html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Vue consolidée de mes dettes / créances avec chaque personne. Mis à jour en temps réel.</p>`;
 
   // ============================================================
-  // 1. AZARKAN (Augustin 2026)
+  // 1. Augustin (Augustin 2026)
   // ============================================================
   const az = DATA.augustin2026;
   const b26 = DATA.benoit2026;
@@ -31,7 +31,7 @@ function renderAmine() {
   const paidRTL = az.rtl.filter(r => r.statut === 'ok');
   const rtlPaidHT = sum(paidRTL, 'montant');
 
-  // AZCS paid (Majalis → AZCS via Badre)
+  // AZCS paid (Majalis → AZCS via Benoit)
   const azcsAll = (b26 && b26.councils) ? b26.councils : [];
   const azcsPaid = azcsAll.filter(c => c.statut === 'ok');
   const azcsRecuPaid = sum(azcsPaid, 'htEUR');
@@ -52,7 +52,7 @@ function renderAmine() {
     return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
   }, 0) : 0;
 
-  // Positions Azarkan
+  // Positions Augustin
   const posEntreprise = rtlPaidHT - azcsRecuPaid + az.report2025;
   const posNetPro = posEntreprise - virementsEUR - diversPro;
   const posNetPerso = posNetPro * PERSO_FACTOR; // Règle universelle
@@ -70,7 +70,7 @@ function renderAmine() {
   // doit donc ce montant à Augustin → réduit ce qu'Augustin doit à Amine.
   // Montants au taux Bob (ligne séparée, PAS soumise au facteur 0.95).
   const _bobAz = DATA.bob2026;
-  const _bobMRate = _bobAz ? (_bobAz.commissionMohammedRate || 0) : 0;
+  const _bobMRate = _bobAz ? (_bobAz.commissionAugustinRate || 0) : 0;
   const _bobPaidAz = _bobAz ? (_bobAz.councils || []).filter(c => c.statut === 'ok') : [];
   const bobCommAugDH = _bobPaidAz.reduce((s, c) => s + Math.round(Math.round(c.htEUR * (c.tauxApplique || 0)) * _bobMRate), 0);
   const bobCommAugEUR = Math.round(_bobPaidAz.reduce((s, c) => s + c.htEUR * _bobMRate, 0) * 100) / 100;
@@ -80,16 +80,16 @@ function renderAmine() {
   const azOwedMADTot   = azOwedMAD   - bobCommAugDH;
 
   // ============================================================
-  // 2. BADRE (Benoit 2026) — uses shared computeBenoitSolde()
+  // 2. Benoit (Benoit 2026) — uses shared computeBenoitSolde()
   // ============================================================
   const badrePos = computeBenoitSolde();
   const soldeBadre = badrePos.solde;
   const paidCouncils26 = b26.councils.filter(c => c.statut === 'ok');
-  // soldeBadre > 0 → Amine doit à Badre. From Amine's perspective: negative (I owe)
+  // soldeBadre > 0 → Amine doit à Benoit. From Amine's perspective: negative (I owe)
   const baOwedDH = -soldeBadre; // positive = Benoit me doit
 
   // ============================================================
-  // 3. BOB (Hamza 2026) — uses shared computeBobSolde()
+  // 3. BOB (Bob 2026) — uses shared computeBobSolde()
   // ============================================================
   const bobPos = computeBobSolde();
   const soldeBob = bobPos.solde;
@@ -99,13 +99,13 @@ function renderAmine() {
   // HERO SECTION — Position globale
   // ============================================================
 
-  // Azarkan card
+  // Augustin card
   const azSign = azOwedPro >= 0;
   const azColor = azSign ? 'var(--green)' : 'var(--red)';
   const azCls = azSign ? 'green' : 'red';
   const azLabel = azSign ? 'Augustin me doit' : 'Je dois à Augustin';
 
-  // Badre card
+  // Benoit card
   const baSign = baOwedDH >= 0;
   const baColor = baSign ? 'var(--green)' : 'var(--red)';
   const baCls = baSign ? 'green' : 'red';
@@ -113,7 +113,7 @@ function renderAmine() {
 
   html += `<div style="font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Situation par personne</div>`;
 
-  // ---- AZARKAN SECTION ----
+  // ---- Augustin SECTION ----
   html += `<div style="margin-bottom:20px">`;
   html += `<div style="font-size:.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Augustin</div>`;
   html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Pro → EUR perso = Pro × 0.95 (−5% commission Amine) · Pro → MAD = Pro × ${az.tauxMaroc} (taux fixe)</div>`;
@@ -139,7 +139,7 @@ function renderAmine() {
     </div>
   </div>`;
 
-  // Azarkan breakdown
+  // Augustin breakdown
   html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Détail :</strong> Pos. Entreprise = ${fmtSigned(posEntreprise)} (RTL ${fmtPlain(rtlPaidHT)} − AZCS ${fmtPlain(azcsRecuPaid)} + Report ${fmtSigned(az.report2025)}).
     Maroc = ${fmtPlain(Math.round(virementsEUR))}€ pro (${fmtPlain(totalMAD_az)} MAD).
@@ -153,7 +153,7 @@ function renderAmine() {
   }
   html += `</div>`;
 
-  // ---- BADRE SECTION ----
+  // ---- Benoit SECTION ----
   html += `<div style="margin-bottom:20px">`;
   html += `<div style="font-size:.82rem;font-weight:700;margin-bottom:8px;color:var(--text)">Benoit</div>`;
   html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">Pro × taux appliqué → DH − 10% commission Amine. Taux fixe 2026 : 10.6. Paiement cash DH uniquement.</div>`;
@@ -167,7 +167,7 @@ function renderAmine() {
     </div>
   </div>`;
 
-  // Badre breakdown
+  // Benoit breakdown
   html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Détail :</strong> Report 2025 = ${fmtSigned(badrePos.report25, 'DH')}.
     Councils payés 2026 (net −10%) = ${fmtPlain(badrePos.netPaid26)} DH (${badrePos.paidCount} factures).
@@ -213,14 +213,14 @@ function renderAmine() {
   html += `</div>`;
 
   // ---- COMBINED POSITION ----
-  // Convert Badre DH to EUR — taux fixe Badre = 10.6 (différent d'Azarkan)
+  // Convert Benoit DH to EUR — taux fixe Benoit = 10.6 (différent d'Augustin)
   const tauxBadre = 10.6;
   const baOwedEUR = baOwedDH / tauxBadre;
-  // Bob : factures € HT converties en DH (~10.6 comme Badre)
+  // Bob : factures € HT converties en DH (~10.6 comme Benoit)
   const tauxBob = 10.6;
   const bobOwedEUR = bobOwedDH / tauxBob;
   const combinedEUR = azOwedPersoTot + baOwedEUR + bobOwedEUR;
-  // Combined in MAD: Augustin (incl. commission Bob) + Badre DH + Bob DH
+  // Combined in MAD: Augustin (incl. commission Bob) + Benoit DH + Bob DH
   const combinedMAD = azOwedMADTot + baOwedDH + bobOwedDH;
   const combSign = combinedEUR >= 0;
   const combColor = combSign ? 'var(--green)' : 'var(--red)';

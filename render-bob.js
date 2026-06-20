@@ -1,16 +1,16 @@
 // ============================================================
-// RENDER-BOB.JS — Bob (Hamza El Azzouzi) rendering — 2026 en-cours
+// RENDER-BOB.JS — Bob (Bob) rendering — 2026 en-cours
 //
 // MODÈLE :
-//   Amine facture Hamza via Bridgevale Consulting (société UK). Flux
-//   international HT (Hamza basé en Belgique, Bridgevale au UK) → PAS de TVA.
-//   Azarkan (Mohammed = alias "Augustin") récupère les fonds et les dispatche
-//   temporairement à Hamza, en attendant qu'il ait son propre compte.
+//   Amine facture Bob via Bridgevale Consulting (société UK). Flux
+//   international HT (Bob basé en Belgique, Bridgevale au UK) → PAS de TVA.
+//   Augustin (Augustin = alias "Augustin") récupère les fonds et les dispatche
+//   temporairement à Bob, en attendant qu'il ait son propre compte.
 //
 //   Commission TOTALE 13 % = 10 % Amine + 3 % Augustin (dispatch).
-//     net Hamza = brut DH − 13 %.
+//     net Bob = brut DH − 13 %.
 //
-//   Tracking comme Badre : factures HT en €, converties en DH au tauxApplique
+//   Tracking comme Benoit : factures HT en €, converties en DH au tauxApplique
 //   de chaque ligne, payées en DH (virements). Relation récente → report = 0.
 //
 //   PRIV (BINGA) injecte tauxMarche par facture → gain FX (visible Amine only).
@@ -27,7 +27,7 @@ function renderBob2026() {
   const report = d.report2025 || 0;
 
   const rA = d.commissionAmineRate || 0;     // 0.10
-  const rM = d.commissionMohammedRate || 0;  // 0.03
+  const rM = d.commissionAugustinRate || 0;  // 0.03
   const pctA = Math.round(rA * 100);
   const pctM = Math.round(rM * 100);
   const pctTot = Math.round((rA + rM) * 100);
@@ -95,7 +95,7 @@ function renderBob2026() {
 
   // ---- Councils table ----
   const refHeader = hasRef ? '<th>Ref</th>' : '';
-  let councilsTableHtml = `<div class="n" style="margin-bottom:8px">Bridgevale Consulting facture Hamza en <strong>HT</strong> (flux international, pas de TVA). Conversion en DH au taux appliqué. Commission ${pctTot} % retenue : ${pctA} % Amine + ${pctM} % Augustin (dispatch).</div>`;
+  let councilsTableHtml = `<div class="n" style="margin-bottom:8px">Bridgevale Consulting facture Bob en <strong>HT</strong> (flux international, pas de TVA). Conversion en DH au taux appliqué. Commission ${pctTot} % retenue : ${pctA} % Amine + ${pctM} % Augustin (dispatch).</div>`;
   councilsTableHtml += `<table>
     <thead><tr>${refHeader}<th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">Taux appliqué</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Δ taux</th>' : ''}<th data-sort="num" style="text-align:right">= DH</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Gain FX (DH)</th>' : ''}<th data-sort="num" style="text-align:right">Commission ${pctTot} %</th><th data-sort="num" style="text-align:right">Net Bob (DH)</th><th></th></tr></thead><tbody>`;
   transactions.forEach(t => {
