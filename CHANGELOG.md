@@ -9,6 +9,42 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.22` — 2026-07-12
+
+### Rebuild de l'onglet « Ma Position » + agrégation des flux Azarkan (on behalf)
+
+**Onglet « Ma Position » repensé.** L'onglet répondait relation par relation
+sans jamais donner la vue d'ensemble. Nouveau layout en pyramide inversée :
+
+- **Position nette totale en haut** — hero avec toggle `Maroc · cash` /
+  `France · EUR`. Maroc = +108 914 MAD (somme MAD native, sans conversion
+  croisée) ; France = +9 868 € (Augustin réglé en France perso). Bandeau de
+  répartition Augustin / Benoit / Bob sous le total. Les deux scénarios sont
+  réels : ils diffèrent car le taux fixe Augustin (10.26) ≠ Benoit/Bob (10.6).
+- **3 cartes personnes de poids égal** — au lieu de 3 hero cards pour Augustin
+  seul + 1 chacun pour Benoit/Bob. Augustin garde ses 3 scénarios Pro/Perso/Maroc
+  en chips compactes. Benoit ressort enfin comme la plus grosse exposition.
+- Les détails de calcul passent dans un dépliable ; la position globale bas de
+  page (grille 5 colonnes) est remplacée par le hero. Le bridge localStorage
+  vers networth est inchangé (mêmes clés, mêmes valeurs).
+
+**Flux perso ↔ Azarkan agrégés.** Dans la reco table (② Position Net), les
+lignes nominatives par intermédiaire (Oumaima, Zakaria, Nezha→Hanane) sont
+regroupées par sens :
+
+- `Virement envoyé à Azarkan (on behalf)` (montant > 0) et
+  `Virement reçu d'Azarkan (on behalf)` (montant < 0), 1 ligne par sens.
+- Un dépliable `▸ détail des N flux via intermédiaires` garde la traçabilité
+  nominative. Règle générale : tout nouveau flux « et similaire » se range
+  automatiquement par le signe de son montant. Les totaux sont inchangés
+  (envoyé −6 800 € + reçu +1 200 € = −5 600 € net, identique à avant).
+
+`render-amine.js` (rebuild présentation, calcul + bridge inchangés),
+`render-augustin.js` (agrégation divers + `toggleDiversDetail`), `index.html`.
+Bump v7.21 → v7.22.
+
+---
+
 ## `v7.21` — 2026-07-12
 
 ### Bridgevale reclassé dans la Position Entreprise (AZCS) + ligne Total sur toutes les tables

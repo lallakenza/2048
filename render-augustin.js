@@ -21,6 +21,17 @@
 // TAUX 2026: tauxMaroc = 10.26, PERSO_FACTOR = 0.95
 // ============================================================
 
+// Déplie/replie les lignes de détail nominatif des flux Azarkan (on behalf)
+// dans la reco table. Scopé par ${id} de vue (paid/invoiced/accrued) pour
+// éviter les collisions entre les 3 tables pré-rendues.
+window.toggleDiversDetail = function (id, el) {
+  var rows = document.querySelectorAll('.divers-detail-' + id);
+  if (!rows.length) return;
+  var show = rows[0].style.display === 'none';
+  rows.forEach(function (r) { r.style.display = show ? '' : 'none'; });
+  if (el) el.textContent = (show ? '▾' : '▸') + el.textContent.slice(1);
+};
+
 // ---- AUGUSTIN 2025 ----
 function renderAugustinAll() {
   let html = yearToggle3('Az', 0);
@@ -484,21 +495,49 @@ function renderAugustin2026(embedded) {
       <td class="a">${pill(fmtSigned(-totalMAD, ''), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
-    // Divers itemized — negate for additive display: positive data (money to Augustin) → negative display
-    diversItems.forEach(x => {
-      const dp = -Math.round(x.pro);
-      const dpe = -Math.round(x.perso);
-      const dm = -Math.round(x.pro * TX);
+    // Divers — agrégés par SENS (au lieu d'1 ligne par intermédiaire) :
+    //   "envoyé à Azarkan" = flux vers Augustin (pro > 0)
+    //   "reçu d'Azarkan"   = flux depuis Augustin (pro < 0)
+    // Affichage additif : money to Augustin → négatif. Le dépliable garde le
+    // détail nominatif (Oumaima, Zakaria, Nezha→Hanane…). Règle générale :
+    // tout nouveau flux "et similaire" se range par le signe de son montant.
+    const _envoyes = diversItems.filter(x => x.pro > 0);
+    const _recus   = diversItems.filter(x => x.pro < 0);
+    const diversAggRow = (label, arr) => {
+      if (!arr.length) return '';
+      const proSum = arr.reduce((s, x) => s + x.pro, 0);
+      const persoSum = arr.reduce((s, x) => s + x.perso, 0);
+      const dp = -Math.round(proSum);
+      const dpe = -Math.round(persoSum);
+      const dm = -Math.round(proSum * TX);
       const c = dpe > 0 ? 'var(--green)' : 'var(--blue,#60a5fa)';
-      const truncLabel = ((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label));
-      t += `<tr>
-        <td style="font-size:.75rem">${truncLabel}</td>
+      return `<tr>
+        <td style="font-size:.75rem">${label}</td>
         <td class="a" style="color:var(--muted)">—</td>
         <td class="a" style="color:${c}">${fmtSigned(dp, '')}</td>
         <td class="a">${pill(fmtSigned(dpe, ''), 'eur')}</td>
         <td class="a" style="color:${c}">${fmtSigned(dm, '')}</td>
-        <td style="font-size:.72rem;color:var(--muted)">cash perso</td></tr>`;
-    });
+        <td style="font-size:.72rem;color:var(--muted)">cash perso · ${arr.length} flux</td></tr>`;
+    };
+    t += diversAggRow('Virement envoyé à Azarkan (on behalf)', _envoyes);
+    t += diversAggRow('Virement reçu d\'Azarkan (on behalf)', _recus);
+    if (diversItems.length) {
+      t += `<tr><td colspan="6" style="padding:2px 0 4px 6px"><span onclick="toggleDiversDetail('${id}',this)" style="cursor:pointer;font-size:.66rem;color:var(--muted);user-select:none">▸ détail des ${diversItems.length} flux via intermédiaires</span></td></tr>`;
+      diversItems.forEach(x => {
+        const dp = -Math.round(x.pro);
+        const dpe = -Math.round(x.perso);
+        const dm = -Math.round(x.pro * TX);
+        const c = dpe > 0 ? 'var(--green)' : 'var(--blue,#60a5fa)';
+        const truncLabel = ((l) => l.length > 45 ? l.substring(0, 45) + '…' : l)(nickText(x.label));
+        t += `<tr class="divers-detail-${id}" style="display:none">
+          <td style="font-size:.72rem;padding-left:20px;color:var(--muted)">${truncLabel}</td>
+          <td class="a" style="color:var(--muted)">—</td>
+          <td class="a" style="color:${c}">${fmtSigned(dp, '')}</td>
+          <td class="a">${pill(fmtSigned(dpe, ''), 'eur')}</td>
+          <td class="a" style="color:${c}">${fmtSigned(dm, '')}</td>
+          <td style="font-size:.72rem;color:var(--muted)">via intermédiaire</td></tr>`;
+      });
+    }
 
     // Net totals
     const proColor = dnPro >= 0 ? 'var(--green)' : 'var(--red)';
