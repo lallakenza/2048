@@ -9,6 +9,42 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.28` — 2026-07-12
+
+### Audit — Batch 1 : correctifs, sécurité, gardes, code mort
+
+Suite à l'audit multi-agents (40 findings vérifiés), premier lot de correctifs
+à faible risque :
+
+**Correctness**
+- Bridgevale manquait dans le sous-total TTC des tables Facturé/Projection
+  (`render-augustin.js`) → le total TTC « = Pos. Entreprise » était 2 400 € plus
+  haut que la somme de ses lignes. Ajout de `- bridgevaleEUR` aux deux `deltaEtc`.
+- Nombre de mois d'activité codé en dur (11/2/13) dans `render-gains.js` → la
+  « Moyenne DH/mois » 2026 était ~3× trop haute. Dérivé du calendrier (auto-MAJ).
+
+**Sécurité (noms réels hors des fichiers servis)**
+- Chaînes rendues « Azarkan » → alias « Augustin » (`render-augustin.js`,
+  `render-amine.js`) ; commentaires nominatifs nettoyés ; identifiants renommés
+  (`*Badre*` → `*Benoit*`). `render-benoit.js` : motif de virement passé par
+  `nickText()`. Plus aucun nom réel (Azarkan/Badre/Hamza/…) dans le source servi.
+
+**Gardes**
+- `fmtSigned(null/undefined)` renvoie `—` au lieu de `+NaN €` (`render-helpers.js`).
+- `leg3.reduce` protégé contre un tableau vide (`render-fxp2p.js`).
+- Message d'erreur radar : `tradeType` (undefined) → `userSide` (`render-radar.js`).
+
+**Code mort supprimé** : `fmt()`, `classForSolde()`, `yearToggle()` 2-ans, lookup
+`reco-cards-*` inexistant (`render-helpers.js`) ; bloc `CONSOLIDATION` mort
+(`render-fxp2p.js`) ; `radarCardOffline()`, `RADAR_MIN_AMOUNT`, reduce `avgPrice`
+(`render-radar.js`) ; vars inutilisées (`tvaAZCS`, `commissionAmine` ×2,
+`totalGainFXPaid`, `netPct`, `deltaNetPerso` param + orphelins, branche
+`ecartOverride`).
+
+Aucun changement de résultat (verify.js ✓). Bump v7.27 → v7.28.
+
+---
+
 ## `v7.27` — 2026-07-12
 
 ### Ma Position : code couleur par équilibre (|delta| en MAD)

@@ -306,10 +306,10 @@ async function radarFetchBinanceP2P(fiat, userSide, cfg) {
       res = null;
     }
   }
-  if (!res) throw lastErr || new Error(`Binance P2P ${fiat} ${tradeType}: all endpoints failed`);
+  if (!res) throw lastErr || new Error(`Binance P2P ${fiat} ${userSide}: all endpoints failed`);
   const j = await res.json();
   const ads = (j.data || []).filter(a => a && a.adv && a.advertiser);
-  if (!ads.length) throw new Error(`Binance P2P ${fiat} ${tradeType}: no ads`);
+  if (!ads.length) throw new Error(`Binance P2P ${fiat} ${userSide}: no ads`);
 
   let offers = ads.map(a => ({
     merchant: a.advertiser.nickName || '—',
@@ -362,14 +362,12 @@ async function radarFetchBinanceP2P(fiat, userSide, cfg) {
     const mid = Math.floor(sorted.length/2);
     medianPrice = sorted.length % 2 ? sorted[mid] : (sorted[mid-1] + sorted[mid]) / 2;
   }
-  const avgPrice = topPrices.reduce((s,x) => s+x, 0) / topPrices.length;
-
   return {
     fiat,
     userSide,
     tradeType: userSide,  // backward-compat: certaines fonctions lisent encore data.tradeType
     transAmount,
-    topPrice, medianPrice, avgPrice,
+    topPrice, medianPrice,
     medianBasisLabel: label,
     aggregator: agg,
     takeTop,
@@ -401,9 +399,6 @@ const RADAR_CFG = {
           payMethodFilter: 'attijari',
           label: 'max ∈ 5\u202fk–50\u202fk MAD · banque Attijari · moyenne top 3' },
 };
-
-// Compat ancien code (encore référencé par certains labels)
-const RADAR_MIN_AMOUNT = { AED: 10000, MAD: 5000 };
 
 // ---- USD/MAD LIVE -------------------------------------------------
 // jsdelivr cache @latest aggressivement :
@@ -997,18 +992,6 @@ function radarSellAdvice(label, pct) {
   if (label === 'Bon')       return 'Bon moment pour vendre — premium > 3 %, dans ta zone historique de confort.';
   if (label === 'Moyen')     return 'Acceptable mais pas optimal — vends si tu as besoin de cash, sinon patiente un peu.';
   return 'N\'urge pas — premium < 1 %, attends une meilleure fenêtre (demande MAD variable selon les jours).';
-}
-
-function radarCardOffline(title, msg) {
-  return `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;opacity:.85">
-      <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${title}</div>
-      <div style="font-size:1.1rem;color:var(--muted);margin-top:10px">—</div>
-      <div style="margin-top:12px;padding:10px 12px;background:var(--red-bg);border-radius:8px;font-size:.78rem;color:var(--red)">
-        ✗ ${msg}
-      </div>
-    </div>
-  `;
 }
 
 // ---- SPREAD HISTORY (poller GitHub Actions, toutes les 6h) --------

@@ -58,27 +58,6 @@ function renderFXP2P() {
   const wavgMktLeg3 = totalMADMarcheLeg3 / totalUSDTleg3;
   const avgSpreadPctLeg3 = ((wavgPrixLeg3 - wavgMktLeg3) / wavgMktLeg3) * 100;
 
-  // ===== CONSOLIDATION : tout en MAD =====
-  // Taux effectif AED→MAD via P2P = prix vente MAD / prix achat USDT en AED
-  const tauxAEDtoMAD = wavgPrixLeg3 / wavgPrixLeg2;
-
-  // Leg 1 : TOUTES les conversions IFX (pas seulement P2P)
-  const leg1PerteTotaleAED = totalSpreadLeg1;
-  const leg1PerteTotaleMAD = leg1PerteTotaleAED * tauxAEDtoMAD;
-
-  // Leg 1 proratisé : seulement la part AED qui a transité par P2P
-  const ratioP2P = totalAEDleg2 / totalAEDleg1; // part de l'AED qui est allée en P2P
-  const leg1PerteP2PAED = totalSpreadLeg1 * ratioP2P;
-  const leg1PerteP2PMAD = leg1PerteP2PAED * tauxAEDtoMAD;
-
-  // Leg 2 perte en AED → convertir en MAD
-  const leg2PerteMAD = totalSpreadAEDLeg2 * tauxAEDtoMAD;
-
-  // Leg 3 gain déjà en MAD
-  const leg3GainMAD = totalSpreadMADLeg3;
-
-  // Net P2P (proratisé Leg 1 + Leg 2 + Leg 3)
-  const netGainMAD = leg3GainMAD - leg1PerteP2PMAD - leg2PerteMAD;
 
   // Taux effectif EUR→MAD pour la portion P2P
   // EUR utilisé pour P2P = AED P2P / taux IFX moyen pondéré
@@ -315,12 +294,14 @@ function renderFXP2P() {
     L'achat USDT sur Binance P2P coûte en moyenne <strong>${all.l2.prix.toFixed(4)} AED/USDT</strong> vs le peg officiel de ${peg} (+${all.l2.pct.toFixed(2)}%). Impact faible grâce à la liquidité AED/USDT aux Émirats : seulement <strong>${fmtImpact(all.l2.impact)}</strong> par 10k€.
   </div></div>`;
 
-  // Insight 6: Best/worst leg 3 dates
+  // Insight 6: Best/worst leg 3 dates (guard: skip if the active filter has no leg3)
+  if (leg3.length) {
   const bestLeg3 = leg3.reduce((a, b) => a.spreadPct > b.spreadPct ? a : b);
   const worstLeg3 = leg3.reduce((a, b) => a.spreadPct < b.spreadPct ? a : b);
   html += `<div class="insight"><div class="t">📅 Meilleur spread USDT→MAD : ${bestLeg3.date} (+${bestLeg3.spreadPct.toFixed(1)}%) / Pire : ${worstLeg3.date} (+${worstLeg3.spreadPct.toFixed(1)}%)</div><div class="d">
     Le spread varie de <strong>+${worstLeg3.spreadPct.toFixed(1)}%</strong> à <strong>+${bestLeg3.spreadPct.toFixed(1)}%</strong> selon la demande P2P au Maroc. Le premium est systématiquement positif — aucune transaction n'est en dessous du taux marché.
   </div></div>`;
+  }
 
   // Insight 7: EUR→MAD comparison with bank
   const r3mStr7 = r3m ? ` et <strong>${r3m.effEURMAD.toFixed(2)}</strong> (3 mois)` : '';

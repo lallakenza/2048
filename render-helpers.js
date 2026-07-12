@@ -32,16 +32,8 @@
 window.PRIV = false;
 
 // ---- HELPERS ----
-const fmt = (n, suffix = '€') => {
-  if (n === 0 || n === null || n === undefined) return '—';
-  const abs = Math.abs(n);
-  const formatted = abs.toLocaleString('fr-FR');
-  const sign = n < 0 ? '−' : (n > 0 ? '+' : '');
-  // For amounts, show sign only when explicitly needed
-  return formatted + (suffix ? ' ' + suffix : '');
-};
-
 const fmtSigned = (n, suffix = '€') => {
+  if (n == null) return '—';
   if (n === 0) return '0';
   const abs = Math.abs(n);
   const formatted = abs.toLocaleString('fr-FR');
@@ -66,7 +58,6 @@ const fmtDelta = (d) => {
 };
 
 const colorForSolde = (n) => n > 0 ? 'var(--green)' : n < 0 ? 'var(--red)' : 'var(--green)';
-const classForSolde = (n) => n > 0 ? 'green' : n < 0 ? 'red' : 'green';
 
 const badge = (type, text) => `<span class="b ${type}">${text}</span>`;
 
@@ -244,10 +235,8 @@ function toggleSection(id, btn) {
 // ---- RECO VIEW TOGGLE (Paid / Invoiced / Accrued) ----
 function switchRecoView(view) {
   ['paid','invoiced','accrued'].forEach(v => {
-    const cards = document.getElementById('reco-cards-' + v);
     const table = document.getElementById('reco-table-' + v);
     const btn = document.getElementById('reco-btn-' + v);
-    if (cards) cards.style.display = v === view ? '' : 'none';
     if (table) table.style.display = v === view ? '' : 'none';
     if (btn) {
       btn.style.background = v === view ? 'var(--accent)' : 'transparent';
@@ -256,13 +245,7 @@ function switchRecoView(view) {
   });
 }
 
-// ---- YEAR TOGGLE HELPER ----
-function yearToggle(section, activeYear) {
-  return `<div class="year-toggle">
-    <div class="year-btn ${activeYear===2025?'active':''}" data-year="2025" onclick="switch${section}Year(2025)">2025</div>
-    <div class="year-btn ${activeYear===2026?'active':''}" data-year="2026" onclick="switch${section}Year(2026)">2026</div>
-  </div>`;
-}
+// ---- YEAR TOGGLE HELPER (Tout / 2025 / 2026) ----
 function yearToggle3(section, activeYear) {
   return `<div class="year-toggle">
     <div class="year-btn ${!activeYear?'active':''}" data-year="0" onclick="switch${section}Year(0)">Tout</div>

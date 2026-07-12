@@ -31,7 +31,6 @@ function renderBob2026() {
   const pctA = Math.round(rA * 100);
   const pctM = Math.round(rM * 100);
   const pctTot = Math.round((rA + rM) * 100);
-  const netPct = 100 - pctTot;
 
   const councils = d.councils || [];
   const virements = d.virements || [];

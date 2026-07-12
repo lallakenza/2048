@@ -21,7 +21,7 @@
 // TAUX 2026: tauxMaroc = 10.26, PERSO_FACTOR = 0.95
 // ============================================================
 
-// Déplie/replie les lignes de détail nominatif des flux Azarkan (on behalf)
+// Déplie/replie les lignes de détail nominatif des flux Augustin (on behalf)
 // dans la reco table. Scopé par ${id} de vue (paid/invoiced/accrued) pour
 // éviter les collisions entre les 3 tables pré-rendues.
 window.toggleDiversDetail = function (id, el) {
@@ -115,7 +115,7 @@ function renderAugustin2025(embedded) {
     <thead><tr><th>Catégorie</th><th style="text-align:right">Excel v2 (€)</th><th style="text-align:right">Vérifié EBS/Banque (€)</th><th style="text-align:right">Écart (€)</th><th>Statut</th></tr></thead><tbody>`;
 
   categories.forEach(c => {
-    const ecart = c.ecartOverride !== undefined ? -(c.verifie - c.excel) : c.excel - c.verifie;
+    const ecart = c.excel - c.verifie;
     const ecartColor = ecart === 0 ? 'var(--green)' : 'var(--yellow)';
     synthHtml += `<tr><td><strong>${c.nom}</strong></td><td class="a">${fmtPlain(c.excel)}</td><td class="a">${fmtPlain(c.verifie)}</td><td class="a" style="color:${ecartColor}">${ecart === 0 ? '0' : fmtSigned(ecart, '')}</td><td>${badge('ok', c.statut)}</td></tr>`;
   });
@@ -285,7 +285,7 @@ function renderAugustin2026(embedded) {
   // --- Virements Maroc ---
   const totalMAD = sum(d.virementsMaroc, 'dh');
   const virementsProEUR = totalMAD / d.tauxMaroc;
-  // Paiements à Azarkan via Bridgevale (EUR direct, hors Maroc — nouveau canal)
+  // Paiements à Augustin via Bridgevale (EUR direct, hors Maroc — nouveau canal)
   const bridgevaleEUR = sum(d.virementsBridgevale || [], 'eur');
 
   // --- Divers : montant = PERSO (cash réel donné). Pro = montant / PERSO_FACTOR ---
@@ -319,28 +319,25 @@ function renderAugustin2026(embedded) {
 
   // Position Entreprise
   // Position Entreprise = ce qu'AZCS aurait dû recevoir (RTL) − ce qu'AZCS a
-  // vraiment reçu (Majalis via Badre + Bridgevale) + report. On traque la
-  // position d'AZCS (société d'Azarkan), pas celle de Bairok.
+  // vraiment reçu (Majalis via Benoit + Bridgevale) + report. On traque la
+  // position d'AZCS (société d'Augustin), pas celle de Bairok.
   const deltaEntreprisePaid = rtlPaidHT - azcsRecuPaid - bridgevaleEUR + d.report2025;
   const deltaEntreprisePaidTTC = rtlPaidTTC - azcsPaidTTC - bridgevaleEUR + d.report2025;
 
   // Position Net PRO = Entreprise − virements Maroc − divers (le delta réglé en
   // perso). Bridgevale est DANS l'Entreprise (paiement B2B à AZCS), pas ici.
   const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro;
-  const deltaNetPerso = deltaNetPro * PERSO_FACTOR; // le delta se règle en perso au deal ×0.95
-  const commissionAmine = Math.round((deltaNetPro - deltaNetPerso) * 100) / 100;
+  const deltaNetPerso = deltaNetPro * PERSO_FACTOR; // le delta se règle en perso au deal ×0.95 (hero card)
 
   // Invoiced
   const invoicedRTL = d.rtl.filter(r => r.ref !== '—');
   const totalInvoiced = sum(invoicedRTL, 'montant');
   const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced - bridgevaleEUR + d.report2025;
   const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro;
-  const deltaInvoicedPerso = deltaInvoicedPro * PERSO_FACTOR;
 
   // Accrued
   const deltaEntrepriseAccrued = totalFacture - azcsRecuAll - bridgevaleEUR + d.report2025;
   const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro;
-  const deltaAccruedPerso = deltaAccruedPro * PERSO_FACTOR;
 
   let html = embedded ? '' : yearToggle3('Az', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
@@ -405,7 +402,7 @@ function renderAugustin2026(embedded) {
   function recoTable(id, title, display, cfg) {
     const { rtlLabel, rtlHT, rtlTTC, azcsHT, azcsTTC, azcsLabel, azcsCount,
             rtlCount, deltaE, deltaEtc,
-            deltaNetPro: dnPro, deltaNetPerso: dnPerso } = cfg;
+            deltaNetPro: dnPro } = cfg;
     const s = display === 'none' ? ' style="display:none"' : '';
     const thStyle = 'style="text-align:right;font-size:.7rem"';
     const secHdr = (n, label, bg) => `<tr style="background:${bg}"><td colspan="7" style="font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">${n} ${label}</td></tr>`;
@@ -496,10 +493,10 @@ function renderAugustin2026(embedded) {
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
 
     // Divers — agrégés par SENS (au lieu d'1 ligne par intermédiaire) :
-    //   "envoyé à Azarkan" = flux vers Augustin (pro > 0)
-    //   "reçu d'Azarkan"   = flux depuis Augustin (pro < 0)
+    //   "envoyé à Augustin" = flux vers Augustin (pro > 0)
+    //   "reçu d'Augustin"   = flux depuis Augustin (pro < 0)
     // Affichage additif : money to Augustin → négatif. Le dépliable garde le
-    // détail nominatif (Oumaima, Zakaria, Nezha→Hanane…). Règle générale :
+    // détail nominatif (flux via intermédiaires…). Règle générale :
     // tout nouveau flux "et similaire" se range par le signe de son montant.
     const _envoyes = diversItems.filter(x => x.pro > 0);
     const _recus   = diversItems.filter(x => x.pro < 0);
@@ -519,8 +516,8 @@ function renderAugustin2026(embedded) {
         <td class="a" style="color:${c}">${fmtSigned(dm, '')}</td>
         <td style="font-size:.72rem;color:var(--muted)">cash perso · ${arr.length} flux</td></tr>`;
     };
-    t += diversAggRow('Virement envoyé à Azarkan (on behalf)', _envoyes);
-    t += diversAggRow('Virement reçu d\'Azarkan (on behalf)', _recus);
+    t += diversAggRow('Virement envoyé à Augustin (on behalf)', _envoyes);
+    t += diversAggRow('Virement reçu d\'Augustin (on behalf)', _recus);
     if (diversItems.length) {
       t += `<tr><td colspan="6" style="padding:2px 0 4px 6px"><span onclick="toggleDiversDetail('${id}',this)" style="cursor:pointer;font-size:.66rem;color:var(--muted);user-select:none">▸ détail des ${diversItems.length} flux via intermédiaires</span></td></tr>`;
       diversItems.forEach(x => {
@@ -564,21 +561,21 @@ function renderAugustin2026(embedded) {
     rtlLabel: 'RTL paid (Bairok)', rtlHT: rtlPaidHT, rtlTTC: rtlPaidTTC, rtlCount: paidRTL.length,
     azcsLabel: 'Majalis → AZCS paid (via Benoit)', azcsHT: azcsRecuPaid, azcsTTC: azcsPaidTTC, azcsCount: azcsPaid.length,
     deltaE: deltaEntreprisePaid, deltaEtc: deltaEntreprisePaidTTC,
-    deltaNetPro: deltaNetPro, deltaNetPerso: deltaNetPerso
+    deltaNetPro: deltaNetPro
   });
 
   html += recoTable('invoiced', 'Réconciliation 2026 — Facturé (invoiced)', 'none', {
     rtlLabel: 'RTL facturé (Bairok)', rtlHT: totalInvoiced, rtlTTC: totalInvoiced, rtlCount: invoicedRTL.length,
     azcsLabel: 'Majalis → AZCS invoiced (via Benoit)', azcsHT: azcsRecuInvoiced, azcsTTC: azcsInvoicedTTC, azcsCount: azcsInvoiced.length,
-    deltaE: deltaEntrepriseInvoiced, deltaEtc: totalInvoiced - azcsInvoicedTTC + d.report2025,
-    deltaNetPro: deltaInvoicedPro, deltaNetPerso: deltaInvoicedPerso
+    deltaE: deltaEntrepriseInvoiced, deltaEtc: totalInvoiced - azcsInvoicedTTC - bridgevaleEUR + d.report2025,
+    deltaNetPro: deltaInvoicedPro
   });
 
   html += recoTable('accrued', 'Réconciliation 2026 — Projection (accrued)', 'none', {
     rtlLabel: 'RTL total (Bairok)', rtlHT: totalFacture, rtlTTC: totalFacture, rtlCount: d.rtl.length,
     azcsLabel: 'Majalis → AZCS total (via Benoit)', azcsHT: azcsRecuAll, azcsTTC: azcsAllTTC, azcsCount: azcsAll.length,
-    deltaE: deltaEntrepriseAccrued, deltaEtc: totalFacture - azcsAllTTC + d.report2025,
-    deltaNetPro: deltaAccruedPro, deltaNetPerso: deltaAccruedPerso
+    deltaE: deltaEntrepriseAccrued, deltaEtc: totalFacture - azcsAllTTC - bridgevaleEUR + d.report2025,
+    deltaNetPro: deltaAccruedPro
   });
 
   // Factures RTL 2026
@@ -598,19 +595,19 @@ function renderAugustin2026(embedded) {
     const tjm = b26.tjm || 625;
     const tva = b26.tvaRate || 0.21;
     const tvaPctAz = Math.round(tva * 100);
-    const totalHTBadre = sum(b26.councils, 'htEUR');
-    const totalTTCBadre = Math.round(totalHTBadre * (1 + tva));
-    const paidBadre = b26.councils.filter(c => c.statut === 'ok');
-    const totalHTpaid = sum(paidBadre, 'htEUR');
-    let azcsHtml = `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
+    const totalHTBenoit = sum(b26.councils, 'htEUR');
+    const totalTTCBenoit = Math.round(totalHTBenoit * (1 + tva));
+    const paidBenoit = b26.councils.filter(c => c.statut === 'ok');
+    const totalHTpaid = sum(paidBenoit, 'htEUR');
+    let azcsHtml = `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBenoit.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
     azcsHtml += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
     b26.councils.forEach(c => {
       const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
       const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
       azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
     });
-    azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
-    html += collapsible('Facturation AZCS → Majalis (Benoit) — ' + fmtPlain(totalHTBadre) + '€ HT (' + fmtPlain(totalTTCBadre) + '€ TTC)', azcsHtml);
+    azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBenoit)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBenoit)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
+    html += collapsible('Facturation AZCS → Majalis (Benoit) — ' + fmtPlain(totalHTBenoit) + '€ HT (' + fmtPlain(totalTTCBenoit) + '€ TTC)', azcsHtml);
   }
 
   // Paiements Bridgevale (EUR direct à Augustin, hors Maroc)
@@ -621,7 +618,7 @@ function renderAugustin2026(embedded) {
       bvHtml += `<tr><td style="font-size:.72rem">${v.ref || ''}</td><td>${v.date}</td><td class="a">${fmtPlain(v.eur)}</td><td style="font-size:.72rem">${nickText(v.motif || '')}</td></tr>`;
     });
     bvHtml += `<tr class="tr"><td></td><td><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(bridgevaleEUR)}</strong></td><td></td></tr></tbody></table>`;
-    bvHtml += `<div class="n">Amine règle Azarkan <strong>en EUR via Bridgevale</strong> (société UK) car Azarkan refuse les paiements depuis Dubai (Bairok). Amine lui rend une part du CA RTL <strong>sans commission</strong>. Déduit directement de la position Pro (montant EUR, PAS converti au taux ${d.tauxMaroc}).</div>`;
+    bvHtml += `<div class="n">Amine règle Augustin <strong>en EUR via Bridgevale</strong> (société UK) car Augustin refuse les paiements depuis Dubai (Bairok). Amine lui rend une part du CA RTL <strong>sans commission</strong>. Déduit directement de la position Pro (montant EUR, PAS converti au taux ${d.tauxMaroc}).</div>`;
     html += collapsible('Paiements Bridgevale → Augustin (EUR) — ' + fmtPlain(bridgevaleEUR) + '€', bvHtml);
   }
 

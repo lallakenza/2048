@@ -274,12 +274,19 @@ function renderMesGains() {
     html += `<div class="n">Le 3 % Augustin (dispatch) n'est pas un gain Amine — exclu de ce tableau.</div></div>`;
   }
 
+  // Activity span in months — derived so it auto-updates instead of stale literals.
+  // 2025 is closed (Fév–Déc = 11) ; current-year & 'all' grow with the calendar.
+  const _now = new Date();
+  const monthsCur = _now.getFullYear() > 2026 ? 12 : (_now.getFullYear() === 2026 ? _now.getMonth() + 1 : 0);
+  const months2025 = 11;
+  const monthsAll = months2025 + monthsCur;
+
   // ===== INSIGHTS =====
   html += `<div class="s"><div class="st">Insights${gy ? ' — ' + gy : ''}</div>`;
 
   if (!gy) {
     // Insight 1: Year comparison (Tout only)
-    html += `<div class="insight pass"><div class="t">📊 2025 vs 2026 : ${fmtPlain(Math.round(gains2025))} DH vs ${fmtPlain(Math.round(gains2026))} DH</div><div class="d">2025 représente <strong>${(gains2025/grandTotal*100).toFixed(1)}%</strong> des gains (${Math.round(gains2025/11)} DH/mois sur 11 mois). 2026 a généré <strong>${fmtPlain(Math.round(gains2026))} DH</strong> en seulement 2 mois (${Math.round(gains2026/2)} DH/mois).</div></div>`;
+    html += `<div class="insight pass"><div class="t">📊 2025 vs 2026 : ${fmtPlain(Math.round(gains2025))} DH vs ${fmtPlain(Math.round(gains2026))} DH</div><div class="d">2025 représente <strong>${(gains2025/grandTotal*100).toFixed(1)}%</strong> des gains (${Math.round(gains2025/months2025)} DH/mois sur ${months2025} mois). 2026 a généré <strong>${fmtPlain(Math.round(gains2026))} DH</strong> en ${monthsCur} mois (${Math.round(gains2026/Math.max(monthsCur,1))} DH/mois).</div></div>`;
     // Insight 2: Spread comparison
     html += `<div class="insight pass"><div class="t">📈 Spread P2P : ${r2025 ? r2025.spread.toFixed(2).replace('.',',') + '% (2025)' : '—'} vs ${r2026 ? r2026.spread.toFixed(2).replace('.',',') + '% (2026)' : '—'}</div><div class="d">Taux effectif 2025 : <strong>${eff25.toFixed(3).replace('.',',')}</strong> MAD/€ (marché ${mkt25.toFixed(3).replace('.',',')}). Taux effectif 2026 : <strong>${eff26.toFixed(3).replace('.',',')}</strong> MAD/€ (marché ${mkt26.toFixed(3).replace('.',',')}).</div></div>`;
   }
@@ -316,9 +323,10 @@ function renderMesGains() {
   html += `<div class="insight"><div class="t">📊 Répartition ${gy || 'globale'}</div><div class="d">Augustin : <strong>${(fAz/refTotal*100).toFixed(1)}%</strong>${fYsq ? ` · Ycarré 8% : <strong>${(fYsq/refTotal*100).toFixed(1)}%</strong>` : ''} · Commission Benoit : <strong>${(fComm/refTotal*100).toFixed(1)}%</strong> · Écart taux : <strong>${(fFx/refTotal*100).toFixed(1)}%</strong> · P2P Benoit : <strong>${(fP2P/refTotal*100).toFixed(1)}%</strong>${fBob ? ` · Bob : <strong>${(fBob/refTotal*100).toFixed(1)}%</strong>` : ''}</div></div>`;
 
   // Monthly average
-  const months = gy === 2025 ? 11 : gy === 2026 ? 2 : 13;
+  const months = gy === 2025 ? months2025 : gy === 2026 ? Math.max(monthsCur, 1) : monthsAll;
   const monthlyAvg = filteredTotal / months;
-  html += `<div class="insight"><div class="t">📅 Moyenne : ${fmtPlain(Math.round(monthlyAvg))} DH/mois</div><div class="d">Sur ${months} mois d'activité${gy ? ' (' + gy + ')' : ' (Fév 2025 – Fév 2026)'}, soit ~${fmtPlain(Math.round(monthlyAvg / effEURMAD))} €/mois.</div></div>`;
+  const _spanLabel = gy ? ' (' + gy + ')' : ` (Fév 2025 – ${_now.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })})`;
+  html += `<div class="insight"><div class="t">📅 Moyenne : ${fmtPlain(Math.round(monthlyAvg))} DH/mois</div><div class="d">Sur ${months} mois d'activité${_spanLabel}, soit ~${fmtPlain(Math.round(monthlyAvg / effEURMAD))} €/mois.</div></div>`;
 
   html += `</div>`;
 

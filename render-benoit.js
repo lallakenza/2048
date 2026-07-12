@@ -66,7 +66,6 @@ function renderBenoitYear(dataKey, opts = {}) {
   const totalDHPaid = sum(paidTransactions, 'dh');
   const totalNetPaid = sum(paidTransactions, 'netBenoit');
   const totalCommPaid = sum(paidTransactions, 'commission');
-  const totalGainFXPaid = sum(paidTransactions, t => t.gainFX || 0);
 
   // Reconciliation
   const soldeDu = report + totalNetPaid;
@@ -174,7 +173,7 @@ function renderBenoitYear(dataKey, opts = {}) {
     let virementsHtml = `<table>
       <thead><tr><th>#</th><th data-sort="date">Date</th><th>Bénéficiaire</th><th data-sort="num" style="text-align:right">DH</th><th>Motif</th></tr></thead><tbody>`;
     d.virements.forEach((v, i) => {
-      virementsHtml += `<tr><td>${i+1}</td><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a">${fmtPlain(v.dh)}</td><td>${v.motif}</td></tr>`;
+      virementsHtml += `<tr><td>${i+1}</td><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a">${fmtPlain(v.dh)}</td><td>${nickText(v.motif || '')}</td></tr>`;
     });
     virementsHtml += `<tr class="tr"><td></td><td colspan="2"><strong>Total payé ${year}</strong></td><td class="a"><strong>${fmtPlain(totalPaye)}</strong></td><td></td></tr></tbody></table>`;
     html += collapsible(`Virements DH → Benoit ${year}`, virementsHtml);
