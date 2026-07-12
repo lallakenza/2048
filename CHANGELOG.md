@@ -9,6 +9,38 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.23` — 2026-07-12
+
+### Ordre des onglets Augustin aligné sur la reco + position globale tout en dirham
+
+**Onglets « détail » dans l'ordre du tableau de réconciliation.** Les sections
+dépliables de l'onglet Augustin 2026 suivent désormais l'ordre des lignes de la
+reco table au-dessus :
+
+1. Factures RTL 2026 — ① Position Entreprise (money in)
+2. Facturation AZCS → Majalis (Benoit) — ① (money out)
+3. Paiements Bridgevale → Augustin — ① (money out)
+4. Virements Maroc 2026 — ② Position Net
+5. Divers — Cash direct 2026 — ② Position Net
+
+Avant, l'ordre était RTL → Virements Maroc → Bridgevale → Divers → AZCS
+(incohérent avec la lecture du tableau). Aucun changement de contenu, juste
+l'ordre des blocs `collapsible()`.
+
+**Position globale estimée entièrement en dirham.** Le hero de l'onglet
+« Ma Position » abandonne le toggle Maroc/France : il affiche uniquement la
+position nette consolidée **en MAD** (+108 914 MAD), avec le bandeau de
+répartition Augustin / Benoit / Bob lui aussi tout en dirham. La somme reste
+native (Augustin ×tauxMaroc, Benoit + Bob en DH, sans conversion croisée). Le
+`combined.eur` reste calculé pour le bridge networth (juste plus affiché) ;
+`window.amPosMode` (toggle) supprimé. Les cartes par personne gardent leur
+devise native (Augustin €, Benoit/Bob DH).
+
+`render-augustin.js` (réordonnancement), `render-amine.js` (hero dirham-only),
+`index.html`. Bump v7.22 → v7.23.
+
+---
+
 ## `v7.22` — 2026-07-12
 
 ### Rebuild de l'onglet « Ma Position » + agrégation des flux Azarkan (on behalf)

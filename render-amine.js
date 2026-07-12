@@ -19,23 +19,6 @@
 //   load-bearing : ne change QUE la présentation entre les deux.
 // ============================================================
 
-// Toggle Maroc/France du hero "Position nette totale" (défini globalement car
-// le HTML est injecté via innerHTML → les <script> inline ne s'exécutent pas ;
-// on passe donc par un onclick qui appelle cette fonction globale).
-window.amPosMode = function (m) {
-  var mad = document.getElementById('posVarMad'), eur = document.getElementById('posVarEur');
-  var bm = document.getElementById('posBtnMad'), be = document.getElementById('posBtnEur');
-  if (!mad || !eur) return;
-  mad.style.display = m === 'mad' ? '' : 'none';
-  eur.style.display = m === 'eur' ? '' : 'none';
-  if (bm && be) {
-    bm.style.background = m === 'mad' ? 'var(--accent)' : 'transparent';
-    bm.style.color = m === 'mad' ? '#fff' : 'var(--muted)';
-    be.style.background = m === 'eur' ? 'var(--accent)' : 'transparent';
-    be.style.color = m === 'eur' ? '#fff' : 'var(--muted)';
-  }
-};
-
 function renderAmine() {
   let html = '';
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">Ma Position — Amine</h2>`;
@@ -144,33 +127,19 @@ function renderAmine() {
   const baLabel = baD.pos ? 'Benoit me doit' : 'Je dois à Benoit';
   const bobLabel = bobD.pos ? 'Bob me doit' : 'Je dois à Bob';
 
-  // ---- HERO : Position nette totale + toggle Maroc/France ----
+  // ---- HERO : Position nette totale — TOUT EN DIRHAM ----
+  // Position globale estimée entièrement en MAD (somme des 3 positions en dirham
+  // natif : Augustin ×tauxMaroc, Benoit + Bob en DH). Aucune conversion croisée.
   const madColor = combinedMAD >= 0 ? 'var(--green)' : 'var(--red)';
-  const eurColor = combinedEUR >= 0 ? 'var(--green)' : 'var(--red)';
-  const madSub = combinedMAD >= 0 ? 'net en ta faveur · si tout se règle en cash / Maroc' : 'je dois au total · si tout se règle en cash / Maroc';
-  const eurSub = combinedEUR >= 0 ? 'net en ta faveur · si Augustin est réglé en France (perso)' : 'je dois au total · si Augustin est réglé en France (perso)';
-  const brkItem = (name, val, color, suffix) => `<span>${name} <span style="color:${color};font-weight:700">${fmtSigned(Math.round(val), suffix)}</span></span>`;
-  const madBreak = brkItem('Augustin', azOwedMADTot, azD.color, 'MAD') + brkItem('Benoit', baOwedDH, baD.color, 'MAD') + brkItem('Bob', bobOwedDH, bobD.color, 'MAD');
-  const eurBreak = brkItem('Augustin', azOwedPersoTot, azD.color, '€') + brkItem('Benoit', baOwedEUR, baD.color, '€') + brkItem('Bob', bobOwedEUR, bobD.color, '€');
+  const madSub = combinedMAD >= 0 ? 'net en ta faveur · les 3 réunis' : 'je dois au total · les 3 réunis';
+  const brkItem = (name, val, color) => `<span>${name} <span style="color:${color};font-weight:700">${fmtSigned(Math.round(val), 'MAD')}</span></span>`;
+  const madBreak = brkItem('Augustin', azOwedMADTot, azD.color) + brkItem('Benoit', baOwedDH, baD.color) + brkItem('Bob', bobOwedDH, bobD.color);
 
   html += `<div style="margin-bottom:18px;padding:16px 18px;background:var(--surface2);border-radius:12px;border:1px solid var(--border)">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-      <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Position nette — Augustin, Benoit, Bob réunis</div>
-      <div style="display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:.7rem">
-        <button id="posBtnMad" onclick="amPosMode('mad')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;cursor:pointer;font-weight:600">Maroc · cash</button>
-        <button id="posBtnEur" onclick="amPosMode('eur')" style="border:none;background:transparent;color:var(--muted);padding:5px 12px;cursor:pointer;font-weight:600">France · EUR</button>
-      </div>
-    </div>
-    <div id="posVarMad">
-      <div style="font-size:2rem;font-weight:900;line-height:1.1;color:${madColor}">${fmtSigned(Math.round(combinedMAD), 'MAD')}</div>
-      <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${madSub}</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted)">${madBreak}</div>
-    </div>
-    <div id="posVarEur" style="display:none">
-      <div style="font-size:2rem;font-weight:900;line-height:1.1;color:${eurColor}">${fmtSigned(Math.round(combinedEUR))}</div>
-      <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${eurSub}</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted)">${eurBreak}</div>
-    </div>
+    <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Position globale estimée — Augustin, Benoit, Bob réunis</div>
+    <div style="font-size:2.1rem;font-weight:900;line-height:1.1;color:${madColor}">${fmtSigned(Math.round(combinedMAD), 'MAD')}</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${madSub}</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted)">${madBreak}</div>
   </div>`;
 
   // ---- 3 CARTES PERSONNES (poids égal) ----

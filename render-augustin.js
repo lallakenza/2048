@@ -590,17 +590,28 @@ function renderAugustin2026(embedded) {
   rtlTableHtml += `<tr class="tr"><td colspan="3"><strong>Total facturé HT</strong></td><td class="a"><strong>${fmtPlain(totalFacture)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
   html += collapsible('Factures RTL 2026 (HT — TVA 0% Bairok LLC / EAU)', rtlTableHtml);
 
-  // Virements Maroc
-  let virementsMarocHtml = `<table>
-    <thead><tr><th>#</th><th data-sort="date">Date</th><th>Bénéficiaire</th><th data-sort="num" style="text-align:right">DH</th><th data-sort="num" style="text-align:right">= EUR (÷${d.tauxMaroc})</th></tr></thead><tbody>`;
-  d.virementsMaroc.forEach((v, i) => {
-    virementsMarocHtml += `<tr><td>${i+1}</td><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a">${fmtPlain(v.dh)}</td><td class="a">${fmtPlain(v.dh / d.tauxMaroc)}</td></tr>`;
-  });
-  virementsMarocHtml += `<tr class="tr"><td></td><td colspan="2"><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(totalMAD)}</strong></td><td class="a"><strong>${fmtPlain(virementsProEUR)}</strong></td></tr></tbody></table>`;
-
-  virementsMarocHtml += `<div class="n"><strong>Règle :</strong> 1 000€ pro = ${(PERSO_FACTOR * 1000).toLocaleString('fr-FR')}€ perso = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD. Total : ${fmtPlain(totalMAD)} MAD = ${fmtPlain(virementsProEUR)}€ pro = ${fmtPlain(Math.round(virementsProEUR * PERSO_FACTOR))}€ perso.</div>`;
-
-  html += collapsible('Virements Maroc 2026', virementsMarocHtml);
+  // Facturation AZCS → Majalis (Benoit)
+  // ORDRE : les onglets suivent l'ordre du tableau de réconciliation ci-dessus.
+  //   ① Position Entreprise : RTL → AZCS/Majalis → Bridgevale
+  //   ② Position Net        : Virements Maroc → Divers
+  if (b26 && b26.councils) {
+    const tjm = b26.tjm || 625;
+    const tva = b26.tvaRate || 0.21;
+    const tvaPctAz = Math.round(tva * 100);
+    const totalHTBadre = sum(b26.councils, 'htEUR');
+    const totalTTCBadre = Math.round(totalHTBadre * (1 + tva));
+    const paidBadre = b26.councils.filter(c => c.statut === 'ok');
+    const totalHTpaid = sum(paidBadre, 'htEUR');
+    let azcsHtml = `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
+    azcsHtml += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
+    b26.councils.forEach(c => {
+      const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
+      const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
+      azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
+    });
+    azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
+    html += collapsible('Facturation AZCS → Majalis (Benoit) — ' + fmtPlain(totalHTBadre) + '€ HT (' + fmtPlain(totalTTCBadre) + '€ TTC)', azcsHtml);
+  }
 
   // Paiements Bridgevale (EUR direct à Augustin, hors Maroc)
   if (d.virementsBridgevale && d.virementsBridgevale.length) {
@@ -613,6 +624,18 @@ function renderAugustin2026(embedded) {
     bvHtml += `<div class="n">Amine règle Azarkan <strong>en EUR via Bridgevale</strong> (société UK) car Azarkan refuse les paiements depuis Dubai (Bairok). Amine lui rend une part du CA RTL <strong>sans commission</strong>. Déduit directement de la position Pro (montant EUR, PAS converti au taux ${d.tauxMaroc}).</div>`;
     html += collapsible('Paiements Bridgevale → Augustin (EUR) — ' + fmtPlain(bridgevaleEUR) + '€', bvHtml);
   }
+
+  // Virements Maroc
+  let virementsMarocHtml = `<table>
+    <thead><tr><th>#</th><th data-sort="date">Date</th><th>Bénéficiaire</th><th data-sort="num" style="text-align:right">DH</th><th data-sort="num" style="text-align:right">= EUR (÷${d.tauxMaroc})</th></tr></thead><tbody>`;
+  d.virementsMaroc.forEach((v, i) => {
+    virementsMarocHtml += `<tr><td>${i+1}</td><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a">${fmtPlain(v.dh)}</td><td class="a">${fmtPlain(v.dh / d.tauxMaroc)}</td></tr>`;
+  });
+  virementsMarocHtml += `<tr class="tr"><td></td><td colspan="2"><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(totalMAD)}</strong></td><td class="a"><strong>${fmtPlain(virementsProEUR)}</strong></td></tr></tbody></table>`;
+
+  virementsMarocHtml += `<div class="n"><strong>Règle :</strong> 1 000€ pro = ${(PERSO_FACTOR * 1000).toLocaleString('fr-FR')}€ perso = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD. Total : ${fmtPlain(totalMAD)} MAD = ${fmtPlain(virementsProEUR)}€ pro = ${fmtPlain(Math.round(virementsProEUR * PERSO_FACTOR))}€ perso.</div>`;
+
+  html += collapsible('Virements Maroc 2026', virementsMarocHtml);
 
   // Divers 2026 (cash direct) — avec Pro vs Perso
   if (d.divers && d.divers.length) {
@@ -635,26 +658,6 @@ function renderAugustin2026(embedded) {
     diversTable += `</tbody></table>`;
     diversTable += `<div class="n" style="margin-top:6px"><strong>Règle :</strong> Les montants sont en <strong>Perso</strong> (cash réel donné). Pro = Perso ÷ ${PERSO_FACTOR}. Donc 950€ perso = 1 000€ pro = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD.</div>`;
     html += collapsible('Divers — Cash direct 2026 (Pro vs Perso)', diversTable);
-  }
-
-  // Facturation AZCS → Majalis (Benoit)
-  if (b26 && b26.councils) {
-    const tjm = b26.tjm || 625;
-    const tva = b26.tvaRate || 0.21;
-    const tvaPctAz = Math.round(tva * 100);
-    const totalHTBadre = sum(b26.councils, 'htEUR');
-    const totalTTCBadre = Math.round(totalHTBadre * (1 + tva));
-    const paidBadre = b26.councils.filter(c => c.statut === 'ok');
-    const totalHTpaid = sum(paidBadre, 'htEUR');
-    let azcsHtml = `<div class="n" style="margin-bottom:8px">TJM ${tjm}€ HT + TVA ${tvaPctAz}%. ${paidBadre.length}/${b26.councils.length} factures payées (${fmtPlain(totalHTpaid)}€ HT reçus).</div>`;
-    azcsHtml += `<table><thead><tr><th>Ref</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">TTC (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
-    b26.councils.forEach(c => {
-      const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
-      const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
-      azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
-    });
-    azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBadre)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBadre)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
-    html += collapsible('Facturation AZCS → Majalis (Benoit) — ' + fmtPlain(totalHTBadre) + '€ HT (' + fmtPlain(totalTTCBadre) + '€ TTC)', azcsHtml);
   }
 
   // Insights 2026
