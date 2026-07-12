@@ -2,12 +2,13 @@
 // RENDER-AMINE.JS — Tableau de bord personnel Amine
 // Vue consolidée : combien je dois à chacun / on me doit
 //
-// LAYOUT (v7.22 rebuild):
-//   1. Position nette totale — hero + toggle Maroc(cash) / France(EUR)
-//      combinedMAD = Σ positions MAD ; combinedEUR = Σ positions EUR
-//   2. 3 cartes personnes (poids égal) : Augustin (chips Pro/Perso/Maroc),
-//      Benoit, Bob — chacune : position native + équivalent + direction
-//   3. Détail des calculs (collapsible) + historique virements Benoit
+// LAYOUT (v7.24):
+//   1. Position globale estimée — hero unique en DH (combinedMAD, sans toggle)
+//   2. 3 cartes personnes (poids égal) en DH : Augustin, Benoit, Bob —
+//      position DH + équivalent € + direction
+//   3. Diagramme "Flux par personne" (DH perso) : barres Reçu/Envoyé,
+//      bouton → vue Position (delta = Envoyé − Reçu). Toggle window.amFluxMode.
+//   4. Détail des calculs (collapsible)
 //
 // CONVENTIONS:
 //   azOwedPro/Perso/MAD = -posNet (positif = Augustin me doit)
@@ -18,6 +19,22 @@
 //   La logique de calcul (lignes ~30-110) et l'export (bas de fichier) sont
 //   load-bearing : ne change QUE la présentation entre les deux.
 // ============================================================
+
+// Toggle du diagramme "Flux par personne" : bascule entre la vue Reçu/Envoyé
+// et la vue Position (delta). Global car le HTML est injecté via innerHTML.
+window.amFluxMode = function (m) {
+  var f = document.getElementById('fluxVarFlux'), p = document.getElementById('fluxVarPos');
+  var bf = document.getElementById('fluxBtnFlux'), bp = document.getElementById('fluxBtnPos');
+  if (!f || !p) return;
+  f.style.display = m === 'flux' ? '' : 'none';
+  p.style.display = m === 'pos' ? '' : 'none';
+  if (bf && bp) {
+    bf.style.background = m === 'flux' ? 'var(--accent)' : 'transparent';
+    bf.style.color = m === 'flux' ? '#fff' : 'var(--muted)';
+    bp.style.background = m === 'pos' ? 'var(--accent)' : 'transparent';
+    bp.style.color = m === 'pos' ? '#fff' : 'var(--muted)';
+  }
+};
 
 function renderAmine() {
   let html = '';
@@ -143,22 +160,16 @@ function renderAmine() {
   </div>`;
 
   // ---- 3 CARTES PERSONNES (poids égal) ----
-  const chip = (txt) => `<span style="border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:.62rem;color:var(--muted);white-space:nowrap">${txt}</span>`;
-
   html += `<div style="font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Situation par personne</div>`;
   html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`;
 
-  // Augustin
+  // Augustin — position en DH (comme un virement Maroc, comme Benoit/Bob)
   html += `<div class="hero-card" style="border-color:${azD.color};text-align:left">
     <div class="hero-label">Augustin</div>
-    <div class="hero-value ${azD.cls}" style="font-size:1.35rem">${fmtSigned(Math.round(azOwedPersoTot))}</div>
+    <div class="hero-value ${azD.cls}" style="font-size:1.35rem">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
     <div class="hero-who" style="color:${azD.color}">${azLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedMADTot), 'MAD')} · prestations RTL − reversé</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px">
-      ${chip('Pro ' + fmtSigned(Math.round(azOwedProTot)))}
-      ${chip('Perso ' + fmtSigned(Math.round(azOwedPersoTot)))}
-      ${chip('Maroc ' + fmtSigned(Math.round(azOwedMADTot), 'MAD'))}
-    </div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedPersoTot))} perso · prestations RTL − reversé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azOwedProTot))} · Perso ${fmtSigned(Math.round(azOwedPersoTot))}</div>
   </div>`;
 
   // Benoit
@@ -180,6 +191,67 @@ function renderAmine() {
   </div>`;
 
   html += `</div>`;
+
+  // ---- DIAGRAMME : Flux par personne (reçu / envoyé) ⇄ Position (delta) ----
+  // Reçu  = prestation nette de la personne (après commission Amine), en DH perso.
+  // Envoyé = ce qu'Amine lui a versé / crédité sur son compte, en DH perso.
+  // Position (delta) = Envoyé − Reçu  → + = te doit (trop-versé) · − = tu lui dois.
+  // Réconcilie EXACTEMENT avec les positions canoniques (azOwedMADTot, baOwedDH, bobOwedDH).
+  const fluxRows = [
+    { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc) + bobCommAugDH, pos: Math.round(azOwedMADTot), color: azD.color },
+    { name: 'Benoit',   recu: badrePos.report25 + badrePos.netPaid26,              pos: Math.round(baOwedDH),     color: baD.color },
+    { name: 'Bob',      recu: bobPos.report + bobPos.netPaid,                       pos: Math.round(bobOwedDH),    color: bobD.color },
+  ].map(r => ({ ...r, envoye: r.recu + r.pos })); // envoyé = reçu + position (delta exact)
+  const fluxMax = Math.max(...fluxRows.map(r => Math.max(r.recu, r.envoye)), 1);
+  const posMax = Math.max(...fluxRows.map(r => Math.abs(r.pos)), 1);
+
+  const fluxBar = (tag, val, color) => {
+    const pct = Math.max(2, Math.round(val / fluxMax * 100));
+    return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0">
+      <span style="width:52px;font-size:.66rem;color:var(--muted);flex-shrink:0">${tag}</span>
+      <div style="flex:1;height:15px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:4px"></div></div>
+      <span style="width:82px;text-align:right;font-size:.68rem;font-variant-numeric:tabular-nums;flex-shrink:0">${fmtPlain(val)} DH</span>
+    </div>`;
+  };
+
+  let fluxInner = `<div style="display:flex;gap:16px;margin-bottom:10px;font-size:.64rem;color:var(--muted)">
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--green);vertical-align:middle;margin-right:4px"></span>Reçu (sa prestation, nette)</span>
+    <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#60a5fa;vertical-align:middle;margin-right:4px"></span>Envoyé (versé / crédité)</span>
+  </div>`;
+  fluxRows.forEach(r => {
+    fluxInner += `<div style="margin-bottom:12px">
+      <div style="font-size:.75rem;font-weight:700;margin-bottom:4px">${r.name}</div>
+      ${fluxBar('Reçu', r.recu, 'var(--green)')}
+      ${fluxBar('Envoyé', r.envoye, '#60a5fa')}
+    </div>`;
+  });
+
+  let posInner = `<div style="font-size:.64rem;color:var(--muted);margin-bottom:10px">Delta = Envoyé − Reçu · <span style="color:var(--green)">+ = te doit</span> · <span style="color:var(--red)">− = tu lui dois</span></div>`;
+  fluxRows.forEach(r => {
+    const isPos = r.pos >= 0;
+    const w = Math.max(2, Math.round(Math.abs(r.pos) / posMax * 48));
+    const barColor = isPos ? 'var(--green)' : 'var(--red)';
+    const lbl = isPos ? 'te doit' : 'tu lui dois';
+    posInner += `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px"><span style="font-weight:700">${r.name}</span><span style="color:${barColor};font-variant-numeric:tabular-nums">${fmtSigned(r.pos, 'DH')} · ${lbl}</span></div>
+      <div style="position:relative;height:15px;background:var(--bg);border-radius:4px">
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)"></div>
+        <div style="position:absolute;top:1px;bottom:1px;${isPos ? 'left:50%' : 'right:50%'};width:${w}%;background:${barColor};border-radius:3px"></div>
+      </div>
+    </div>`;
+  });
+
+  html += `<div style="margin-bottom:16px;padding:14px 16px;background:var(--surface2);border-radius:12px;border:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Flux par personne · DH perso (après commission)</div>
+      <div style="display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:.7rem">
+        <button id="fluxBtnFlux" onclick="amFluxMode('flux')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;cursor:pointer;font-weight:600">Reçu / Envoyé</button>
+        <button id="fluxBtnPos" onclick="amFluxMode('pos')" style="border:none;background:transparent;color:var(--muted);padding:5px 12px;cursor:pointer;font-weight:600">Position (delta)</button>
+      </div>
+    </div>
+    <div id="fluxVarFlux">${fluxInner}</div>
+    <div id="fluxVarPos" style="display:none">${posInner}</div>
+  </div>`;
 
   // ---- DÉTAIL DES CALCULS (collapsible) ----
   let detailHtml = '';
@@ -207,14 +279,6 @@ function renderAmine() {
   </div>`;
   detailHtml += `<div style="font-size:.65rem;color:var(--muted);padding:2px 4px">Taux : Augustin ${az.tauxMaroc} · Benoit ${tauxBadre} · Bob ${tauxBob}. Perso EUR = base cash ; MAD = somme native (sans conversion croisée).</div>`;
   html += collapsible('Détail des calculs par personne', detailHtml);
-
-  // ---- HISTORIQUE VIREMENTS BENOIT 2026 ----
-  html += `<div style="font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:6px;margin-top:20px;text-transform:uppercase;letter-spacing:.5px">Historique virements Benoit 2026</div>`;
-  html += `<table style="font-size:.8rem"><thead><tr><th>Date</th><th>Bénéficiaire</th><th style="text-align:right">Montant (DH)</th><th>Motif</th></tr></thead><tbody>`;
-  b26.virements.forEach(v => {
-    html += `<tr><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a" style="color:var(--green)">${fmtPlain(v.dh)}</td><td style="font-size:.72rem">${v.motif}</td></tr>`;
-  });
-  html += `<tr class="tr"><td colspan="2"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(badrePos.totalPaye26)} DH</strong></td><td></td></tr></tbody></table>`;
 
   // ── BRIDGE: Export positions to localStorage for networth dashboard ──
   // Both sites share lallakenza.github.io origin → same localStorage.

@@ -9,6 +9,36 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.24` — 2026-07-12
+
+### Ma Position : 3 positions en DH + diagramme Reçu/Envoyé ⇄ Position
+
+**Les 3 positions affichées en dirham.** La carte Augustin passe en DH comme
+Benoit et Bob (headline +231 847 DH, l'équivalent € en sous-ligne + chips
+Pro/Perso). « Comme si je faisais un virement au Maroc à chacun ». La table
+« Historique virements Benoit » est retirée de la page Ma Position (elle reste
+sur l'onglet Benoit).
+
+**Nouveau diagramme « Flux par personne » (DH perso, après commission).** Pour
+chaque personne, deux barres :
+
+- `Reçu` = sa prestation nette (councils/RTL après commission Amine)
+- `Envoyé` = ce qu'Amine lui a versé / crédité sur son compte
+
+Un bouton bascule vers la vue `Position (delta)` : une barre divergente par
+personne où `delta = Envoyé − Reçu` (+ = te doit, − = tu lui dois). Le delta
+réconcilie exactement avec les positions canoniques (Augustin +231 847,
+Benoit −134 734, Bob +11 801 DH). Barres HTML/CSS pures — aucune lib de
+graphe ajoutée. Toggle via `window.amFluxMode`.
+
+Décomposition : `Reçu` = ce que la personne a gagné ; `Envoyé` = tout ce
+qu'Amine a versé ou crédité sur son compte (pour Augustin : virements Maroc +
+Bridgevale + réceptions AZCS + divers) ; l'écart est la position.
+
+`render-amine.js`, `index.html`. Bump v7.23 → v7.24.
+
+---
+
 ## `v7.23` — 2026-07-12
 
 ### Ordre des onglets Augustin aligné sur la reco + position globale tout en dirham
