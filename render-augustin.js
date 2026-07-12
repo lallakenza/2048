@@ -307,28 +307,29 @@ function renderAugustin2026(embedded) {
   // =====================================================
 
   // Position Entreprise
-  const deltaEntreprisePaid = rtlPaidHT - azcsRecuPaid + d.report2025;
-  const deltaEntreprisePaidTTC = rtlPaidTTC - azcsPaidTTC + d.report2025;
+  // Position Entreprise = ce qu'AZCS aurait dû recevoir (RTL) − ce qu'AZCS a
+  // vraiment reçu (Majalis via Badre + Bridgevale) + report. On traque la
+  // position d'AZCS (société d'Azarkan), pas celle de Bairok.
+  const deltaEntreprisePaid = rtlPaidHT - azcsRecuPaid - bridgevaleEUR + d.report2025;
+  const deltaEntreprisePaidTTC = rtlPaidTTC - azcsPaidTTC - bridgevaleEUR + d.report2025;
 
-  // Position Net PRO = entreprise − virements_pro − divers_pro − paiements Bridgevale
-  const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro - bridgevaleEUR;
-  // Position Net PERSO = base convertible × 0.95, PUIS Bridgevale retranché à pleine
-  // valeur (paiement PRO B2B → société AZCS, PAS soumis à la commission 5%).
-  const deltaNetPerso = (deltaNetPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
-  // Commission Amine (5% sur la base convertible, hors Bridgevale)
-  const commissionAmine = Math.round((deltaNetPro + bridgevaleEUR) * (1 - PERSO_FACTOR) * 100) / 100;
+  // Position Net PRO = Entreprise − virements Maroc − divers (le delta réglé en
+  // perso). Bridgevale est DANS l'Entreprise (paiement B2B à AZCS), pas ici.
+  const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro;
+  const deltaNetPerso = deltaNetPro * PERSO_FACTOR; // le delta se règle en perso au deal ×0.95
+  const commissionAmine = Math.round((deltaNetPro - deltaNetPerso) * 100) / 100;
 
   // Invoiced
   const invoicedRTL = d.rtl.filter(r => r.ref !== '—');
   const totalInvoiced = sum(invoicedRTL, 'montant');
-  const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced + d.report2025;
-  const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro - bridgevaleEUR;
-  const deltaInvoicedPerso = (deltaInvoicedPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
+  const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced - bridgevaleEUR + d.report2025;
+  const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro;
+  const deltaInvoicedPerso = deltaInvoicedPro * PERSO_FACTOR;
 
   // Accrued
-  const deltaEntrepriseAccrued = totalFacture - azcsRecuAll + d.report2025;
-  const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro - bridgevaleEUR;
-  const deltaAccruedPerso = (deltaAccruedPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
+  const deltaEntrepriseAccrued = totalFacture - azcsRecuAll - bridgevaleEUR + d.report2025;
+  const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro;
+  const deltaAccruedPerso = deltaAccruedPro * PERSO_FACTOR;
 
   let html = embedded ? '' : yearToggle3('Az', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
@@ -342,7 +343,7 @@ function renderAugustin2026(embedded) {
   const heroColor = deltaNetPro >= 0 ? 'var(--green)' : 'var(--red)';
   const heroCls = deltaNetPro >= 0 ? 'green' : 'red';
 
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL − Majalis→AZCS + Report) · <strong>${whoOwes}</strong></div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise (AZCS) : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL dû à AZCS − reçu : Majalis${bridgevaleEUR ? ' + Bridgevale' : ''} + Report) · <strong>${whoOwes}</strong></div>`;
   html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (pro)</div>
@@ -369,6 +370,7 @@ function renderAugustin2026(embedded) {
   html += `<div class="summary-row" style="margin-bottom:8px">
     <div class="summary-item"><div class="sl">RTL reçu (Bairok)</div><div class="sv" style="color:var(--green)">${fmtPlain(rtlPaidHT)} €</div><div class="sd">HT = TTC (TVA 0%)</div></div>
     <div class="summary-item"><div class="sl">Majalis → AZCS (via Benoit)</div><div class="sv" style="color:var(--blue,#60a5fa)">${fmtPlain(azcsRecuPaid)} €</div><div class="sd">TTC : ${fmtPlain(azcsPaidTTC)}€ (21% TVA)</div></div>
+    ${bridgevaleEUR ? `<div class="summary-item"><div class="sl">Bridgevale → AZCS</div><div class="sv" style="color:var(--blue,#60a5fa)">${fmtPlain(bridgevaleEUR)} €</div><div class="sd">EUR B2B · TVA 0% (export)</div></div>` : ''}
     <div class="summary-item"><div class="sl">Report 2025</div><div class="sv" style="color:var(--red)">${fmtSigned(d.report2025)}</div><div class="sd">Solde clôture 2025</div></div>
     <div class="summary-item"><div class="sl">En attente RTL</div><div class="sv" style="color:var(--yellow)">${fmtPlain(totalPending)} €</div><div class="sd">Pas encore payé</div></div>
   </div>`;
@@ -429,6 +431,16 @@ function renderAugustin2026(embedded) {
       <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(azcsHT * PF), '')}</td>
       <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(azcsHT * TX), '')}</td>
       <td style="font-size:.72rem">${azcsCount} facture(s) · TVA 21%</td></tr>`;
+    // Bridgevale = argent reçu par AZCS via Bridgevale (B2B EUR, export) → money OUT
+    if (bridgevaleEUR > 0) {
+      t += `<tr>
+        <td>Bridgevale → AZCS payé</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
+        <td class="a">${pill(fmtSigned(-Math.round(bridgevaleEUR), ''), 'pro')}</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR * PF), '')}</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR * TX), '')}</td>
+        <td style="font-size:.72rem">Payé en EUR à la société AZCS · TVA 0% (export)</td></tr>`;
+    }
     // Report = carried forward (already signed correctly)
     t += `<tr>
       <td>Report 2025</td>
@@ -471,16 +483,6 @@ function renderAugustin2026(embedded) {
       <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-virementsPerso, '')}</td>
       <td class="a">${pill(fmtSigned(-totalMAD, ''), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
-    // Paiements Bridgevale (EUR direct à Augustin, hors Maroc) = money OUT → negative
-    if (bridgevaleEUR > 0) {
-      t += `<tr>
-        <td>Paiements Bridgevale (EUR) <span style="color:var(--muted);font-size:.68rem">· PRO</span></td>
-        <td class="a" style="color:var(--muted)">—</td>
-        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
-        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
-        <td class="a">${pill(fmtSigned(-Math.round(bridgevaleEUR * TX), ''), 'mad')}</td>
-        <td style="font-size:.72rem">Paiement PRO (société AZCS) · pleine valeur, sans commission ×0.95</td></tr>`;
-    }
 
     // Divers itemized — negate for additive display: positive data (money to Augustin) → negative display
     diversItems.forEach(x => {

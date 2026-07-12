@@ -108,6 +108,7 @@ function renderBob2026() {
       : '';
     councilsTableHtml += `<tr>${refCell}<td>${t.mois || t.date || ''}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td>${privCells1}<td class="a">${fmtPlain(t.dh)}</td>${privCells2}<td class="a">${fmtPlain(t.commA + t.commM)}</td><td class="a">${fmtPlain(t.netBob)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
   });
+  councilsTableHtml += `<tr class="tr">${hasRef ? '<td></td>' : ''}<td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'htEUR'))}</strong></td><td></td>${window.PRIV ? '<td></td><td></td>' : ''}<td class="a"><strong>${fmtPlain(sum(transactions, 'dh'))}</strong></td>${window.PRIV ? `<td class="a" style="color:var(--green)"><strong>${fmtSigned(sum(transactions, t => t.gainFX || 0), '')}</strong></td>` : ''}<td class="a"><strong>${fmtPlain(sum(transactions, t => t.commA + t.commM))}</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'netBob'))}</strong></td><td></td></tr>`;
   councilsTableHtml += `</tbody></table>`;
   const tableTitle = window.PRIV
     ? `Paiements Councils ${year} — convertis en DH (taux appliqué vs marché)`

@@ -9,6 +9,41 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.21` — 2026-07-12
+
+### Bridgevale reclassé dans la Position Entreprise (AZCS) + ligne Total sur toutes les tables
+
+**Bridgevale → Position Entreprise.** Correction de sémantique (règle d'Amine :
+« on traque la position d'**AZCS** — ce qu'elle aurait dû recevoir de RTL vs ce
+qu'elle a réellement encaissé »). Le paiement Bridgevale est un encaissement B2B
+**à la société AZCS** → il appartient à la **Position Entreprise**, pas à la
+Position Net (qui, elle, ne porte que les règlements perso).
+
+- Avant (v7.20) : Bridgevale déduit dans la Position **Net** (avec un
+  traitement ×0,95 spécial qui laissait la ligne de réco incohérente avec le total).
+- Après : `posEntreprise = RTL payé − AZCS reçu (Majalis) − **Bridgevale** + report`.
+  Puis `posNetPro = posEntreprise − virements Maroc − divers` et
+  `posNetPerso = posNetPro × 0,95` (uniforme, plus de cas spécial).
+- Effet : **Position Entreprise 4 104,5 → 1 704,5 €** (56 100 − 50 312,5 − 2 400
+  − 1 683). Position Net Pro **−22 709 €** et Perso **−21 573 €** inchangées
+  (le ×0,95 redevient uniforme). La ligne « Bridgevale → AZCS payé » passe de la
+  section ② Position Net à la section ① Position Entreprise dans les 3 tables de
+  réconciliation (payé / facturé / accru).
+
+**Ligne de total sur toutes les tables.** Audit de toutes les tables des
+renderers : ajout d'une ligne `Total` en pied de tableau là où elle manquait.
+
+- `render-benoit.js` : tables Councils (PRIV + non-PRIV) — le total n'était rendu
+  que pour l'année clôturée ; il l'est désormais aussi pour l'année en cours, avec
+  cellules d'en-tête `#`/`Ref` correctement alignées.
+- `render-bob.js` : table Councils Bob — ajout du total (HT €, = DH, Gain FX,
+  Commission, Net Bob).
+
+`render-amine.js`, `render-augustin.js`, `render-benoit.js`, `render-bob.js`,
+`verify.js`, `index.html`. Bump v7.20 → v7.21.
+
+---
+
 ## `v7.20` — 2026-06-19
 
 ### Paiements Bridgevale traités comme PRO pur (pleine valeur, sans ×0,95)

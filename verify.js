@@ -113,9 +113,13 @@ const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
 check('RTL paid 2026', amineRecu26, 56100); // INVRTL013+014+015+016 payés (016 payée 10/06)
 
-// Position Entreprise (paid) = RTL paid - Majalis→AZCS paid + report2025
-const posEntreprise = amineRecu26 - azcsRecuPaid26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 4104.5); // 56100 RTL − 50312.5 AZCS − 1683 report
+// Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
+const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
+check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
+
+// Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
+const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
+check('Position Entreprise (paid)', posEntreprise, 1704.5); // 56100 − 50312.5 AZCS − 2400 Bridgevale − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
@@ -134,19 +138,13 @@ const diversPerso26 = az26.divers.reduce((s, x) => {
 }, 0);
 check('Divers Perso 2026', diversPerso26, 5600);
 
-// Paiements Bridgevale (EUR direct à Azarkan, hors Maroc)
-const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
-check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
+// Position Net PRO (paid) = Entreprise − virements Maroc − divers (Bridgevale déjà dans l'Entreprise)
+const posNetPro = posEntreprise - totalEUR26 - diversPro26;
+check('Position Net Pro (paid)', Math.round(posNetPro), Math.round(posEntreprise - totalEUR26 - diversPro26));
 
-// Position Net PRO (paid)
-const posNetPro = posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26;
-check('Position Net Pro (paid)', Math.round(posNetPro), Math.round(posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26));
-
-// Position Net PERSO = base convertible × 0.95, PUIS Bridgevale retranché à pleine
-// valeur (paiement PRO B2B, hors commission 5%).
-const posBasePro = posNetPro + bridgevaleEUR26;
-const posNetPerso = posBasePro * PERSO_FACTOR - bridgevaleEUR26;
-check('Position Net Perso', Math.round(posNetPerso), Math.round(posBasePro * PERSO_FACTOR - bridgevaleEUR26));
+// Position Net PERSO = Pro × 0.95 (le delta se règle en perso au deal)
+const posNetPerso = posNetPro * PERSO_FACTOR;
+check('Position Net Perso (Pro×0.95)', Math.round(posNetPerso), Math.round(posNetPro * PERSO_FACTOR));
 
 // Position Maroc = Pro × tauxMaroc
 const posNetMaroc = posNetPro * az26.tauxMaroc;
@@ -154,7 +152,7 @@ check('Position Maroc (MAD)', Math.round(posNetMaroc), Math.round(posNetPro * az
 
 // 3 positions are equivalent (taux fixes sur PRO)
 console.log('\n=== EQUIVALENCE DES POSITIONS ===');
-check('Perso = base×0.95 − Bridgevale (pro sans commission)', Math.round(posNetPerso), Math.round(posBasePro * PERSO_FACTOR - bridgevaleEUR26));
+check('Perso = Pro × 0.95', Math.round(posNetPerso), Math.round(posNetPro * PERSO_FACTOR));
 check('MAD = Pro × tauxMaroc', Math.round(posNetMaroc), Math.round(posNetPro * az26.tauxMaroc));
 check('1000€ pro = 950€ perso = 10.26k MAD', Math.round(1000 * PERSO_FACTOR), 950);
 

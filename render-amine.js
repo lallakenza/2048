@@ -55,15 +55,14 @@ function renderAmine() {
   }, 0) : 0;
 
   // Positions Augustin
-  const posEntreprise = rtlPaidHT - azcsRecuPaid + az.report2025;
-  const posNetPro = posEntreprise - virementsEUR - diversPro - bridgevaleEUR;
-  // Bridgevale = paiement PRO (B2B → société AZCS) : pleine valeur, SANS commission.
-  // Il n'est donc PAS soumis au ×0.95 de la vue Perso. Le ×0.95 s'applique à la
-  // base convertible (Entreprise − virements − divers), puis on retranche
-  // Bridgevale à pleine valeur.
-  const posNetPerso = (posNetPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
-  const posNetMAD = posNetPro * az.tauxMaroc; // Bridgevale à ×tauxMaroc = Pro→MAD (ok)
-  const commissionAmine = Math.round((posNetPro + bridgevaleEUR) * (1 - PERSO_FACTOR) * 100) / 100;
+  // Position Entreprise = ce qu'AZCS aurait dû recevoir (RTL) − ce qu'AZCS a
+  // reçu (Majalis via Badre + Bridgevale) + report. Bridgevale est un paiement
+  // B2B à la société AZCS → dans l'Entreprise, pas dans le Net.
+  const posEntreprise = rtlPaidHT - azcsRecuPaid - bridgevaleEUR + az.report2025;
+  const posNetPro = posEntreprise - virementsEUR - diversPro;
+  const posNetPerso = posNetPro * PERSO_FACTOR; // le delta se règle en perso au deal ×0.95
+  const posNetMAD = posNetPro * az.tauxMaroc;
+  const commissionAmine = Math.round(posNetPro * (1 - PERSO_FACTOR) * 100) / 100;
 
   // From Amine's perspective: negative delta = Augustin owes Amine
   // posNetPro = -17169 → Augustin doit 17169€ → Amine receivable
@@ -147,9 +146,9 @@ function renderAmine() {
 
   // Augustin breakdown
   html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
-    <strong>Détail :</strong> Pos. Entreprise = ${fmtSigned(posEntreprise)} (RTL ${fmtPlain(rtlPaidHT)} − AZCS ${fmtPlain(azcsRecuPaid)} + Report ${fmtSigned(az.report2025)}).
+    <strong>Détail :</strong> Pos. Entreprise = ${fmtSigned(posEntreprise)} (RTL ${fmtPlain(rtlPaidHT)} − AZCS ${fmtPlain(azcsRecuPaid)}${bridgevaleEUR ? ` − Bridgevale ${fmtPlain(Math.round(bridgevaleEUR))}` : ''} + Report ${fmtSigned(az.report2025)}).
     Maroc = ${fmtPlain(Math.round(virementsEUR))}€ pro (${fmtPlain(totalMAD_az)} MAD).
-    Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).${bridgevaleEUR ? ` Bridgevale = ${fmtPlain(Math.round(bridgevaleEUR))}€ (EUR direct, hors Maroc).` : ''}
+    Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).
     <strong>Net Pro = ${fmtSigned(Math.round(posNetPro))} · Perso = Pro × ${PERSO_FACTOR} = ${fmtSigned(Math.round(posNetPerso))} · MAD = Pro × ${az.tauxMaroc} = ${fmtSigned(Math.round(posNetMAD), 'MAD')}</strong>
   </div>`;
   if (bobCommAugDH > 0) {
