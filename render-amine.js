@@ -159,44 +159,12 @@ function renderAmine() {
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted)">${madBreak}</div>
   </div>`;
 
-  // ---- 3 CARTES PERSONNES (poids égal) ----
-  html += `<div style="font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Situation par personne</div>`;
-  html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`;
-
-  // Augustin — position en DH (comme un virement Maroc, comme Benoit/Bob)
-  html += `<div class="hero-card" style="border-color:${azD.color};text-align:left">
-    <div class="hero-label">Augustin</div>
-    <div class="hero-value ${azD.cls}" style="font-size:1.35rem">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
-    <div class="hero-who" style="color:${azD.color}">${azLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedPersoTot))} perso · prestations RTL − reversé</div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azOwedProTot))} · Perso ${fmtSigned(Math.round(azOwedPersoTot))}</div>
-  </div>`;
-
-  // Benoit
-  html += `<div class="hero-card" style="border-color:${baD.color};text-align:left">
-    <div class="hero-label">Benoit</div>
-    <div class="hero-value ${baD.cls}" style="font-size:1.35rem">${fmtSigned(-soldeBadre, 'DH')}</div>
-    <div class="hero-who" style="color:${baD.color}">${baLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(baOwedEUR))} · councils AZCS − payé</div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${paidCouncils26.length} councils payés · report 2025 inclus</div>
-  </div>`;
-
-  // Bob
-  html += `<div class="hero-card" style="border-color:${bobD.color};text-align:left">
-    <div class="hero-label">Bob</div>
-    <div class="hero-value ${bobD.cls}" style="font-size:1.35rem">${fmtSigned(bobOwedDH, 'DH')}</div>
-    <div class="hero-who" style="color:${bobD.color}">${bobLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(bobOwedEUR))} · councils − trop-versé</div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${bobPos.paidCount} council(s) payé(s) · dispatch via Azarkan</div>
-  </div>`;
-
-  html += `</div>`;
-
   // ---- DIAGRAMME : Flux par personne (reçu / envoyé) ⇄ Position (delta) ----
   // Reçu  = prestation nette de la personne (après commission Amine), en DH perso.
   // Envoyé = ce qu'Amine lui a versé / crédité sur son compte, en DH perso.
   // Position (delta) = Envoyé − Reçu  → + = te doit (trop-versé) · − = tu lui dois.
   // Réconcilie EXACTEMENT avec les positions canoniques (azOwedMADTot, baOwedDH, bobOwedDH).
+  // Placé AVANT les cartes ; vue par défaut = Position (delta).
   const fluxRows = [
     { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc) + bobCommAugDH, pos: Math.round(azOwedMADTot), color: azD.color },
     { name: 'Benoit',   recu: badrePos.report25 + badrePos.netPaid26,              pos: Math.round(baOwedDH),     color: baD.color },
@@ -245,13 +213,46 @@ function renderAmine() {
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
       <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Flux par personne · DH perso (après commission)</div>
       <div style="display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:.7rem">
-        <button id="fluxBtnFlux" onclick="amFluxMode('flux')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;cursor:pointer;font-weight:600">Reçu / Envoyé</button>
-        <button id="fluxBtnPos" onclick="amFluxMode('pos')" style="border:none;background:transparent;color:var(--muted);padding:5px 12px;cursor:pointer;font-weight:600">Position (delta)</button>
+        <button id="fluxBtnFlux" onclick="amFluxMode('flux')" style="border:none;background:transparent;color:var(--muted);padding:5px 12px;cursor:pointer;font-weight:600">Reçu / Envoyé</button>
+        <button id="fluxBtnPos" onclick="amFluxMode('pos')" style="border:none;background:var(--accent);color:#fff;padding:5px 12px;cursor:pointer;font-weight:600">Position (delta)</button>
       </div>
     </div>
-    <div id="fluxVarFlux">${fluxInner}</div>
-    <div id="fluxVarPos" style="display:none">${posInner}</div>
+    <div id="fluxVarFlux" style="display:none">${fluxInner}</div>
+    <div id="fluxVarPos">${posInner}</div>
   </div>`;
+
+  // ---- 3 CARTES PERSONNES (poids égal) ----
+  html += `<div style="font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Situation par personne</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`;
+
+  // Augustin — position en DH (comme un virement Maroc, comme Benoit/Bob)
+  html += `<div class="hero-card" style="border-color:${azD.color};text-align:left">
+    <div class="hero-label">Augustin</div>
+    <div class="hero-value ${azD.cls}" style="font-size:1.35rem">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
+    <div class="hero-who" style="color:${azD.color}">${azLabel}</div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedPersoTot))} perso · prestations RTL − reversé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azOwedProTot))} · Perso ${fmtSigned(Math.round(azOwedPersoTot))}</div>
+  </div>`;
+
+  // Benoit
+  html += `<div class="hero-card" style="border-color:${baD.color};text-align:left">
+    <div class="hero-label">Benoit</div>
+    <div class="hero-value ${baD.cls}" style="font-size:1.35rem">${fmtSigned(-soldeBadre, 'DH')}</div>
+    <div class="hero-who" style="color:${baD.color}">${baLabel}</div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(baOwedEUR))} · councils AZCS − payé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${paidCouncils26.length} councils payés · report 2025 inclus</div>
+  </div>`;
+
+  // Bob
+  html += `<div class="hero-card" style="border-color:${bobD.color};text-align:left">
+    <div class="hero-label">Bob</div>
+    <div class="hero-value ${bobD.cls}" style="font-size:1.35rem">${fmtSigned(bobOwedDH, 'DH')}</div>
+    <div class="hero-who" style="color:${bobD.color}">${bobLabel}</div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(bobOwedEUR))} · councils − trop-versé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${bobPos.paidCount} council(s) payé(s) · dispatch via Azarkan</div>
+  </div>`;
+
+  html += `</div>`;
 
   // ---- DÉTAIL DES CALCULS (collapsible) ----
   let detailHtml = '';

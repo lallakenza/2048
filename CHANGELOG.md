@@ -9,6 +9,22 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.25` — 2026-07-12
+
+### Ma Position : diagramme au-dessus des cartes + vue Position par défaut
+
+Deux ajustements du diagramme « Flux par personne » :
+
+- Il est désormais placé **avant** les cartes « Situation par personne »
+  (juste sous le hero de position globale).
+- La **vue Position (delta)** est celle par défaut (au lieu de Reçu / Envoyé) :
+  on voit d'abord la position divergente de chacun, le bouton bascule vers le
+  détail Reçu / Envoyé.
+
+Aucun changement de calcul. `render-amine.js`, `index.html`. Bump v7.24 → v7.25.
+
+---
+
 ## `v7.24` — 2026-07-12
 
 ### Ma Position : 3 positions en DH + diagramme Reçu/Envoyé ⇄ Position
