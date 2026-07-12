@@ -138,8 +138,12 @@ function renderAmine() {
   const combinedMAD = azOwedMADTot + baOwedDH + bobOwedDH;
 
   // Direction/couleur par personne (basé sur la position TOTALE, incl. dispatch)
-  const dir = (v) => ({ pos: v >= 0, color: v >= 0 ? 'var(--green)' : 'var(--red)', cls: v >= 0 ? 'green' : 'red' });
-  const azD = dir(azOwedPersoTot), baD = dir(baOwedDH), bobD = dir(bobOwedDH);
+  // Code couleur par ÉQUILIBRE : |valeur| en MAD, indépendant du sens (te doit / tu dois).
+  //   ≤ 50k = vert (équilibré) · 50–100k = orange · > 100k = rouge.
+  // Objectif : ramener chaque position ET le total vers 0 (pas de dettes).
+  const balColor = (v) => { const a = Math.abs(v); return a <= 50000 ? 'var(--green)' : a <= 100000 ? '#f59e0b' : 'var(--red)'; };
+  const dir = (v) => ({ pos: v >= 0, color: balColor(v) });
+  const azD = dir(Math.round(azOwedMADTot)), baD = dir(baOwedDH), bobD = dir(bobOwedDH);
   const azLabel = azD.pos ? 'Augustin me doit' : 'Je dois à Augustin';
   const baLabel = baD.pos ? 'Benoit me doit' : 'Je dois à Benoit';
   const bobLabel = bobD.pos ? 'Bob me doit' : 'Je dois à Bob';
@@ -147,7 +151,7 @@ function renderAmine() {
   // ---- HERO : Position nette totale — TOUT EN DIRHAM ----
   // Position globale estimée entièrement en MAD (somme des 3 positions en dirham
   // natif : Augustin ×tauxMaroc, Benoit + Bob en DH). Aucune conversion croisée.
-  const madColor = combinedMAD >= 0 ? 'var(--green)' : 'var(--red)';
+  const madColor = balColor(combinedMAD);
   const madSub = combinedMAD >= 0 ? 'net en ta faveur · les 3 réunis' : 'je dois au total · les 3 réunis';
   const brkItem = (name, val, color) => `<span>${name} <span style="color:${color};font-weight:700">${fmtSigned(Math.round(val), 'MAD')}</span></span>`;
   const madBreak = brkItem('Augustin', azOwedMADTot, azD.color) + brkItem('Benoit', baOwedDH, baD.color) + brkItem('Bob', bobOwedDH, bobD.color);
@@ -198,7 +202,7 @@ function renderAmine() {
   fluxRows.forEach(r => {
     const isPos = r.pos >= 0;
     const w = Math.max(2, Math.round(Math.abs(r.pos) / posMax * 48));
-    const barColor = isPos ? 'var(--green)' : 'var(--red)';
+    const barColor = balColor(r.pos);
     const lbl = isPos ? 'te doit' : 'tu lui dois';
     // Bulle au survol : détail reçu / envoyé de la personne (données déjà calculées).
     const tip = `<div class="flux-tip" style="display:none;position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.66rem;white-space:nowrap;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none"><span style="color:var(--green);font-weight:700">Reçu ${fmtPlain(r.recu)} DH</span> · <span style="color:#60a5fa;font-weight:700">Envoyé ${fmtPlain(r.envoye)} DH</span></div>`;
@@ -231,7 +235,7 @@ function renderAmine() {
   // Augustin — position en DH (comme un virement Maroc, comme Benoit/Bob)
   html += `<div class="hero-card" style="border-color:${azD.color};text-align:left">
     <div class="hero-label">Augustin</div>
-    <div class="hero-value ${azD.cls}" style="font-size:1.35rem">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
+    <div class="hero-value" style="font-size:1.35rem;color:${azD.color}">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
     <div class="hero-who" style="color:${azD.color}">${azLabel}</div>
     <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedPersoTot))} perso · prestations RTL − reversé</div>
     <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azOwedProTot))} · Perso ${fmtSigned(Math.round(azOwedPersoTot))}</div>
@@ -240,7 +244,7 @@ function renderAmine() {
   // Benoit
   html += `<div class="hero-card" style="border-color:${baD.color};text-align:left">
     <div class="hero-label">Benoit</div>
-    <div class="hero-value ${baD.cls}" style="font-size:1.35rem">${fmtSigned(-soldeBadre, 'DH')}</div>
+    <div class="hero-value" style="font-size:1.35rem;color:${baD.color}">${fmtSigned(-soldeBadre, 'DH')}</div>
     <div class="hero-who" style="color:${baD.color}">${baLabel}</div>
     <div class="hero-detail">≈ ${fmtSigned(Math.round(baOwedEUR))} · councils AZCS − payé</div>
     <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${paidCouncils26.length} councils payés · report 2025 inclus</div>
@@ -249,7 +253,7 @@ function renderAmine() {
   // Bob
   html += `<div class="hero-card" style="border-color:${bobD.color};text-align:left">
     <div class="hero-label">Bob</div>
-    <div class="hero-value ${bobD.cls}" style="font-size:1.35rem">${fmtSigned(bobOwedDH, 'DH')}</div>
+    <div class="hero-value" style="font-size:1.35rem;color:${bobD.color}">${fmtSigned(bobOwedDH, 'DH')}</div>
     <div class="hero-who" style="color:${bobD.color}">${bobLabel}</div>
     <div class="hero-detail">≈ ${fmtSigned(Math.round(bobOwedEUR))} · councils − trop-versé</div>
     <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${bobPos.paidCount} council(s) payé(s) · dispatch via Azarkan</div>

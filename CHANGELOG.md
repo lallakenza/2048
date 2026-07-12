@@ -9,6 +9,28 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.27` — 2026-07-12
+
+### Ma Position : code couleur par équilibre (|delta| en MAD)
+
+Les couleurs ne suivent plus le sens (te doit / tu dois) mais l'**écart à
+l'équilibre** — objectif : ramener chaque position et le total vers 0 (pas de
+dettes) :
+
+- `|valeur| ≤ 50 000 MAD` → **vert** (équilibré)
+- `50 000 < |valeur| ≤ 100 000` → **orange** (`#f59e0b`)
+- `|valeur| > 100 000` → **rouge**
+
+Appliqué de façon cohérente : barres de la vue Position (delta), cartes par
+personne (bordure + montant + libellé) et **position globale** du hero. Le sens
+(gauche/droite, « te doit » / « tu lui dois ») reste indiqué par la direction de
+la barre et le libellé. État actuel : Augustin +231 847 et Benoit −134 734 en
+rouge, Bob +11 801 en vert, total +108 914 en rouge.
+
+`render-amine.js`, `index.html`. Bump v7.26 → v7.27.
+
+---
+
 ## `v7.26` — 2026-07-12
 
 ### Ma Position : hero centré + barres delta interactives (survol reçu/envoyé)
