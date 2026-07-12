@@ -274,6 +274,8 @@ function renderAugustin2026(embedded) {
   // --- Virements Maroc ---
   const totalMAD = sum(d.virementsMaroc, 'dh');
   const virementsProEUR = totalMAD / d.tauxMaroc;
+  // Paiements à Azarkan via Bridgevale (EUR direct, hors Maroc — nouveau canal)
+  const bridgevaleEUR = sum(d.virementsBridgevale || [], 'eur');
 
   // --- Divers : montant = PERSO (cash réel donné). Pro = montant / PERSO_FACTOR ---
   // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
@@ -308,8 +310,8 @@ function renderAugustin2026(embedded) {
   const deltaEntreprisePaid = rtlPaidHT - azcsRecuPaid + d.report2025;
   const deltaEntreprisePaidTTC = rtlPaidTTC - azcsPaidTTC + d.report2025;
 
-  // Position Net PRO = entreprise − virements_pro − divers_pro
-  const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro;
+  // Position Net PRO = entreprise − virements_pro − divers_pro − paiements Bridgevale
+  const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro - bridgevaleEUR;
   // Position Net PERSO = Pro × 0.95 (règle universelle)
   const deltaNetPerso = deltaNetPro * PERSO_FACTOR;
   // Commission Amine globale (5% sur position Pro)
@@ -319,12 +321,12 @@ function renderAugustin2026(embedded) {
   const invoicedRTL = d.rtl.filter(r => r.ref !== '—');
   const totalInvoiced = sum(invoicedRTL, 'montant');
   const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced + d.report2025;
-  const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro;
+  const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro - bridgevaleEUR;
   const deltaInvoicedPerso = deltaInvoicedPro * PERSO_FACTOR;
 
   // Accrued
   const deltaEntrepriseAccrued = totalFacture - azcsRecuAll + d.report2025;
-  const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro;
+  const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro - bridgevaleEUR;
   const deltaAccruedPerso = deltaAccruedPro * PERSO_FACTOR;
 
   let html = embedded ? '' : yearToggle3('Az', 2026);
@@ -468,6 +470,16 @@ function renderAugustin2026(embedded) {
       <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-virementsPerso, '')}</td>
       <td class="a">${pill(fmtSigned(-totalMAD, ''), 'mad')}</td>
       <td style="font-size:.72rem">${fmtPlain(totalMAD)} MAD · Pro = MAD ÷ ${TX}</td></tr>`;
+    // Paiements Bridgevale (EUR direct à Augustin, hors Maroc) = money OUT → negative
+    if (bridgevaleEUR > 0) {
+      t += `<tr>
+        <td>Paiements Bridgevale (EUR)</td>
+        <td class="a" style="color:var(--muted)">—</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR * PF), '')}</td>
+        <td class="a">${pill(fmtSigned(-Math.round(bridgevaleEUR * TX), ''), 'mad')}</td>
+        <td style="font-size:.72rem">EUR direct via Bridgevale (Azarkan refuse Dubai)</td></tr>`;
+    }
 
     // Divers itemized — negate for additive display: positive data (money to Augustin) → negative display
     diversItems.forEach(x => {
@@ -547,6 +559,18 @@ function renderAugustin2026(embedded) {
   virementsMarocHtml += `<div class="n"><strong>Règle :</strong> 1 000€ pro = ${(PERSO_FACTOR * 1000).toLocaleString('fr-FR')}€ perso = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD. Total : ${fmtPlain(totalMAD)} MAD = ${fmtPlain(virementsProEUR)}€ pro = ${fmtPlain(Math.round(virementsProEUR * PERSO_FACTOR))}€ perso.</div>`;
 
   html += collapsible('Virements Maroc 2026', virementsMarocHtml);
+
+  // Paiements Bridgevale (EUR direct à Augustin, hors Maroc)
+  if (d.virementsBridgevale && d.virementsBridgevale.length) {
+    let bvHtml = `<table>
+      <thead><tr><th>Réf</th><th data-sort="date">Date</th><th data-sort="num" style="text-align:right">EUR</th><th>Motif</th></tr></thead><tbody>`;
+    d.virementsBridgevale.forEach(v => {
+      bvHtml += `<tr><td style="font-size:.72rem">${v.ref || ''}</td><td>${v.date}</td><td class="a">${fmtPlain(v.eur)}</td><td style="font-size:.72rem">${nickText(v.motif || '')}</td></tr>`;
+    });
+    bvHtml += `<tr class="tr"><td></td><td><strong>Total 2026</strong></td><td class="a"><strong>${fmtPlain(bridgevaleEUR)}</strong></td><td></td></tr></tbody></table>`;
+    bvHtml += `<div class="n">Amine règle Azarkan <strong>en EUR via Bridgevale</strong> (société UK) car Azarkan refuse les paiements depuis Dubai (Bairok). Amine lui rend une part du CA RTL <strong>sans commission</strong>. Déduit directement de la position Pro (montant EUR, PAS converti au taux ${d.tauxMaroc}).</div>`;
+    html += collapsible('Paiements Bridgevale → Augustin (EUR) — ' + fmtPlain(bridgevaleEUR) + '€', bvHtml);
+  }
 
   // Divers 2026 (cash direct) — avec Pro vs Perso
   if (d.divers && d.divers.length) {

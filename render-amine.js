@@ -39,6 +39,8 @@ function renderAmine() {
   // Virements Maroc
   const totalMAD_az = sum(az.virementsMaroc, 'dh');
   const virementsEUR = totalMAD_az / az.tauxMaroc;
+  // Paiements à Azarkan via Bridgevale (EUR direct, hors Maroc) — nouveau canal
+  const bridgevaleEUR = sum(az.virementsBridgevale || [], 'eur');
 
   // Divers : montant = PERSO (cash réel). Pro = montant / PERSO_FACTOR
   // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
@@ -54,7 +56,7 @@ function renderAmine() {
 
   // Positions Augustin
   const posEntreprise = rtlPaidHT - azcsRecuPaid + az.report2025;
-  const posNetPro = posEntreprise - virementsEUR - diversPro;
+  const posNetPro = posEntreprise - virementsEUR - diversPro - bridgevaleEUR;
   const posNetPerso = posNetPro * PERSO_FACTOR; // Règle universelle
   const posNetMAD = posNetPro * az.tauxMaroc;
   const commissionAmine = Math.round(posNetPro * (1 - PERSO_FACTOR) * 100) / 100;
@@ -143,7 +145,7 @@ function renderAmine() {
   html += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Détail :</strong> Pos. Entreprise = ${fmtSigned(posEntreprise)} (RTL ${fmtPlain(rtlPaidHT)} − AZCS ${fmtPlain(azcsRecuPaid)} + Report ${fmtSigned(az.report2025)}).
     Maroc = ${fmtPlain(Math.round(virementsEUR))}€ pro (${fmtPlain(totalMAD_az)} MAD).
-    Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).
+    Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).${bridgevaleEUR ? ` Bridgevale = ${fmtPlain(Math.round(bridgevaleEUR))}€ (EUR direct, hors Maroc).` : ''}
     <strong>Net Pro = ${fmtSigned(Math.round(posNetPro))} · Perso = Pro × ${PERSO_FACTOR} = ${fmtSigned(Math.round(posNetPerso))} · MAD = Pro × ${az.tauxMaroc} = ${fmtSigned(Math.round(posNetMAD), 'MAD')}</strong>
   </div>`;
   if (bobCommAugDH > 0) {

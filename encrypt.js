@@ -185,6 +185,15 @@ const FULL_DATA = {
       { date: "20/06/2026", beneficiaire: "Jean Augustin", dh: 50000 },
       { date: "12/07/2026", beneficiaire: "Jean Augustin", dh: 50000 },
     ],
+    // Paiements à Azarkan via Bridgevale (société UK d'Amine) — EN EUR, canal
+    // distinct des virements Maroc (DH). Azarkan facture Bridgevale (AZCS####)
+    // et Amine règle en EUR, car Azarkan refuse les paiements depuis Dubai
+    // (Bairok). C'est Amine qui rend une partie du CA RTL à Azarkan, SANS
+    // commission. Effet position : soustrait de posNetPro comme un virement
+    // (mais montant EUR direct, PAS converti au tauxMaroc).
+    virementsBridgevale: [
+      { ref: "AZCS0010", date: "02/07/2026", eur: 2400, motif: "Prestation SAP Juin 2026 — paiement à Azarkan via Bridgevale" },
+    ],
     rtl: [
       { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350,  dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },
       { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "ok", statutText: "Paid 01/04" },

@@ -134,9 +134,13 @@ const diversPerso26 = az26.divers.reduce((s, x) => {
 }, 0);
 check('Divers Perso 2026', diversPerso26, 5600);
 
+// Paiements Bridgevale (EUR direct à Azarkan, hors Maroc)
+const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
+check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
+
 // Position Net PRO (paid)
-const posNetPro = posEntreprise - totalEUR26 - diversPro26;
-check('Position Net Pro (paid)', Math.round(posNetPro), Math.round(posEntreprise - totalEUR26 - diversPro26));
+const posNetPro = posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26;
+check('Position Net Pro (paid)', Math.round(posNetPro), Math.round(posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26));
 
 // Position Net PERSO = Pro × 0.95 (règle universelle)
 const posNetPerso = posNetPro * PERSO_FACTOR;

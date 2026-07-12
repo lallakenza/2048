@@ -9,6 +9,32 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.19` — 2026-06-19
+
+### Augustin : nouveau canal de paiement « Bridgevale » (EUR direct) + INVRTL018 + INZOR002
+
+**Paiements Bridgevale → Augustin (nouveau modèle).** Amine paie désormais Azarkan
+**en EUR via Bridgevale** (société UK), car Azarkan refuse les paiements depuis
+Dubai (Bairok). Amine lui rend une part du CA RTL **sans commission**. Nouveau champ
+`augustin2026.virementsBridgevale` (EUR, canal distinct des virements Maroc en DH) :
+- 1ère entrée : **AZCS0010** (Prestation SAP Juin, **2 400 €**, payé via Bridgevale).
+- Effet : déduit **directement de posNetPro** (montant EUR, PAS converti au taux
+  10,26 comme le Maroc). Position Net Pro : −16 559 → **−18 959 €**. Augustin doit
+  donc ~24 624 DH de plus à Amine (bridge networth mis à jour).
+- Affiché : ligne dans « Ma Position » + ligne de réconciliation + table dédiée
+  « Paiements Bridgevale » dans l'onglet Augustin. `verify.js` : Bridgevale 2 400 €.
+- ⚠️ NB : c'est un **paiement** (réduit la position), PAS une facture AZCS (n'entre
+  pas dans `azcsRecuPaid`, donc Position Entreprise inchangée à 7 854,5).
+
+**Factures (data).** INVRTL018 (Juin, 16 150 € HT, émise → RTL facturé 87 550 €) ·
+INZOR002 (Bob/Molenbeck, Juin, 3 600 € HT, émise). Payment advices 13/05 (INVRTL015)
++ 10/06 (INVRTL016) : déjà enregistrés.
+
+Fichiers : `encrypt.js`, `render-amine.js`, `render-augustin.js`, `index.html`.
+Bump v7.18 → v7.19.
+
+---
+
 ## `v7.18` — 2026-06-19
 
 ### 🇲🇦 3ème thème 2048 : « Hakimi » (couleurs de l'équipe du Maroc)
