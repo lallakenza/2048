@@ -181,6 +181,9 @@ const FULL_DATA = {
       { date: "03/03/2026", beneficiaire: "Jean Augustin", dh: 30000 },
       { date: "02/04/2026", beneficiaire: "Jean Augustin", dh: 10000 },
       { date: "06/05/2026", beneficiaire: "Jean Augustin", dh: 20000 },
+      { date: "05/06/2026", beneficiaire: "Jean Augustin", dh: 10000 },
+      { date: "20/06/2026", beneficiaire: "Jean Augustin", dh: 50000 },
+      { date: "12/07/2026", beneficiaire: "Jean Augustin", dh: 50000 },
     ],
     rtl: [
       { ref: "INVRTL013", periode: "Janvier", jours: 11, montant: 9350,  dateFacture: "31/12/2025", dateDue: "01/03/2026", statut: "ok", statutText: "Paid" },
@@ -247,6 +250,7 @@ const FULL_DATA = {
       { date: "11/05/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
       { date: "12/05/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
       { date: "21/05/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
+      { date: "19/06/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
     ],
     notes: [
       "Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. La réconciliation ne prend en compte que les Councils effectivement payés.",
