@@ -97,7 +97,7 @@ check('Total MAD 2026', totalMAD26, 190000); // ...06/05 20k + 05/06 10k + 20/06
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
 check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(190000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
-check('Total RTL facturé 2026', totalRTL26, 71400); // INVRTL013+014+015+016+017 (017 émise non payée)
+check('Total RTL facturé 2026', totalRTL26, 87550); // INVRTL013..018 (017+018 émises non payées)
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
 check('Divers net montant 2026', diversNet26, 5600); // +800 - 1200 + 6000
