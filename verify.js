@@ -142,9 +142,11 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
 const posNetPro = posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26;
 check('Position Net Pro (paid)', Math.round(posNetPro), Math.round(posEntreprise - totalEUR26 - diversPro26 - bridgevaleEUR26));
 
-// Position Net PERSO = Pro × 0.95 (règle universelle)
-const posNetPerso = posNetPro * PERSO_FACTOR;
-check('Position Net Perso (Pro×0.95)', Math.round(posNetPerso), Math.round(posNetPro * PERSO_FACTOR));
+// Position Net PERSO = base convertible × 0.95, PUIS Bridgevale retranché à pleine
+// valeur (paiement PRO B2B, hors commission 5%).
+const posBasePro = posNetPro + bridgevaleEUR26;
+const posNetPerso = posBasePro * PERSO_FACTOR - bridgevaleEUR26;
+check('Position Net Perso', Math.round(posNetPerso), Math.round(posBasePro * PERSO_FACTOR - bridgevaleEUR26));
 
 // Position Maroc = Pro × tauxMaroc
 const posNetMaroc = posNetPro * az26.tauxMaroc;
@@ -152,7 +154,7 @@ check('Position Maroc (MAD)', Math.round(posNetMaroc), Math.round(posNetPro * az
 
 // 3 positions are equivalent (taux fixes sur PRO)
 console.log('\n=== EQUIVALENCE DES POSITIONS ===');
-check('Perso = Pro × 0.95', Math.round(posNetPerso), Math.round(posNetPro * PERSO_FACTOR));
+check('Perso = base×0.95 − Bridgevale (pro sans commission)', Math.round(posNetPerso), Math.round(posBasePro * PERSO_FACTOR - bridgevaleEUR26));
 check('MAD = Pro × tauxMaroc', Math.round(posNetMaroc), Math.round(posNetPro * az26.tauxMaroc));
 check('1000€ pro = 950€ perso = 10.26k MAD', Math.round(1000 * PERSO_FACTOR), 950);
 

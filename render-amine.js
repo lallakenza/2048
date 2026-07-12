@@ -57,9 +57,13 @@ function renderAmine() {
   // Positions Augustin
   const posEntreprise = rtlPaidHT - azcsRecuPaid + az.report2025;
   const posNetPro = posEntreprise - virementsEUR - diversPro - bridgevaleEUR;
-  const posNetPerso = posNetPro * PERSO_FACTOR; // Règle universelle
-  const posNetMAD = posNetPro * az.tauxMaroc;
-  const commissionAmine = Math.round(posNetPro * (1 - PERSO_FACTOR) * 100) / 100;
+  // Bridgevale = paiement PRO (B2B → société AZCS) : pleine valeur, SANS commission.
+  // Il n'est donc PAS soumis au ×0.95 de la vue Perso. Le ×0.95 s'applique à la
+  // base convertible (Entreprise − virements − divers), puis on retranche
+  // Bridgevale à pleine valeur.
+  const posNetPerso = (posNetPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
+  const posNetMAD = posNetPro * az.tauxMaroc; // Bridgevale à ×tauxMaroc = Pro→MAD (ok)
+  const commissionAmine = Math.round((posNetPro + bridgevaleEUR) * (1 - PERSO_FACTOR) * 100) / 100;
 
   // From Amine's perspective: negative delta = Augustin owes Amine
   // posNetPro = -17169 → Augustin doit 17169€ → Amine receivable

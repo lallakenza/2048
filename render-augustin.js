@@ -312,22 +312,23 @@ function renderAugustin2026(embedded) {
 
   // Position Net PRO = entreprise − virements_pro − divers_pro − paiements Bridgevale
   const deltaNetPro = deltaEntreprisePaid - virementsProEUR - diversPro - bridgevaleEUR;
-  // Position Net PERSO = Pro × 0.95 (règle universelle)
-  const deltaNetPerso = deltaNetPro * PERSO_FACTOR;
-  // Commission Amine globale (5% sur position Pro)
-  const commissionAmine = Math.round((deltaNetPro - deltaNetPerso) * 100) / 100;
+  // Position Net PERSO = base convertible × 0.95, PUIS Bridgevale retranché à pleine
+  // valeur (paiement PRO B2B → société AZCS, PAS soumis à la commission 5%).
+  const deltaNetPerso = (deltaNetPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
+  // Commission Amine (5% sur la base convertible, hors Bridgevale)
+  const commissionAmine = Math.round((deltaNetPro + bridgevaleEUR) * (1 - PERSO_FACTOR) * 100) / 100;
 
   // Invoiced
   const invoicedRTL = d.rtl.filter(r => r.ref !== '—');
   const totalInvoiced = sum(invoicedRTL, 'montant');
   const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced + d.report2025;
   const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro - bridgevaleEUR;
-  const deltaInvoicedPerso = deltaInvoicedPro * PERSO_FACTOR;
+  const deltaInvoicedPerso = (deltaInvoicedPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
 
   // Accrued
   const deltaEntrepriseAccrued = totalFacture - azcsRecuAll + d.report2025;
   const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro - bridgevaleEUR;
-  const deltaAccruedPerso = deltaAccruedPro * PERSO_FACTOR;
+  const deltaAccruedPerso = (deltaAccruedPro + bridgevaleEUR) * PERSO_FACTOR - bridgevaleEUR;
 
   let html = embedded ? '' : yearToggle3('Az', 2026);
   html += `<h2 style="font-size:1.05rem;margin-bottom:16px">${d.title}</h2>`;
@@ -473,12 +474,12 @@ function renderAugustin2026(embedded) {
     // Paiements Bridgevale (EUR direct à Augustin, hors Maroc) = money OUT → negative
     if (bridgevaleEUR > 0) {
       t += `<tr>
-        <td>Paiements Bridgevale (EUR)</td>
+        <td>Paiements Bridgevale (EUR) <span style="color:var(--muted);font-size:.68rem">· PRO</span></td>
         <td class="a" style="color:var(--muted)">—</td>
         <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
-        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR * PF), '')}</td>
+        <td class="a" style="color:var(--blue,#60a5fa)">${fmtSigned(-Math.round(bridgevaleEUR), '')}</td>
         <td class="a">${pill(fmtSigned(-Math.round(bridgevaleEUR * TX), ''), 'mad')}</td>
-        <td style="font-size:.72rem">EUR direct via Bridgevale (Azarkan refuse Dubai)</td></tr>`;
+        <td style="font-size:.72rem">Paiement PRO (société AZCS) · pleine valeur, sans commission ×0.95</td></tr>`;
     }
 
     // Divers itemized — negate for additive display: positive data (money to Augustin) → negative display

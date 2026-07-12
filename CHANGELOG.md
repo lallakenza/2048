@@ -9,6 +9,29 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.20` — 2026-06-19
+
+### Paiements Bridgevale traités comme PRO pur (pleine valeur, sans ×0,95)
+
+Correction du critère Pro/Perso (règle d'Amine : **Pro = on paie une société,
+Perso = on paie un compte perso**). Le paiement Bridgevale (AZCS0010) va à la
+**société AZCS** → c'est du **PRO pur, sans commission 5 %**. Il n'est donc plus
+soumis au facteur ×0,95 de la vue Perso.
+
+- Avant : `posNetPerso = posNetPro × 0,95` (Bridgevale décompté à 2 400 × 0,95 =
+  2 280 en Perso → laissait croire à une commission).
+- Après : `posNetPerso = (base convertible) × 0,95 − Bridgevale` (Bridgevale à
+  **pleine valeur 2 400 €** dans Pro ET Perso ; MAD reste à ×taux = Pro→MAD).
+- Effet : Position Net Perso −21 573 → **−21 693 €** (les 120 € = la commission
+  de 5 % qu'Amine ne prend PAS sur ce paiement pro). Position Pro et MAD
+  inchangées. Ligne de réconciliation Bridgevale : « −2 400 » en Pro et en Perso,
+  taguée « · PRO ».
+
+`render-amine.js`, `render-augustin.js` (paid/invoiced/accrued), `verify.js`.
+Bump v7.19 → v7.20.
+
+---
+
 ## `v7.19` — 2026-06-19
 
 ### Augustin : nouveau canal de paiement « Bridgevale » (EUR direct) + INVRTL018 + INZOR002
