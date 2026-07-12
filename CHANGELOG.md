@@ -9,6 +9,19 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.26` — 2026-07-12
+
+### Ma Position : hero centré + barres delta interactives (survol reçu/envoyé)
+
+- Le bloc « Position globale estimée » (hero du haut) est désormais **centré**.
+- Les barres de la vue **Position (delta)** sont **interactives** : au survol
+  d'une barre, une bulle affiche le détail `Reçu X DH · Envoyé Y DH` de la
+  personne. Aucun changement de calcul (mêmes valeurs que la vue Reçu/Envoyé).
+
+`render-amine.js`, `index.html`. Bump v7.25 → v7.26.
+
+---
+
 ## `v7.25` — 2026-07-12
 
 ### Ma Position : diagramme au-dessus des cartes + vue Position par défaut

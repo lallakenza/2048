@@ -152,11 +152,11 @@ function renderAmine() {
   const brkItem = (name, val, color) => `<span>${name} <span style="color:${color};font-weight:700">${fmtSigned(Math.round(val), 'MAD')}</span></span>`;
   const madBreak = brkItem('Augustin', azOwedMADTot, azD.color) + brkItem('Benoit', baOwedDH, baD.color) + brkItem('Bob', bobOwedDH, bobD.color);
 
-  html += `<div style="margin-bottom:18px;padding:16px 18px;background:var(--surface2);border-radius:12px;border:1px solid var(--border)">
+  html += `<div style="margin-bottom:18px;padding:16px 18px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);text-align:center">
     <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Position globale estimée — Augustin, Benoit, Bob réunis</div>
     <div style="font-size:2.1rem;font-weight:900;line-height:1.1;color:${madColor}">${fmtSigned(Math.round(combinedMAD), 'MAD')}</div>
     <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${madSub}</div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted)">${madBreak}</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted);justify-content:center">${madBreak}</div>
   </div>`;
 
   // ---- DIAGRAMME : Flux par personne (reçu / envoyé) ⇄ Position (delta) ----
@@ -194,13 +194,16 @@ function renderAmine() {
     </div>`;
   });
 
-  let posInner = `<div style="font-size:.64rem;color:var(--muted);margin-bottom:10px">Delta = Envoyé − Reçu · <span style="color:var(--green)">+ = te doit</span> · <span style="color:var(--red)">− = tu lui dois</span></div>`;
+  let posInner = `<div style="font-size:.64rem;color:var(--muted);margin-bottom:10px">Delta = Envoyé − Reçu · <span style="color:var(--green)">+ = te doit</span> · <span style="color:var(--red)">− = tu lui dois</span> · survole une barre pour voir reçu / envoyé</div>`;
   fluxRows.forEach(r => {
     const isPos = r.pos >= 0;
     const w = Math.max(2, Math.round(Math.abs(r.pos) / posMax * 48));
     const barColor = isPos ? 'var(--green)' : 'var(--red)';
     const lbl = isPos ? 'te doit' : 'tu lui dois';
-    posInner += `<div style="margin-bottom:12px">
+    // Bulle au survol : détail reçu / envoyé de la personne (données déjà calculées).
+    const tip = `<div class="flux-tip" style="display:none;position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.66rem;white-space:nowrap;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none"><span style="color:var(--green);font-weight:700">Reçu ${fmtPlain(r.recu)} DH</span> · <span style="color:#60a5fa;font-weight:700">Envoyé ${fmtPlain(r.envoye)} DH</span></div>`;
+    posInner += `<div style="margin-bottom:12px;position:relative;cursor:default" onmouseenter="var t=this.querySelector('.flux-tip');if(t)t.style.display='block'" onmouseleave="var t=this.querySelector('.flux-tip');if(t)t.style.display='none'">
+      ${tip}
       <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px"><span style="font-weight:700">${r.name}</span><span style="color:${barColor};font-variant-numeric:tabular-nums">${fmtSigned(r.pos, 'DH')} · ${lbl}</span></div>
       <div style="position:relative;height:15px;background:var(--bg);border-radius:4px">
         <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)"></div>
