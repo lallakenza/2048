@@ -97,20 +97,73 @@ function computeBenoitSolde() {
 // Guarded: returns zeros when bob2026 is absent (e.g. COUPA/benoit blob).
 function computeBobSolde() {
   const b = (typeof DATA !== 'undefined') ? DATA.bob2026 : null;
-  if (!b) return { report: 0, netPaid: 0, totalPaye: 0, solde: 0, paidCount: 0 };
+  if (!b) return { report: 0, netPaid: 0, totalPaye: 0, solde: 0, paidCount: 0,
+                   transactions: [], totalDHPaid: 0, totalCommAPaid: 0, totalCommMPaid: 0,
+                   totalGainFXPaid: 0, commAugEUR: 0, rA: 0, rM: 0 };
   const rA = b.commissionAmineRate || 0;
   const rM = b.commissionAugustinRate || 0;
   const report = b.report2025 || 0;
 
-  const paid = (b.councils || []).filter(c => c.statut === 'ok');
-  const netPaid = paid.reduce((s, c) => {
-    const dh = Math.round(c.htEUR * (c.tauxApplique || 0));
-    return s + dh - Math.round(dh * rA) - Math.round(dh * rM);
-  }, 0);
+  // Per-transaction breakdown (aussi utilisé pour la table de render-bob.js)
+  const transactions = (b.councils || []).map(m => {
+    const taux = m.tauxApplique || 0;
+    const dh = taux ? Math.round(m.htEUR * taux) : 0;
+    const delta = m.tauxMarche && taux ? taux - m.tauxMarche : null;
+    const gainFX = m.tauxMarche && taux ? Math.round(m.htEUR * (m.tauxMarche - taux)) : (m.tauxMarche ? 0 : null);
+    const commA = Math.round(dh * rA);
+    const commM = Math.round(dh * rM);
+    const netBob = dh - commA - commM;
+    return { ...m, dh, delta, gainFX, commA, commM, netBob };
+  });
+  const paid = transactions.filter(t => t.statut === 'ok');
+  const totalDHPaid = sum(paid, 'dh');
+  const totalCommAPaid = sum(paid, 'commA');
+  const totalCommMPaid = sum(paid, 'commM');   // = commission Augustin (dispatch)
+  const totalGainFXPaid = sum(paid, t => t.gainFX || 0);
+  const netPaid = sum(paid, 'netBob');
   const totalPaye = sum(b.virements || [], 'dh');
   const solde = report + netPaid - totalPaye;
+  // Commission Augustin en EUR (dashboard Amine) : round(Σ htEUR × rM × 100)/100
+  const commAugEUR = Math.round(paid.reduce((s, c) => s + c.htEUR * rM, 0) * 100) / 100;
 
-  return { report, netPaid, totalPaye, solde, paidCount: paid.length };
+  return { report, netPaid, totalPaye, solde, paidCount: paid.length,
+           transactions, totalDHPaid, totalCommAPaid, totalCommMPaid, totalGainFXPaid,
+           commAugEUR, rA, rM };
+}
+
+// ---- SHARED: Augustin (Augustin) position (paid) ----
+// Source unique pour le dashboard (render-amine.js), cohérent avec Benoit/Bob.
+// Position AZCS payée : Entreprise = RTL payé − AZCS reçu (Majalis via Benoit)
+// − Bridgevale + report ; Net = Entreprise − virements Maroc − divers.
+// Même calcul (au caractère près) que le bloc « paid » de render-augustin.js.
+function computeAugustinPosition() {
+  const az = (typeof DATA !== 'undefined') ? DATA.augustin2026 : null;
+  const b26 = (typeof DATA !== 'undefined') ? DATA.benoit2026 : null;
+  const PERSO_FACTOR = 0.95;
+  if (!az) return { rtlPaidHT: 0, azcsRecuPaid: 0, totalMAD: 0, virementsEUR: 0, bridgevaleEUR: 0,
+                    diversPro: 0, diversPerso: 0, posEntreprise: 0, posNetPro: 0, posNetPerso: 0,
+                    posNetMAD: 0, PERSO_FACTOR, tauxMaroc: 0, report2025: 0 };
+  const rtlPaidHT = sum(az.rtl.filter(r => r.statut === 'ok'), 'montant');
+  const azcsAll = (b26 && b26.councils) ? b26.councils : [];
+  const azcsRecuPaid = sum(azcsAll.filter(c => c.statut === 'ok'), 'htEUR');
+  const totalMAD = sum(az.virementsMaroc, 'dh');
+  const virementsEUR = totalMAD / az.tauxMaroc;
+  const bridgevaleEUR = sum(az.virementsBridgevale || [], 'eur');
+  const diversPerso = az.divers ? az.divers.reduce((s, x) => {
+    if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
+    return s + x.montant;
+  }, 0) : 0;
+  const diversPro = az.divers ? az.divers.reduce((s, x) => {
+    if (x.proOrigin) return s + x.montant; // montant IS pro
+    return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
+  }, 0) : 0;
+  const posEntreprise = rtlPaidHT - azcsRecuPaid - bridgevaleEUR + az.report2025;
+  const posNetPro = posEntreprise - virementsEUR - diversPro;
+  const posNetPerso = posNetPro * PERSO_FACTOR;
+  const posNetMAD = posNetPro * az.tauxMaroc;
+  return { rtlPaidHT, azcsRecuPaid, totalMAD, virementsEUR, bridgevaleEUR, diversPro, diversPerso,
+           posEntreprise, posNetPro, posNetPerso, posNetMAD, PERSO_FACTOR,
+           tauxMaroc: az.tauxMaroc, report2025: az.report2025 };
 }
 
 // ---- NICKNAME MAPPING (real → alias) ----

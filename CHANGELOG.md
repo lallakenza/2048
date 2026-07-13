@@ -9,6 +9,34 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.29` — 2026-07-12
+
+### Audit — Batch 2 : refactoring money-math (source unique), zéro régression
+
+Consolidation des calculs monétaires dupliqués, sans aucun changement de chiffre
+affiché (vérifié par empreinte figée avant/après, par onglet + bridge networth).
+
+- **`computeBobSolde()` devient la vraie source unique.** Le helper renvoie
+  désormais aussi le détail par transaction (`transactions`) et les agrégats payés
+  (`totalDHPaid/CommAPaid/CommMPaid/GainFXPaid`, `commAugEUR`, `rA`, `rM`).
+  `render-bob.js` le consomme au lieu de recalculer la même formule inline ;
+  `render-amine.js` en tire la commission dispatch Bob (3 % → Augustin) au lieu
+  de la recalculer. La formule Bob ne vit plus qu'à un seul endroit.
+- **Nouveau `computeAugustinPosition()`** dans `render-helpers.js` : position AZCS
+  payée (Entreprise/Net Pro/Perso/MAD). `render-amine.js` le consomme, comme il le
+  fait déjà pour Benoit et Bob — le dashboard n'a plus de calcul de position inline.
+- **`computeRates` / chaîne de taux (fxp2p ↔ gains) : NON fusionné** (reporté).
+  Les deux implémentations ont divergé sur le taux marché (champ stocké
+  `aedMarche`/`madMarche` vs recalcul inline), donc une fusion aurait pu changer un
+  chiffre. Laissé tel quel pour respecter le « zéro régression ».
+
+Vérification : les 6 onglets déterministes (amine/augustin/benoit/bob/fxp2p/gains)
+et le JSON bridge sont **byte-identiques** avant/après. `verify.js` ✓.
+`render-helpers.js`, `render-bob.js`, `render-amine.js`, `index.html`.
+Bump v7.28 → v7.29.
+
+---
+
 ## `v7.28` — 2026-07-12
 
 ### Audit — Batch 1 : correctifs, sécurité, gardes, code mort

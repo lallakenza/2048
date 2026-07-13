@@ -47,41 +47,21 @@ function renderAmine() {
   const az = DATA.augustin2026;
   const b26 = DATA.benoit2026;
 
-  // RTL paid
-  const paidRTL = az.rtl.filter(r => r.statut === 'ok');
-  const rtlPaidHT = sum(paidRTL, 'montant');
-
-  // AZCS paid (Majalis → AZCS via Benoit)
-  const azcsAll = (b26 && b26.councils) ? b26.councils : [];
-  const azcsPaid = azcsAll.filter(c => c.statut === 'ok');
-  const azcsRecuPaid = sum(azcsPaid, 'htEUR');
-
-  // Virements Maroc
-  const totalMAD_az = sum(az.virementsMaroc, 'dh');
-  const virementsEUR = totalMAD_az / az.tauxMaroc;
-  // Paiements à Augustin via Bridgevale (EUR direct, hors Maroc) — nouveau canal
-  const bridgevaleEUR = sum(az.virementsBridgevale || [], 'eur');
-
-  // Divers : montant = PERSO (cash réel). Pro = montant / PERSO_FACTOR
-  // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
-  const PERSO_FACTOR = 0.95;
-  const diversPerso = az.divers ? az.divers.reduce((s, x) => {
-    if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
-    return s + x.montant;
-  }, 0) : 0;
-  const diversPro = az.divers ? az.divers.reduce((s, x) => {
-    if (x.proOrigin) return s + x.montant; // montant IS pro
-    return s + Math.round(x.montant / PERSO_FACTOR * 100) / 100;
-  }, 0) : 0;
-
-  // Positions Augustin
-  // Position Entreprise = ce qu'AZCS aurait dû recevoir (RTL) − ce qu'AZCS a
-  // reçu (Majalis via Benoit + Bridgevale) + report. Bridgevale est un paiement
-  // B2B à la société AZCS → dans l'Entreprise, pas dans le Net.
-  const posEntreprise = rtlPaidHT - azcsRecuPaid - bridgevaleEUR + az.report2025;
-  const posNetPro = posEntreprise - virementsEUR - diversPro;
-  const posNetPerso = posNetPro * PERSO_FACTOR; // le delta se règle en perso au deal ×0.95
-  const posNetMAD = posNetPro * az.tauxMaroc;
+  // Position Augustin (payée) — SOURCE UNIQUE (render-helpers.computeAugustinPosition),
+  // cohérent avec computeBenoitSolde / computeBobSolde. Mêmes formules qu'avant.
+  const _ap = computeAugustinPosition();
+  const rtlPaidHT = _ap.rtlPaidHT;
+  const azcsRecuPaid = _ap.azcsRecuPaid;
+  const totalMAD_az = _ap.totalMAD;
+  const virementsEUR = _ap.virementsEUR;
+  const bridgevaleEUR = _ap.bridgevaleEUR;
+  const PERSO_FACTOR = _ap.PERSO_FACTOR;
+  const diversPerso = _ap.diversPerso;
+  const diversPro = _ap.diversPro;
+  const posEntreprise = _ap.posEntreprise;
+  const posNetPro = _ap.posNetPro;
+  const posNetPerso = _ap.posNetPerso;
+  const posNetMAD = _ap.posNetMAD;
 
   // From Amine's perspective: negative delta = Augustin owes Amine
   // posNetPro = -17169 → Augustin doit 17169€ → Amine receivable
@@ -93,11 +73,10 @@ function renderAmine() {
   // de Bob, retient sa commission, puis VERSE à Augustin sa part de 3 %. Amine
   // doit donc ce montant à Augustin → réduit ce qu'Augustin doit à Amine.
   // Montants au taux Bob (ligne séparée, PAS soumise au facteur 0.95).
-  const _bobAz = DATA.bob2026;
-  const _bobMRate = _bobAz ? (_bobAz.commissionAugustinRate || 0) : 0;
-  const _bobPaidAz = _bobAz ? (_bobAz.councils || []).filter(c => c.statut === 'ok') : [];
-  const bobCommAugDH = _bobPaidAz.reduce((s, c) => s + Math.round(Math.round(c.htEUR * (c.tauxApplique || 0)) * _bobMRate), 0);
-  const bobCommAugEUR = Math.round(_bobPaidAz.reduce((s, c) => s + c.htEUR * _bobMRate, 0) * 100) / 100;
+  // Commission dispatch Bob (3 % reversée à Augustin) — source unique computeBobSolde()
+  const _bobData = computeBobSolde();
+  const bobCommAugDH = _bobData.totalCommMPaid;   // = Σ round(dh × rM) sur councils payés
+  const bobCommAugEUR = _bobData.commAugEUR;        // = round(Σ htEUR × rM × 100) / 100
   // Position Augustin TOTALE = RTL/AZCS + commission Bob due à Augustin
   const azOwedProTot   = azOwedPro   - bobCommAugEUR;
   const azOwedPersoTot = azOwedPerso - bobCommAugEUR;

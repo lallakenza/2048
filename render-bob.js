@@ -36,29 +36,20 @@ function renderBob2026() {
   const virements = d.virements || [];
   const hasRef = councils.some(m => m.ref);
 
-  // ---- Per-transaction compute ----
-  const transactions = councils.map(m => {
-    const taux = m.tauxApplique || 0;
-    const dh = taux ? Math.round(m.htEUR * taux) : 0;
-    const delta = m.tauxMarche && taux ? taux - m.tauxMarche : null;
-    const gainFX = m.tauxMarche && taux ? Math.round(m.htEUR * (m.tauxMarche - taux)) : (m.tauxMarche ? 0 : null);
-    const commA = Math.round(dh * rA);
-    const commM = Math.round(dh * rM);
-    const netBob = dh - commA - commM;
-    return { ...m, dh, delta, gainFX, commA, commM, netBob };
-  });
-
-  // Only paid councils count in the reconciliation
-  const paid = transactions.filter(t => t.statut === 'ok');
-  const totalDHPaid     = sum(paid, 'dh');
-  const totalCommAPaid  = sum(paid, 'commA');
-  const totalCommMPaid  = sum(paid, 'commM');
-  const totalNetPaid    = sum(paid, 'netBob');
-  const totalGainFXPaid = sum(paid, t => t.gainFX || 0);
-  const totalPaye       = sum(virements, 'dh');
+  // ---- Position & breakdown : SOURCE UNIQUE (render-helpers.computeBobSolde) ----
+  // Même formule qu'avant, calculée à un seul endroit (dashboard + tab convergent).
+  const bobData = computeBobSolde();
+  const transactions    = bobData.transactions;
+  const paid            = transactions.filter(t => t.statut === 'ok'); // pour .length uniquement
+  const totalDHPaid     = bobData.totalDHPaid;
+  const totalCommAPaid  = bobData.totalCommAPaid;
+  const totalCommMPaid  = bobData.totalCommMPaid;
+  const totalNetPaid    = bobData.netPaid;
+  const totalGainFXPaid = bobData.totalGainFXPaid;
+  const totalPaye       = bobData.totalPaye;
 
   const soldeDu = report + totalNetPaid;
-  const solde   = soldeDu - totalPaye;
+  const solde   = bobData.solde;
 
   // ---- HEADER ----
   let html = '';
