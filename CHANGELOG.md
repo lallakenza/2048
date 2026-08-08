@@ -9,6 +9,48 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.30` — 2026-08-08
+
+### Radar : spread live permanent, sans proxy ni cron (le live était cassé)
+
+**Diagnostic.** Le radar affichait `Binance AED ⚠ · Binance MAD ⚠` en production :
+le carnet P2P de Binance n'envoie **aucun header CORS** (préflight vérifié :
+HTTP 200 sans `Access-Control-Allow-Origin`), donc il est injoignable depuis le
+navigateur ; et le proxy de secours **corsproxy.io est devenu payant** en 2026
+(`{"error":"Server-side requests are not allowed on your plan"}` → HTTP 403).
+Les deux chemins live étaient donc morts — seul le cron GitHub alimentait encore
+des données.
+
+**Correctif — deux sources CORS-ouvertes, gratuites, sans clé ni serveur** (les
+deux vérifiées en exécutant le fetch depuis `https://lallakenza.github.io`) :
+
+| Devise | Source | Donnée |
+|---|---|---|
+| AED | Binance **spot** `USDTAED` (`data-api.binance.vision`) | vrai carnet d'ordres (ask) |
+| MAD | **Yadio** (`api.yadio.io/compare/1/MAD`) | agrégat P2P **+ taux officiel** → spread direct |
+
+À noter : `USDTMAD` n'existe PAS en spot Binance — le P2P/agrégat est la seule
+voie pour le dirham. Yadio a été recoupé contre le vrai carnet P2P (9,716 tombe
+entre le bid 9,70 et l'ask 9,775) : agrégat légitime, pas un chiffre inventé.
+
+- Nouvelle `radarFetchLiveDirect(fiat, userSide)` — aucun proxy, `cache:'no-store'`.
+- Drapeau `RADAR_TRY_P2P_PROXY = false` : la chaîne de proxies morte n'est plus
+  tentée (elle coûtait 4 requêtes vouées à l'échec, ~2 s et 6 erreurs console à
+  chaque chargement). La repasser à `true` restaure la profondeur du carnet si un
+  proxy CORS fonctionnel est un jour reconfiguré.
+- Table des offres : gardée derrière `offers.length` (l'agrégat n'a pas de détail
+  par annonce), donc plus de table vide.
+- Statut et libellés nomment la **vraie** source (`AED ✓ (spot)`, `MAD ✓ (Yadio)`,
+  « Marché P2P » au lieu de « Marché Binance » quand le prix vient de Yadio).
+
+**Limite assumée** : cette source donne le prix/spread, pas le détail par annonce
+(marchands, médiane top-N, filtre Attijari) ni l'historique — qui restent
+alimentés par le cron GitHub existant (gratuit et illimité sur repo public).
+
+`render-radar.js`, `index.html`. Bump v7.29 → v7.30.
+
+---
+
 ## `v7.29` — 2026-07-12
 
 ### Audit — Batch 2 : refactoring money-math (source unique), zéro régression

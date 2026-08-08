@@ -172,10 +172,16 @@ async function radarLoad(manual) {
 
     // Per-source status for the header (transparent about what's live
     // and what's falling back to manual input).
+    // Statut par source, en nommant la PROVENANCE réelle du prix : carnet P2P
+    // complet, carnet spot, ou agrégat Yadio (repli direct sans proxy).
+    const SRC_LABEL = { 'p2p': 'P2P', 'binance-spot': 'spot', 'yadio': 'Yadio' };
+    const srcPart = (d, name) => d
+      ? `<span style="color:var(--green)">${name} ✓</span><span style="color:var(--muted);font-size:.9em"> (${SRC_LABEL[d.source] || 'live'})</span>`
+      : `<span style="color:var(--yellow)">${name} ⚠</span>`;
     const parts = [];
     parts.push(fx   ? '<span style="color:var(--green)">USD/MAD ✓</span>'   : '<span style="color:var(--yellow)">USD/MAD ⚠</span>');
-    parts.push(buy  ? '<span style="color:var(--green)">Binance AED ✓</span>'  : '<span style="color:var(--yellow)">Binance AED ⚠</span>');
-    parts.push(sell ? '<span style="color:var(--green)">Binance MAD ✓</span>' : '<span style="color:var(--yellow)">Binance MAD ⚠</span>');
+    parts.push(srcPart(buy,  'AED'));
+    parts.push(srcPart(sell, 'MAD'));
 
     window._radarState.lastLoadAt = Date.now();
     const lastEl = document.getElementById('radarLastUpdate');
@@ -255,6 +261,10 @@ function radarStartFreshnessTick() {
 // Tried: corsproxy.io ✓, allorigins ✗ (POST body dropped),
 //        thingproxy ✗ (unreliable). Direct-fetch fallback kept for cases
 // where the page is opened from a permissive origin (e.g. localhost).
+// Chaîne de proxies CORS pour le carnet P2P : désactivée (tous morts en 2026).
+// Voir le commentaire dans radarFetchBinanceP2P pour la procédure de réactivation.
+const RADAR_TRY_P2P_PROXY = false;
+
 async function radarFetchBinanceP2P(fiat, userSide, cfg) {
   // userSide: 'BUY' (user achète USDT, ex: AED) | 'SELL' (user vend USDT, ex: MAD)
   //
@@ -268,6 +278,15 @@ async function radarFetchBinanceP2P(fiat, userSide, cfg) {
   // cfg = { transAmount, minMax, maxMax, takeTop, agg, label, payMethodFilter }
   //   payMethodFilter : substring case-insensitive (ex: 'attijari') pour
   //   filtrer client-side sur tradeMethods. null = pas de filtre.
+  // ⚠️ Le carnet P2P n'est PLUS joignable depuis le navigateur (vérifié 08/2026) :
+  // l'endpoint n'envoie aucun header CORS, et corsproxy.io est devenu payant
+  // ("Server-side requests are not allowed on your plan" → HTTP 403). Tenter la
+  // chaîne de proxies coûte 4 requêtes vouées à l'échec (~2 s + erreurs console)
+  // avant de tomber sur le repli. On part donc directement sur la source live.
+  // Repasser ce flag à true si un proxy CORS fonctionnel est reconfiguré : ça
+  // restaure la profondeur du carnet (table des offres + classement marchands).
+  if (!RADAR_TRY_P2P_PROXY) return radarFetchLiveDirect(fiat, userSide);
+
   const c = cfg || {};
   const { transAmount = 0, minMax = 0, maxMax = Infinity,
           takeTop = 10, agg = 'median', label = '', payMethodFilter = null } = c;
@@ -306,7 +325,12 @@ async function radarFetchBinanceP2P(fiat, userSide, cfg) {
       res = null;
     }
   }
-  if (!res) throw lastErr || new Error(`Binance P2P ${fiat} ${userSide}: all endpoints failed`);
+  if (!res) {
+    // Tous les proxies CORS sont morts → repli sur la source directe (Yadio /
+    // spot Binance). On perd la profondeur du carnet, pas le prix live.
+    try { return await radarFetchLiveDirect(fiat, userSide); }
+    catch (e2) { throw lastErr || e2; }
+  }
   const j = await res.json();
   const ads = (j.data || []).filter(a => a && a.adv && a.advertiser);
   if (!ads.length) throw new Error(`Binance P2P ${fiat} ${userSide}: no ads`);
@@ -373,7 +397,51 @@ async function radarFetchBinanceP2P(fiat, userSide, cfg) {
     takeTop,
     offers: offers.slice(0, 10),       // table display (full filtered set)
     offersForMedian: topN,             // les N que la médiane utilise
+    source: 'p2p',                     // carnet P2P complet (profondeur dispo)
   };
+}
+
+// ---- SOURCE LIVE DIRECTE (sans proxy, CORS ouvert) ------------------
+// Le carnet P2P de Binance n'envoie AUCUN header CORS → injoignable depuis le
+// navigateur, et le proxy corsproxy.io est devenu payant en 2026 ("Server-side
+// requests are not allowed on your plan"). D'où le repli ci-dessous : ces deux
+// sources répondent avec `Access-Control-Allow-Origin: *`, donc elles marchent
+// EN DIRECT depuis lallakenza.github.io, gratuitement, sans clé et sans cron —
+// le spread reste live en permanence même quand le carnet P2P est inaccessible.
+//   • AED : Binance SPOT USDTAED — vrai carnet d'ordres (ask = prix d'achat)
+//   • MAD : Yadio — agrégat P2P marocain (USDTMAD n'existe PAS en spot Binance)
+// Contrepartie assumée : pas de détail par annonce → `offers` reste vide et la
+// table des offres n'est pas rendue (garde dans radarRenderContent).
+async function radarFetchLiveDirect(fiat, userSide) {
+  const base = { fiat, userSide, tradeType: userSide, transAmount: null,
+                 offers: [], offersForMedian: [] };
+
+  if (fiat === 'AED') {
+    const r = await fetch('https://data-api.binance.vision/api/v3/ticker/bookTicker?symbol=USDTAED', { cache: 'no-store' });
+    if (!r.ok) throw new Error('Binance spot USDTAED HTTP ' + r.status);
+    const j = await r.json();
+    const ask = parseFloat(j.askPrice);
+    if (!ask) throw new Error('Binance spot USDTAED : prix vide');
+    return { ...base, topPrice: ask, medianPrice: ask,
+             medianBasisLabel: 'carnet spot USDTAED (ask)', source: 'binance-spot' };
+  }
+
+  const r = await fetch('https://api.yadio.io/compare/1/' + fiat, { cache: 'no-store' });
+  if (!r.ok) throw new Error('Yadio ' + fiat + ' HTTP ' + r.status);
+  const j = await r.json();
+  const row = Array.isArray(j) ? j[0] : j;
+  const p2p = row && parseFloat(row.p2p_usdt);
+  if (!p2p) throw new Error('Yadio ' + fiat + ' : p2p_usdt vide');
+  return { ...base, topPrice: p2p, medianPrice: p2p,
+           medianBasisLabel: 'agrégat P2P Yadio',
+           official: row.official ? parseFloat(row.official) : null,
+           source: 'yadio' };
+}
+
+// Nom du marché affiché sur les cartes — doit correspondre à la VRAIE source :
+// annoncer "Marché Binance" sur un prix Yadio serait faux.
+function radarMarketName(d) {
+  return (d && d.source === 'yadio') ? 'Marché P2P' : 'Marché Binance';
 }
 
 // Filtres par côté — single source of truth (matche scripts/poll-p2p.js).
@@ -648,8 +716,8 @@ function radarRenderContent(buy, sell, fx) {
     </div>
     ${radarSpreadHistorySection()}
     ${radarHistoricalContext(buy, sell, fx, peg)}
-    ${buy  ? radarOffersTable(buy,  'BUY',  peg) : ''}
-    ${sell && fx ? radarOffersTable(sell, 'SELL', fx.usdMad) : ''}
+    ${buy  && buy.offers  && buy.offers.length  ? radarOffersTable(buy,  'BUY',  peg) : ''}
+    ${sell && fx && sell.offers && sell.offers.length ? radarOffersTable(sell, 'SELL', fx.usdMad) : ''}
   `;
 }
 
@@ -735,7 +803,7 @@ function radarBuyCardHTML() {
 
   const buyLabel = s.buyData?.medianBasisLabel || `max ≥ 10\u202fk AED`;
   const binanceLine = s.buyData
-    ? `<span style="color:var(--muted)">Marché Binance <span style="font-size:.65rem;opacity:.7">(${buyLabel})</span> : </span><button type="button" onclick="radarUpdateBuy(${s.buyData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.buyData.medianPrice.toFixed(4).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.buyData.topPrice.toFixed(4).replace('.', ',')}</span> ${radarLiveBadge('buy', s.lastLoadAt)}`
+    ? `<span style="color:var(--muted)">${radarMarketName(s.buyData)} <span style="font-size:.65rem;opacity:.7">(${buyLabel})</span> : </span><button type="button" onclick="radarUpdateBuy(${s.buyData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.buyData.medianPrice.toFixed(4).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.buyData.topPrice.toFixed(4).replace('.', ',')}</span> ${radarLiveBadge('buy', s.lastLoadAt)}`
     : `<span style="color:var(--yellow)">⚠ Binance indisponible — saisis le prix observé</span>`;
 
   const priceStr = price.toFixed(4).replace('.', ',');
@@ -780,7 +848,7 @@ function radarSellCardHTML() {
 
   const sellLabel = s.sellData?.medianBasisLabel || `max ∈ 5\u202fk–50\u202fk MAD · moyenne top 3`;
   const binanceLine = s.sellData
-    ? `<span style="color:var(--muted)">Marché Binance <span style="font-size:.65rem;opacity:.7">(${sellLabel})</span> : </span><button type="button" onclick="radarUpdateSell(${s.sellData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.sellData.medianPrice.toFixed(3).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.sellData.topPrice.toFixed(3).replace('.', ',')}</span> ${radarLiveBadge('sell', s.lastLoadAt)}`
+    ? `<span style="color:var(--muted)">${radarMarketName(s.sellData)} <span style="font-size:.65rem;opacity:.7">(${sellLabel})</span> : </span><button type="button" onclick="radarUpdateSell(${s.sellData.medianPrice})" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-weight:700;font-variant-numeric:tabular-nums;font-family:inherit;text-decoration:underline dotted" title="Cliquer pour synchroniser">${s.sellData.medianPrice.toFixed(3).replace('.', ',')}</button> <span style="color:var(--muted)">· meilleure ${s.sellData.topPrice.toFixed(3).replace('.', ',')}</span> ${radarLiveBadge('sell', s.lastLoadAt)}`
     : `<span style="color:var(--yellow)">⚠ Binance indisponible — saisis le prix observé</span>`;
 
   const fxStatus = s.usdMadIsLive
