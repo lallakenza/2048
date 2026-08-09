@@ -9,6 +9,69 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.32` — 2026-08-09
+
+### Historique Binance P2P complet + taux de marché à l'heure exacte
+
+Le bloc `fxP2P` ne contenait qu'une fraction des ordres réellement passés. L'historique
+Binance a été récupéré intégralement (198 ordres, dont **131 terminés**), révélant
+**55 transactions terminées manquantes** — pas seulement récentes : des trous existaient
+aussi en juillet 2025 et janvier 2026.
+
+| | Avant | Après |
+|---|---|---|
+| Achats AED → USDT | 25 | **44** |
+| Ventes USDT → MAD | 51 | **87** |
+| Volume AED | 249 486 | **448 621** |
+| Volume MAD | 639 704 | **1 133 529** |
+| `usdtRemaining` | 937,10 | **4 587,88** |
+| Marchands AED / confirmés | 37 / 11 | **70 / 27** |
+| Marchands MAD / confirmés | 50 / 45 | **94 / 82** |
+
+### Le taux de marché passe du jour à l'heure
+
+En recoupant, 9 ventes ressortaient décalées d'un jour : les données historiques étaient
+datées en **UTC+4 (Dubaï)**, alors que ces ordres ont été exécutés entre 20 h et 21 h UTC —
+soit 22 h–23 h au Maroc **la veille**. Elles étaient donc comparées au cours du lendemain.
+
+Plutôt que de corriger le fuseau, chaque vente porte désormais **son propre `tauxMarche`**,
+pris sur la série horaire USD/MAD (Yahoo `USDMAD=X`, `interval=1h`, 6 811 points) au dernier
+cours coté avant l'horodatage du trade. Couverture **87/87**, aucun trou.
+
+Résolution du taux dans `render-fxp2p.js` et `render-gains.js` :
+
+```js
+const mktRate = t.tauxMarche || d.leg3.tauxMarche[t.date] || 0;
+```
+
+La map par date subsiste en repli. Écart de méthode mesuré : **+827 MAD** sur le
+sous-ensemble comparable (max 64 MAD sur une ligne).
+
+> ⚠️ Piège écarté : la série **journalière** Yahoo affiche 8,81 et 8,83 certains dimanches
+> contre ~9,12 en semaine — des ticks parasites sur un marché fermé. La série horaire les évite.
+
+### Facture AZCS0011 reçue
+
+Saisie le 09/08 à partir du seul relevé bancaire (mois, jours et HT **déduits** de
+6 050 € TTC ÷ 1,21), elle est désormais confirmée par le PDF : « Prestation SAP Juillet 2026 »,
+8 j × 625 € = 5 000 € HT. Ajout de `dateFacture: "29/07/2026"` et `dateDue: "12/09/2026"`.
+Aucun montant ne change.
+
+### Effets sur « Mes Gains »
+
+| Poste 2026 (DH) | Avant | Après |
+|---|---|---|
+| Virements Augustin | 20 506 | **21 661** |
+| Spread P2P Benoit | 26 436 | **24 846** |
+| **Total 2026** | 119 455 | **119 020** |
+
+Le −435 DH n'est pas une perte mais une correction : l'échantillon 2026 passe de
+6 achats / 22 ventes à 25 / 58, le taux effectif s'améliore (11,3673 → 11,4297) mais la
+référence de marché monte davantage (10,7978 → 10,8915), donc l'avantage mesuré se
+resserre de 5,27 % à **4,94 %**. Total tous exercices : 208 936 → **224 100 DH**.
+
+---
+
 ## `v7.31` — 2026-08-09
 
 ### Flux Bob : modèle de commission revu — 10 % pour Amine, les 3 % sortent des soldes

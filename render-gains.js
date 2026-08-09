@@ -19,7 +19,8 @@ function renderMesGains() {
     const tUSDT2 = l2txs.reduce((s, t) => s + t.usdt, 0);
     const tUSDT3 = l3txs.reduce((s, t) => s + t.usdt, 0);
     const tMAD3 = l3txs.reduce((s, t) => s + t.mad, 0);
-    const tMADMkt3 = l3txs.reduce((s, t) => s + t.usdt * (d.leg3.tauxMarche[t.date] || 0), 0);
+    // Same rate resolution as render-fxp2p.js: hourly rate on the transaction first.
+    const tMADMkt3 = l3txs.reduce((s, t) => s + t.usdt * (t.tauxMarche || d.leg3.tauxMarche[t.date] || 0), 0);
     if (!tEUR1 || !tUSDT2 || !tUSDT3) return null;
     const wIFX = tAED1 / tEUR1;
     const wMkt1 = tAEDMkt1 / tEUR1;

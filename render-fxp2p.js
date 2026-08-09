@@ -44,7 +44,10 @@ function renderFXP2P() {
   // ===== LEG 3: USDT → MAD (P2P premium = gain) =====
   const leg3raw = d.leg3.transactions;
   const leg3 = (yearFilter ? leg3raw.filter(yearFilter) : leg3raw).map(t => {
-    const mktRate = d.leg3.tauxMarche[t.date] || 0;
+    // Market rate at the exact trade hour when available (t.tauxMarche, hourly USD/MAD),
+    // else fall back to the per-date map. Hourly removes the timezone ambiguity on
+    // late-evening trades, which used to be compared against the next day's rate.
+    const mktRate = t.tauxMarche || d.leg3.tauxMarche[t.date] || 0;
     const madMarche = t.usdt * mktRate;
     const spreadMAD = t.mad - madMarche; // MAD gagnés (positif = gain)
     const spreadPct = mktRate > 0 ? ((t.prix - mktRate) / mktRate) * 100 : 0;
