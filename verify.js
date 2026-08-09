@@ -97,7 +97,7 @@ check('Total MAD 2026', totalMAD26, 190000); // ...06/05 20k + 05/06 10k + 20/06
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
 check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(190000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
-check('Total RTL facturé 2026', totalRTL26, 87550); // INVRTL013..018 (017+018 émises non payées)
+check('Total RTL facturé 2026', totalRTL26, 103700); // INVRTL013..019 (018+019 émises non payées)
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
 check('Divers net montant 2026', diversNet26, 5600); // +800 - 1200 + 6000
@@ -107,11 +107,11 @@ check('Divers count 2026 (Oum + Zak + Nezha)', az26.divers.length, 3);
 const azcsAll26 = DATA.benoit2026.councils;
 const azcsPaid26 = azcsAll26.filter(c => c.statut === 'ok');
 const azcsRecuPaid26 = sum(azcsPaid26, 'htEUR');
-check('AZCS paid via Majalis 2026', azcsRecuPaid26, 50312.5); // AZCS0001..0009 payés (0009 Juin 3750)
+check('AZCS paid via Majalis 2026', azcsRecuPaid26, 55312.5); // AZCS0001..0009 + 0011 (Juillet 5000, payé 02/08)
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 56100); // INVRTL013+014+015+016 payés (016 payée 10/06)
+check('RTL paid 2026', amineRecu26, 71400); // INVRTL013..017 payés (017 payée 22/07, payment advice 1700002285)
 
 // Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
 const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
@@ -119,7 +119,7 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 1704.5); // 56100 − 50312.5 AZCS − 2400 Bridgevale − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 12004.5); // 71400 − 55312.5 AZCS − 2400 Bridgevale − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;

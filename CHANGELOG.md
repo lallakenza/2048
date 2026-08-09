@@ -9,6 +9,35 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+### Données — 9 août 2026 : rattrapage depuis les boîtes mail (pas de bump de version)
+
+Mise à jour **de données uniquement** (`encrypt.js` + blobs regénérés), donc pas
+de changement d'`APP_VERSION`. Sources : boîtes `bairok.consulting@gmail.com` et
+`bridgevale.consulting@gmail.com` lues via Apple Mail, + relevé bancaire.
+
+**ZOR / Bob** — deux encaissements Wise non enregistrés (3 600 € chacun) :
+- `INZOR002` (Juin) passe **en attente → payée** (encaissée le 13/07/2026).
+- `INZOR003` (Juillet) **créée** : 3 600 €, facturée 05/08, encaissée 06/08/2026.
+- Position Bob : **+11 801 → −54 597 DH** — elle change de sens, tu dois à Bob.
+
+**Benoit** — `AZCS0011` **créée** : 5 000 € HT (6 050 € TTC reçus de MAJALIS
+CONSULTING SERVICE le 02/08/2026, communication AZCS0011). Position Benoit :
+**−134 734 → −182 434 DH**. ⚠️ Mois et jours déduits du montant (6 050 ÷ 1,21
+= 5 000 = 8 j × 625) — aucune facture AZCS0011 retrouvée par mail.
+
+**RTL** — statuts corrigés depuis les payment advices CLT-UFA :
+- `INVRTL017` passe **en attente → payée** le 22/07/2026 (advice 1700002285).
+- `INVRTL019` **créée** : Juillet, 19 j, 16 150 €, facturée 05/08, due 05/09.
+- Total RTL 2026 : 87 550 → **103 700 €** (71 400 encaissés + 32 300 en attente).
+
+**Effet global : la position nette passe de +108 914 à −113 152 MAD** (écart de
+222 066 DH). `verify.js` mis à jour en conséquence (4 valeurs de référence).
+
+*Hors périmètre, volontairement* : SAP&Tax (`sapandtax.com`) est un client
+direct d'Amine, pas un flux triangulaire — non intégré au suivi de sous-traitance.
+
+---
+
 ## `v7.30` — 2026-08-08
 
 ### Radar : spread live permanent, sans proxy ni cron (le live était cassé)

@@ -199,8 +199,14 @@ const FULL_DATA = {
       { ref: "INVRTL014", periode: "Février", jours: 20, montant: 17000, dateFacture: "01/03/2026", dateDue: "01/04/2026", statut: "ok", statutText: "Paid 01/04" },
       { ref: "INVRTL015", periode: "Mars",    jours: 20, montant: 17000, dateFacture: "01/04/2026", dateDue: "01/05/2026", statut: "ok", statutText: "Paid 13/05" },
       { ref: "INVRTL016", periode: "Avril",   jours: 15, montant: 12750, dateFacture: "04/05/2026", dateDue: "04/06/2026", statut: "ok", statutText: "Paid 10/06" },
-      { ref: "INVRTL017", periode: "Mai",     jours: 18, montant: 15300, dateFacture: "04/06/2026", dateDue: "04/07/2026", statut: "w",  statutText: "Invoiced" },
+      // INVRTL017 : payée le 22/07/2026 — payment advice CLT-UFA 1700002285
+      // (doc 1600001939, 15 300,00 EUR, reçu dans bairok.consulting le 17/07/2026).
+      { ref: "INVRTL017", periode: "Mai",     jours: 18, montant: 15300, dateFacture: "04/06/2026", dateDue: "04/07/2026", statut: "ok", statutText: "Paid 22/07" },
       { ref: "INVRTL018", periode: "Juin",    jours: 19, montant: 16150, dateFacture: "03/07/2026", dateDue: "03/08/2026", statut: "w",  statutText: "Invoiced" },
+      // INVRTL019 : facture émise le 05/08/2026 (PO 4500619649, 19 j × 850 €).
+      // Période Juillet 2026 (mail « Material for invoicing July 2026 », 05/08).
+      // Aucun payment advice à ce jour → en attente.
+      { ref: "INVRTL019", periode: "Juillet", jours: 19, montant: 16150, dateFacture: "05/08/2026", dateDue: "05/09/2026", statut: "w",  statutText: "Invoiced" },
     ],
     divers: [
       { label: "Oumaima → Azarkan (remboursement reçu 2026)", montant: 800 },
@@ -209,7 +215,7 @@ const FULL_DATA = {
     ],
     insights: [
       { type: "neutral", titre: "💸 Flux cash 2026 : 3 transactions Amine ↔ Azarkan", desc: "<strong>Reçu d'Azarkan :</strong> Oumaima +800€ · Zakaria −1 200€ = <strong>−400€ net</strong>.<br><strong>Envoyé à Azarkan :</strong> 6 000€ via Nezha → Hanane (virement perso).<br><strong>Net perso :</strong> +800 − 1 200 + 6 000 = <strong>5 600€</strong>." },
-      { type: "pass", titre: "📄 Factures RTL 2026 : 4 payées, 2 émises (en attente)", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, payée 10/06/2026 (payment advice CLT-UFA 1700001784, 12 750€). INVRTL017 (Mai, 18j, 15 300€ HT) facturée 04/06/2026, due 04/07/2026 — en attente. INVRTL018 (Juin, 19j, 16 150€ HT) facturée 03/07/2026, due 03/08/2026 — en attente. <strong>Total RTL 2026 = 87 550€ HT (56 100€ encaissés + 31 450€ en attente [017+018]). Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
+      { type: "pass", titre: "📄 Factures RTL 2026 : 5 payées, 2 émises (en attente)", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, payée 10/06/2026 (payment advice CLT-UFA 1700001784, 12 750€). INVRTL017 (Mai, 18j, 15 300€ HT) facturée 04/06/2026, <strong>payée 22/07/2026</strong> (payment advice CLT-UFA 1700002285, doc 1600001939). INVRTL018 (Juin, 19j, 16 150€ HT) facturée 03/07/2026, due 03/08/2026 — en attente. INVRTL019 (Juillet, 19j, 16 150€ HT) facturée 05/08/2026, due 05/09/2026 — en attente. <strong>Total RTL 2026 = 103 700€ HT (71 400€ encaissés + 32 300€ en attente [018+019]). Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
     ],
   },
 
@@ -253,6 +259,14 @@ const FULL_DATA = {
       { ref: "AZCS0007", mois: "Avril 2026", jours: 8.5, htEUR: 5312.50, dateFacture: "30/04/2026", dateDue: "14/06/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 13/05" },
       { ref: "AZCS0008", mois: "Mai 2026", jours: 9, htEUR: 5625, dateFacture: "29/05/2026", dateDue: "13/07/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid" },
       { ref: "AZCS0009", mois: "Juin 2026", jours: 6, htEUR: 3750, dateFacture: "29/05/2026", dateDue: "13/07/2026", tauxApplique: 10.600, statut: "ok", statutText: "Paid 01/07" },
+      // AZCS0010 n'est PAS ici : c'est la facture réglée via Bridgevale (2 400 €),
+      // enregistrée dans augustin2026.virementsBridgevale. La série reprend à 0011.
+      // AZCS0011 — source : relevé bancaire (virement reçu 02/08/2026,
+      // « MAJALIS CONSULTING SERVICE », communication AZCS0011, 6 050,00 EUR).
+      // 6 050 TTC ÷ 1,21 = 5 000 € HT exactement, soit 8 j × 625 € (même profil
+      // qu'AZCS0001/0002). ⚠️ mois et jours DÉDUITS du montant, pas confirmés par
+      // une facture : aucun mail AZCS0011 trouvé. dateFacture volontairement omise.
+      { ref: "AZCS0011", mois: "Juillet 2026", jours: 8, htEUR: 5000, tauxApplique: 10.600, statut: "ok", statutText: "Paid 02/08" },
     ],
     virements: [
       { date: "09/03/2026", beneficiaire: "Benoit Chevalier", dh: 50000, motif: "Remboursement" },
@@ -288,8 +302,15 @@ const FULL_DATA = {
       // Molenbeck (société de Hamza) → Bridgevale. Versement 1 = 3 600 € HT,
       // déjà payé (reçu sur le compte Bridgevale via Wise). Période exacte / réf facture
       // Bridgevale / date de paiement : à préciser (non fournies). tauxApplique 10.6 (comme Badre).
+      // Dates de paiement confirmées par les notifications Wise reçues sur le
+      // compte Bridgevale (« Money received from ZOR CONSULTING SRL », 3 600 €
+      // chacune) — relevées dans Apple Mail le 09/08/2026 :
+      //   INZOR001 → encaissée le 01/06/2026
+      //   INZOR002 → encaissée le 13/07/2026 (facture envoyée le 11/07, PJ « ZOR consulting Invoice 2.pdf »)
+      //   INZOR003 → encaissée le 06/08/2026 (facture envoyée le 05/08, PJ « ZOR Consulting Invoice 3.pdf »)
       { ref: "INZOR001", mois: "Versement 1", htEUR: 3600, tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
-      { ref: "INZOR002", mois: "Juin 2026", htEUR: 3600, dateFacture: "30/06/2026", dateDue: "30/07/2026", tauxApplique: 10.6, statut: "w", statutText: "Invoiced" },
+      { ref: "INZOR002", mois: "Juin 2026", htEUR: 3600, dateFacture: "30/06/2026", dateDue: "30/07/2026", tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
+      { ref: "INZOR003", mois: "Juillet 2026", htEUR: 3600, dateFacture: "05/08/2026", dateDue: "04/09/2026", tauxApplique: 10.6, statut: "ok", statutText: "Paid" },
     ],
     virements: [
       // Virements dispatchés à Hamza VIA Azarkan : le bénéficiaire bancaire est
@@ -351,6 +372,7 @@ const PRIV_DATA = {
       { mois: "Avril 2026",            tauxMarche: 10.7214 }, // index 6 → AZCS0007 (payé 13/05/2026)
       { mois: "Mai 2026",              tauxMarche: 10.6    }, // index 7 → AZCS0008 (payé — date non fournie, default 10.6 → 0 gain FX)
       { mois: "Juin 2026",             tauxMarche: 10.6    }, // index 8 → AZCS0009 (payé 01/07 par Badre, default 10.6)
+      { mois: "Juillet 2026",          tauxMarche: 10.6    }, // index 9 → AZCS0011 (payé 02/08 par Badre, default 10.6)
     ],
   },
   // Overlay privé Bob (Hamza) — taux marché réels par facture, masqués à Bob
@@ -361,8 +383,9 @@ const PRIV_DATA = {
     commissionAmineRate: 0.10,
     commissionAugustinRate: 0.03,
     councilsTauxMarche: [
-      { mois: "Versement 1", tauxMarche: 10.6 }, // index 0 → councils[0] INZOR001 (default 10.6 → 0 gain FX)
-      { mois: "Juin 2026",   tauxMarche: 10.6 }, // index 1 → councils[1] INZOR002 (émise, non payée)
+      { mois: "Versement 1",  tauxMarche: 10.6 }, // index 0 → councils[0] INZOR001 (default 10.6 → 0 gain FX)
+      { mois: "Juin 2026",    tauxMarche: 10.6 }, // index 1 → councils[1] INZOR002 (encaissée 13/07/2026)
+      { mois: "Juillet 2026", tauxMarche: 10.6 }, // index 2 → councils[2] INZOR003 (encaissée 06/08/2026)
     ],
   },
   fxP2P: {
