@@ -13,7 +13,8 @@
 // CONVENTIONS:
 //   azOwedPro/Perso/MAD = -posNet (positif = Augustin me doit)
 //   baOwedDH = -soldeBenoit (positif = Benoit me doit)
-//   *Tot = incl. commission dispatch Bob (3 % reversée à Augustin)
+//   *Tot = alias de azOwed* (la commission de gestion Azarkan sur le flux Bob
+//          n'entre plus dans les soldes depuis le 09/08/2026 — modèle 10 % / 3 %)
 //
 // BRIDGE: exporte les positions vers localStorage pour le dashboard networth.
 //   La logique de calcul (lignes ~30-110) et l'export (bas de fichier) sont
@@ -69,18 +70,13 @@ function renderAmine() {
   const azOwedPerso = -posNetPerso;
   const azOwedMAD = -posNetMAD;
 
-  // Commission Augustin sur le flux Bob (dispatch 3 %) : Amine encaisse l'argent
-  // de Bob, retient sa commission, puis VERSE à Augustin sa part de 3 %. Amine
-  // doit donc ce montant à Augustin → réduit ce qu'Augustin doit à Amine.
-  // Montants au taux Bob (ligne séparée, PAS soumise au facteur 0.95).
-  // Commission dispatch Bob (3 % reversée à Augustin) — source unique computeBobSolde()
-  const _bobData = computeBobSolde();
-  const bobCommAugDH = _bobData.totalCommMPaid;   // = Σ round(dh × rM) sur councils payés
-  const bobCommAugEUR = _bobData.commAugEUR;        // = round(Σ htEUR × rM × 100) / 100
-  // Position Augustin TOTALE = RTL/AZCS + commission Bob due à Augustin
-  const azOwedProTot   = azOwedPro   - bobCommAugEUR;
-  const azOwedPersoTot = azOwedPerso - bobCommAugEUR;
-  const azOwedMADTot   = azOwedMAD   - bobCommAugDH;
+  // Flux Bob : Amine retient 10 % sur ce que ZOR envoie, puis verse le solde EN DH
+  // à Azarkan « on behalf of Hamza ». Azarkan prélève ensuite SA commission de
+  // gestion (3 %) sur ce qu'il retransmet en euros — c'est une affaire entre lui
+  // et Hamza, PAS une charge d'Amine. Elle n'entre donc dans AUCUN solde ici.
+  const azOwedProTot   = azOwedPro;
+  const azOwedPersoTot = azOwedPerso;
+  const azOwedMADTot   = azOwedMAD;
 
   // ============================================================
   // 2. Benoit (Benoit 2026) — uses shared computeBenoitSolde()
@@ -147,7 +143,7 @@ function renderAmine() {
   // Réconcilie EXACTEMENT avec les positions canoniques (azOwedMADTot, baOwedDH, bobOwedDH).
   // Placé AVANT les cartes ; vue par défaut = Position (delta).
   const fluxRows = [
-    { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc) + bobCommAugDH, pos: Math.round(azOwedMADTot), color: azD.color },
+    { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc), pos: Math.round(azOwedMADTot), color: azD.color },
     { name: 'Benoit',   recu: benoitPos.report25 + benoitPos.netPaid26,              pos: Math.round(baOwedDH),     color: baD.color },
     { name: 'Bob',      recu: bobPos.report + bobPos.netPaid,                       pos: Math.round(bobOwedDH),    color: bobD.color },
   ].map(r => ({ ...r, envoye: r.recu + r.pos })); // envoyé = reçu + position (delta exact)
@@ -246,11 +242,9 @@ function renderAmine() {
     Divers = ${fmtPlain(Math.round(diversPerso))}€ perso (= ${fmtPlain(Math.round(diversPro))}€ pro).
     <strong>Net Pro = ${fmtSigned(Math.round(posNetPro))} · Perso = Pro × ${PERSO_FACTOR} = ${fmtSigned(Math.round(posNetPerso))} · MAD = Pro × ${az.tauxMaroc} = ${fmtSigned(Math.round(posNetMAD), 'MAD')}</strong>
   </div>`;
-  if (bobCommAugDH > 0) {
-    detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
-      <strong>+ Commission dispatch Bob (3 %) :</strong> Amine reverse à Augustin sa part de la commission Bob → Amine doit <strong>${fmtPlain(Math.round(bobCommAugEUR))} €</strong> / <strong>${fmtPlain(bobCommAugDH)} DH</strong> à Augustin. <strong>Position Augustin totale : ${fmtSigned(Math.round(azOwedPersoTot))} (perso) · ${fmtSigned(Math.round(azOwedMADTot), 'MAD')}.</strong>
-    </div>`;
-  }
+  detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
+    <strong>Flux Bob — hors position Augustin :</strong> Amine retient <strong>10 %</strong> sur ce que ZOR envoie, puis verse le solde <strong>en DH à Azarkan</strong> (on behalf of Hamza). La commission de gestion d'Azarkan (3 %, prélevée quand il retransmet en euros) est une affaire entre lui et Hamza — elle n'entre dans aucun solde d'Amine.
+  </div>`;
   detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Benoit :</strong> Report 2025 = ${fmtSigned(benoitPos.report25, 'DH')}.
     Councils payés 2026 (net −10%) = ${fmtPlain(benoitPos.netPaid26)} DH (${benoitPos.paidCount} factures).
@@ -259,7 +253,7 @@ function renderAmine() {
   </div>`;
   detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Bob :</strong> Report 2025 = ${fmtSigned(bobPos.report, 'DH')}.
-    Councils payés 2026 (net −13%) = ${fmtPlain(bobPos.netPaid)} DH (${bobPos.paidCount} factures).
+    Councils payés 2026 (net −10%) = ${fmtPlain(bobPos.netPaid)} DH (${bobPos.paidCount} factures).
     Payé = ${fmtPlain(bobPos.totalPaye)} DH. <strong>Solde = ${fmtSigned(soldeBob, 'DH')}.</strong>
   </div>`;
   detailHtml += `<div style="font-size:.65rem;color:var(--muted);padding:2px 4px">Taux : Augustin ${az.tauxMaroc} · Benoit ${tauxBenoit} · Bob ${tauxBob}. Perso EUR = base cash ; MAD = somme native (sans conversion croisée).</div>`;
@@ -288,7 +282,8 @@ function renderAmine() {
         persoEUR: Math.round(azOwedPersoTot),
         mad: Math.round(azOwedMADTot),
         tauxMaroc: az.tauxMaroc,
-        bobCommissionDH: bobCommAugDH,           // part commission Bob reversée à Augustin (info)
+        // (bobCommissionDH retiré : la commission de gestion d'Azarkan sur le flux
+        //  Bob n'est plus une charge d'Amine — voir le modèle 10 % / 3 %.)
       },
       benoit: {
         dh: Math.round(-soldeBenoit),             // positive = Benoit me doit, négatif = je lui dois

@@ -288,8 +288,9 @@ const FULL_DATA = {
   // international HT (Hamza est en Belgique, Bridgevale est UK) → PAS de TVA.
   // Azarkan (Mohammed = alias "Augustin") récupère les fonds et les dispatche
   // temporairement à Hamza, en attendant qu'il ait son propre compte.
-  // Commission TOTALE 13% = 10% Amine + 3% Mohammed ("Augustin").
-  //   net Hamza = brut DH − 13%.
+  // Retenue Amine 10% = SEULE composante des soldes → net dû = brut DH − 10%.
+  //   La commission de gestion de Mohammed ("Augustin") 3% est prélevée en aval,
+  //   quand il retransmet en euros à Hamza : hors livres d'Amine, info seulement.
   // Tracking multidevise comme Badre : factures HT en €, converties en DH au
   // tauxApplique de chaque ligne, payées en DH (virements).
   // Relation récente → report2025 = 0.
@@ -324,7 +325,8 @@ const FULL_DATA = {
     notes: [
       "Amine facture la société de Hamza (Molenbeck) via Bridgevale Consulting (société UK). Flux international HT — pas de TVA (Hamza en Belgique, Bridgevale au UK).",
       "Azarkan récupère et dispatche temporairement les fonds à Hamza, en attendant qu'il ait son propre compte.",
-      "Commission totale 13 % : 10 % Amine + 3 % Augustin (dispatch). Net Hamza = brut − 13 %.",
+      "Retenue Amine : 10 % sur les montants reçus de ZOR. C'est la seule retenue qui entre dans les soldes — net dû par Amine = brut − 10 %.",
+      "Amine verse ce net EN DIRHAMS à Azarkan, on behalf de Hamza. Azarkan prélève ensuite sa propre commission de gestion (3 %) en retransmettant en euros : cet étage est une affaire Azarkan↔Hamza et n'entre dans aucun solde d'Amine.",
     ],
   },
 };

@@ -93,7 +93,8 @@ function computeBenoitSolde() {
 
 // ---- SHARED: Bob (Bob) position calculation ----
 // Single source of truth — called by render-amine.js (dashboard) AND
-// render-bob.js (tab). Two-tier commission (Amine + Augustin), report = 0.
+// render-bob.js (tab). Retenue Amine 10 % = SEULE composante des soldes ;
+// la commission de gestion Augustin (3 %) est info seulement. report = 0.
 // Guarded: returns zeros when bob2026 is absent (e.g. COUPA/benoit blob).
 function computeBobSolde() {
   const b = (typeof DATA !== 'undefined') ? DATA.bob2026 : null;
@@ -110,9 +111,9 @@ function computeBobSolde() {
     const dh = taux ? Math.round(m.htEUR * taux) : 0;
     const delta = m.tauxMarche && taux ? taux - m.tauxMarche : null;
     const gainFX = m.tauxMarche && taux ? Math.round(m.htEUR * (m.tauxMarche - taux)) : (m.tauxMarche ? 0 : null);
-    const commA = Math.round(dh * rA);
-    const commM = Math.round(dh * rM);
-    const netBob = dh - commA - commM;
+    const commA = Math.round(dh * rA);   // retenue Amine (10 %) — SEULE à entrer dans les soldes
+    const commM = Math.round(dh * rM);   // commission de gestion Azarkan (3 %) — INFO SEULEMENT
+    const netBob = dh - commA;           // ce qu'Amine doit, versé en DH à Azarkan on behalf of Bob
     return { ...m, dh, delta, gainFX, commA, commM, netBob };
   });
   const paid = transactions.filter(t => t.statut === 'ok');

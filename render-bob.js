@@ -7,8 +7,13 @@
 //   Augustin (Augustin = alias "Augustin") récupère les fonds et les dispatche
 //   temporairement à Bob, en attendant qu'il ait son propre compte.
 //
-//   Commission TOTALE 13 % = 10 % Amine + 3 % Augustin (dispatch).
-//     net Bob = brut DH − 13 %.
+//   MODÈLE DE COMMISSION (revu 09/08/2026) — deux étages INDÉPENDANTS :
+//     1) Amine retient 10 % sur les montants reçus de ZOR. C'est la SEULE
+//        retenue qui entre dans les soldes → net dû = brut DH − 10 %.
+//     2) Amine verse ce net EN DIRHAMS à Augustin, on behalf of Bob. Augustin
+//        prélève ensuite SA commission de gestion (3 %) en retransmettant en
+//        euros. Cet étage est une affaire Augustin↔Bob : il n'apparaît dans
+//        AUCUN solde d'Amine (ni Bob, ni Augustin), seulement en info PRIV.
 //
 //   Tracking comme Benoit : factures HT en €, converties en DH au tauxApplique
 //   de chaque ligne, payées en DH (virements). Relation récente → report = 0.
@@ -30,7 +35,6 @@ function renderBob2026() {
   const rM = d.commissionAugustinRate || 0;  // 0.03
   const pctA = Math.round(rA * 100);
   const pctM = Math.round(rM * 100);
-  const pctTot = Math.round((rA + rM) * 100);
 
   const councils = d.councils || [];
   const virements = d.virements || [];
@@ -54,7 +58,7 @@ function renderBob2026() {
   // ---- HEADER ----
   let html = '';
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">${d.title}</h2>`;
-  html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report ${year - 1} : ${fmtSigned(report, 'DH')} (relation récente). Facturé via Bridgevale Consulting — flux international HT (pas de TVA). Commission ${pctTot} % (${pctA} % Amine + ${pctM} % Augustin). Réconciliation sur Councils payés uniquement.</p>`;
+  html += `<p style="color:var(--muted);font-size:.8rem;margin-bottom:18px">Report ${year - 1} : ${fmtSigned(report, 'DH')} (relation récente). Facturé via Bridgevale Consulting — flux international HT (pas de TVA). Retenue Amine ${pctA} % sur les montants reçus de ZOR. Le solde est versé en DH à Augustin (on behalf of Bob) ; Augustin prélève ensuite sa propre commission de gestion de ${pctM} % en retransmettant en euros — hors livres d'Amine. Réconciliation sur Councils payés uniquement.</p>`;
 
   // ---- HERO CARD ----
   const heroColor = solde > 0 ? 'yellow' : 'green';
@@ -79,15 +83,15 @@ function renderBob2026() {
   // ---- Summary row ----
   html += `<div class="summary-row">
     <div class="summary-item"><div class="sl">Report ${year - 1}</div><div class="sv" style="color:var(--yellow)">${fmtSigned(report, 'DH')}</div><div class="sd">Reste dû de ${year - 1}</div></div>
-    <div class="summary-item"><div class="sl">Councils payé (net −${pctTot} %)</div><div class="sv" style="color:var(--accent)">${fmtPlain(totalNetPaid)} DH</div><div class="sd">${paid.length} facture(s)</div></div>
+    <div class="summary-item"><div class="sl">Councils payé (net −${pctA} %)</div><div class="sv" style="color:var(--accent)">${fmtPlain(totalNetPaid)} DH</div><div class="sd">${paid.length} facture(s)</div></div>
     <div class="summary-item"><div class="sl">Payé DH</div><div class="sv" style="color:var(--green)">${fmtPlain(totalPaye)} DH</div><div class="sd">${virements.length} virement(s)</div></div>
   </div>`;
 
   // ---- Councils table ----
   const refHeader = hasRef ? '<th>Ref</th>' : '';
-  let councilsTableHtml = `<div class="n" style="margin-bottom:8px">Bridgevale Consulting facture Bob en <strong>HT</strong> (flux international, pas de TVA). Conversion en DH au taux appliqué. Commission ${pctTot} % retenue : ${pctA} % Amine + ${pctM} % Augustin (dispatch).</div>`;
+  let councilsTableHtml = `<div class="n" style="margin-bottom:8px">Bridgevale Consulting facture Bob en <strong>HT</strong> (flux international, pas de TVA). Conversion en DH au taux appliqué. Retenue Amine : ${pctA} %. La commission de gestion d'Augustin (${pctM} %) est prélevée en aval, entre lui et Bob — elle n'apparaît pas ici.</div>`;
   councilsTableHtml += `<table>
-    <thead><tr>${refHeader}<th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">Taux appliqué</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Δ taux</th>' : ''}<th data-sort="num" style="text-align:right">= DH</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Gain FX (DH)</th>' : ''}<th data-sort="num" style="text-align:right">Commission ${pctTot} %</th><th data-sort="num" style="text-align:right">Net Bob (DH)</th><th></th></tr></thead><tbody>`;
+    <thead><tr>${refHeader}<th data-sort="date">Mois</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="num" style="text-align:right">Taux appliqué</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Taux marché</th><th data-sort="num" style="text-align:right">Δ taux</th>' : ''}<th data-sort="num" style="text-align:right">= DH</th>${window.PRIV ? '<th data-sort="num" style="text-align:right">Gain FX (DH)</th>' : ''}<th data-sort="num" style="text-align:right">Retenue ${pctA} %</th><th data-sort="num" style="text-align:right">Net dû (DH)</th><th></th></tr></thead><tbody>`;
   transactions.forEach(t => {
     const refCell = hasRef ? `<td style="font-size:.72rem">${t.ref || ''}</td>` : '';
     const privCells1 = window.PRIV
@@ -96,9 +100,9 @@ function renderBob2026() {
     const privCells2 = window.PRIV
       ? `<td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td>`
       : '';
-    councilsTableHtml += `<tr>${refCell}<td>${t.mois || t.date || ''}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td>${privCells1}<td class="a">${fmtPlain(t.dh)}</td>${privCells2}<td class="a">${fmtPlain(t.commA + t.commM)}</td><td class="a">${fmtPlain(t.netBob)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
+    councilsTableHtml += `<tr>${refCell}<td>${t.mois || t.date || ''}</td><td class="a">${fmtPlain(t.htEUR)}</td><td class="a">${fmtRate(t.tauxApplique)}</td>${privCells1}<td class="a">${fmtPlain(t.dh)}</td>${privCells2}<td class="a">${fmtPlain(t.commA)}</td><td class="a">${fmtPlain(t.netBob)}</td><td>${badge(t.statut, t.statutText)}</td></tr>`;
   });
-  councilsTableHtml += `<tr class="tr">${hasRef ? '<td></td>' : ''}<td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'htEUR'))}</strong></td><td></td>${window.PRIV ? '<td></td><td></td>' : ''}<td class="a"><strong>${fmtPlain(sum(transactions, 'dh'))}</strong></td>${window.PRIV ? `<td class="a" style="color:var(--green)"><strong>${fmtSigned(sum(transactions, t => t.gainFX || 0), '')}</strong></td>` : ''}<td class="a"><strong>${fmtPlain(sum(transactions, t => t.commA + t.commM))}</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'netBob'))}</strong></td><td></td></tr>`;
+  councilsTableHtml += `<tr class="tr">${hasRef ? '<td></td>' : ''}<td><strong>Total</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'htEUR'))}</strong></td><td></td>${window.PRIV ? '<td></td><td></td>' : ''}<td class="a"><strong>${fmtPlain(sum(transactions, 'dh'))}</strong></td>${window.PRIV ? `<td class="a" style="color:var(--green)"><strong>${fmtSigned(sum(transactions, t => t.gainFX || 0), '')}</strong></td>` : ''}<td class="a"><strong>${fmtPlain(sum(transactions, 'commA'))}</strong></td><td class="a"><strong>${fmtPlain(sum(transactions, 'netBob'))}</strong></td><td></td></tr>`;
   councilsTableHtml += `</tbody></table>`;
   const tableTitle = window.PRIV
     ? `Paiements Councils ${year} — convertis en DH (taux appliqué vs marché)`
@@ -121,8 +125,8 @@ function renderBob2026() {
     <thead><tr><th>Ligne</th><th style="text-align:right">DH</th><th>Détail</th></tr></thead><tbody>
     <tr><td>Report ${year - 1}</td><td class="a" style="color:var(--yellow)">${fmtSigned(report, '')}</td><td>Relation récente — aucun report</td></tr>
     <tr><td>Councils HT payé ${year}</td><td class="a">${fmtPlain(totalDHPaid)}</td><td>${paid.length} paiement(s) reçu(s)</td></tr>
-    <tr><td>Commission ${pctTot} %</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommAPaid + totalCommMPaid)}</td><td>${pctA} % Amine + ${pctM} % Augustin (dispatch)</td></tr>
-    <tr><td><strong>Total dû à Bob (par Amine)</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Amine a encaissé → Amine paie Bob. Report + net Councils (−${pctTot} %)</td></tr>
+    <tr><td>Retenue Amine ${pctA} %</td><td class="a" style="color:var(--yellow)">−${fmtPlain(totalCommAPaid)}</td><td>seule retenue qui entre dans le solde</td></tr>
+    <tr><td><strong>Total dû à Bob (par Amine)</strong></td><td class="a"><strong>${fmtPlain(soldeDu)}</strong></td><td>Amine a encaissé → Amine paie Bob. Report + net Councils (−${pctA} %)</td></tr>
     <tr><td>Virements DH ${year}</td><td class="a" style="color:var(--green)">−${fmtPlain(totalPaye)}</td><td>${virements.length} virement(s)</td></tr>
     <tr class="tr"><td><strong>Solde ${year}</strong></td><td class="a" style="color:${solde > 0 ? 'var(--yellow)' : 'var(--green)'}"><strong>${fmtSigned(solde, '')}</strong></td><td>${solde > 0 ? 'Amine doit encore ' + fmtPlain(solde) + ' DH à Bob' : solde < 0 ? 'Bob a un excédent de ' + fmtPlain(Math.abs(solde)) + ' DH' : 'Soldé'}</td></tr>
     </tbody></table>`;
@@ -139,7 +143,7 @@ function renderBob2026() {
       <tr><td><strong>Commission Amine ${pctA} %</strong></td><td class="a" style="color:var(--green)">${fmtSigned(totalCommAPaid, '')}</td><td>${pctA} % sur ${fmtPlain(totalDHPaid)} DH de Councils HT payés</td></tr>
       <tr><td><strong>Gain FX (Δ taux)</strong></td><td class="a" style="color:var(--green)">${fmtSigned(totalGainFXPaid, '')}</td><td>Taux appliqué inférieur au marché</td></tr>
       <tr class="tr"><td><strong>Total gains Amine</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(totalCommAPaid + totalGainFXPaid, '')}</strong></td><td></td></tr>
-      <tr><td>Commission Augustin ${pctM} % (info)</td><td class="a" style="color:var(--muted)">${fmtSigned(totalCommMPaid, '')}</td><td>Dispatch — PAS un gain Amine</td></tr>
+      <tr><td>Commission gestion Augustin ${pctM} % (info)</td><td class="a" style="color:var(--muted)">${fmtSigned(totalCommMPaid, '')}</td><td>Prélevée par Augustin en aval — hors livres d'Amine</td></tr>
       </tbody></table>`;
     html += collapsible(`Consolidation des gains Amine — Bob ${year}`, gainsHtml);
   }

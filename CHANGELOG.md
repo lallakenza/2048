@@ -9,6 +9,41 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.31` — 2026-08-09
+
+### Flux Bob : modèle de commission revu — 10 % pour Amine, les 3 % sortent des soldes
+
+Le montage Bob comptait une commission **totale de 13 %** (10 % Amine + 3 % Augustin),
+et les 3 % étaient portés comme une **dette d'Amine envers Augustin**. Le modèle réel
+est différent, et c'est désormais celui qui est implémenté — **deux étages indépendants** :
+
+1. **Amine retient 10 %** sur les montants reçus de ZOR. C'est la **seule** retenue qui
+   entre dans les soldes → `net dû = brut DH − 10 %`.
+2. Amine verse ce net **en dirhams** à Augustin, *on behalf of* Bob. Augustin prélève
+   ensuite **sa** commission de gestion (3 %) en retransmettant en euros — affaire
+   Augustin↔Bob, **hors livres d'Amine**, conservée en information PRIV seulement.
+
+**Effets :**
+
+| | Avant | Après |
+|---|---|---|
+| Bob | −54 597 DH | **−58 032 DH** (net −10 % au lieu de −13 %) |
+| Augustin | +123 879 DH | **+127 314 DH** (plus de déduction des 3 %) |
+| **Total** | −113 152 DH | **−113 152 DH** — *inchangé* |
+
+Le total ne bouge pas, et c'est le contrôle qui valide le changement : les 3 %
+circulaient d'une contrepartie à l'autre, les retirer des deux côtés se compense.
+
+Retenue Amine sur le flux Bob : **11 448 DH**. Commission de gestion Augustin
+(info) : 3 435 DH.
+
+`render-helpers.js` (`computeBobSolde` : `netBob = dh − commA`), `render-amine.js`
+(suppression de `bobCommAug*` des positions et du champ `bobCommissionDH` du pont
+networth), `render-bob.js` (colonnes « Retenue 10 % » / « Net dû »), `encrypt.js`
+(notes). Bump v7.30 → v7.31.
+
+---
+
 ### Données — 9 août 2026 : rattrapage depuis les boîtes mail (pas de bump de version)
 
 Mise à jour **de données uniquement** (`encrypt.js` + blobs regénérés), donc pas
