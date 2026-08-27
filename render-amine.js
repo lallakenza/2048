@@ -29,8 +29,13 @@
 // mecanisme de reglement -- mais tant qu'Azarkan n'a pas retransmis, Amine a
 // abandonne sa creance SANS etre libere envers Bob. D'ou : vue optionnelle, brute
 // par defaut, et le pont localStorage reste TOUJOURS sur les valeurs brutes.
+// Actif PAR DEFAUT (v7.34) : c'est la lecture utile au quotidien. La vue brute
+// reste a un clic, et la reserve ci-dessus est affichee tant que le netting est on.
 window.amNetting = (function () {
-  try { return localStorage.getItem('am_netting_view') === '1'; } catch (e) { return false; }
+  try {
+    var v = localStorage.getItem('am_netting_view');
+    return v === null ? true : v === '1';   // null = jamais choisi -> netting on
+  } catch (e) { return true; }
 })();
 window.amToggleNetting = function () {
   window.amNetting = !window.amNetting;

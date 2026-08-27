@@ -9,6 +9,31 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.34` — 2026-08-27
+
+### Le netting Augustin ⇄ Bob devient la vue par défaut
+
+`v7.33` livrait le netting en option, vue brute par défaut. À l'usage c'est l'inverse
+qui est utile : la vue nettée montre ce qu'il reste réellement à régler.
+
+Le stockage distingue désormais trois états au lieu de deux :
+
+| `localStorage.am_netting_view` | Vue |
+|---|---|
+| `null` (jamais choisi) | **nettée** — nouveau défaut |
+| `'1'` | nettée |
+| `'0'` | brute |
+
+Un choix explicite de l'utilisateur continue donc de primer : qui a déjà basculé en
+vue brute la conserve.
+
+Les trois garde-fous de `v7.33` sont inchangés — le pont `localStorage` reste sur les
+valeurs brutes, la vue « Reçu / Envoyé » n'est jamais nettée, et Benoit reste exclu.
+La réserve (« compensation acquise seulement une fois Azarkan retransmis ») s'affiche
+désormais par défaut, ce qui est cohérent : elle accompagne le mode actif.
+
+---
+
 ## `v7.33` — 2026-08-27
 
 ### Netting Augustin ⇄ Bob sur « Ma Position » (vue optionnelle)
