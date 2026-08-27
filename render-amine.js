@@ -23,6 +23,21 @@
 
 // Toggle du diagramme "Flux par personne" : bascule entre la vue Reçu/Envoyé
 // et la vue Position (delta). Global car le HTML est injecté via innerHTML.
+// Netting Augustin <-> Bob (AFFICHAGE SEULEMENT). Azarkan est le canal physique de
+// l'argent de Hamza : Amine se libere de sa dette envers Bob en versant a Azarkan.
+// Compenser la creance sur Azarkan contre le dispatch de Bob est donc un vrai
+// mecanisme de reglement -- mais tant qu'Azarkan n'a pas retransmis, Amine a
+// abandonne sa creance SANS etre libere envers Bob. D'ou : vue optionnelle, brute
+// par defaut, et le pont localStorage reste TOUJOURS sur les valeurs brutes.
+window.amNetting = (function () {
+  try { return localStorage.getItem('am_netting_view') === '1'; } catch (e) { return false; }
+})();
+window.amToggleNetting = function () {
+  window.amNetting = !window.amNetting;
+  try { localStorage.setItem('am_netting_view', window.amNetting ? '1' : '0'); } catch (e) {}
+  if (typeof renderPanel === 'function') renderPanel('amine');
+};
+
 window.amFluxMode = function (m) {
   var f = document.getElementById('fluxVarFlux'), p = document.getElementById('fluxVarPos');
   var bf = document.getElementById('fluxBtnFlux'), bp = document.getElementById('fluxBtnPos');
@@ -110,30 +125,63 @@ function renderAmine() {
   const combinedEUR = azOwedPersoTot + baOwedEUR + bobOwedEUR;
   const combinedMAD = azOwedMADTot + baOwedDH + bobOwedDH;
 
+  // ---- NETTING Augustin <-> Bob (affichage seulement) ----
+  // Applicable uniquement quand les deux positions sont de SENS OPPOSES : on
+  // transfere min(|az|,|bob|) de l'une vers l'autre, ce qui met la plus petite a
+  // zero. La somme des trois est invariante -- c'est le test de validite.
+  // Benoit est exclu : il est regle en direct, aucun canal commun.
+  const netEligible = (azOwedMADTot > 0) !== (bobOwedDH > 0)
+                      && Math.round(azOwedMADTot) !== 0 && Math.round(bobOwedDH) !== 0;
+  const netActive = window.amNetting === true && netEligible;
+  const netAmount = netEligible ? Math.min(Math.abs(azOwedMADTot), Math.abs(bobOwedDH)) : 0;
+  const azSmaller = Math.abs(azOwedMADTot) <= Math.abs(bobOwedDH);
+  const azDispMAD = netActive ? (azSmaller ? 0 : azOwedMADTot + bobOwedDH) : azOwedMADTot;
+  const bobDispDH = netActive ? (azSmaller ? azOwedMADTot + bobOwedDH : 0) : bobOwedDH;
+  // Equivalents EUR recalcules depuis le MAD affiche (MAD = Pro x tauxMaroc ; Perso = Pro x 0.95)
+  const azDispPro   = netActive ? azDispMAD / az.tauxMaroc        : azOwedProTot;
+  const azDispPerso = netActive ? azDispMAD / az.tauxMaroc * 0.95 : azOwedPersoTot;
+  const bobDispEUR  = netActive ? bobDispDH / tauxBob             : bobOwedEUR;
+
   // Direction/couleur par personne (basé sur la position TOTALE, incl. dispatch)
   // Code couleur par ÉQUILIBRE : |valeur| en MAD, indépendant du sens (te doit / tu dois).
   //   ≤ 50k = vert (équilibré) · 50–100k = orange · > 100k = rouge.
   // Objectif : ramener chaque position ET le total vers 0 (pas de dettes).
+  // fmtSigned() rend '0' sans unite (convention globale). Le netting produit
+  // justement des zeros exacts : on les affiche avec leur unite, plus lisible.
+  const fmtZ = (v, unit) => Math.round(v) === 0 ? '0 ' + unit : fmtSigned(Math.round(v), unit);
   const balColor = (v) => { const a = Math.abs(v); return a <= 50000 ? 'var(--green)' : a <= 100000 ? '#f59e0b' : 'var(--red)'; };
   const dir = (v) => ({ pos: v >= 0, color: balColor(v) });
-  const azD = dir(Math.round(azOwedMADTot)), baD = dir(baOwedDH), bobD = dir(bobOwedDH);
-  const azLabel = azD.pos ? 'Augustin me doit' : 'Je dois à Augustin';
-  const baLabel = baD.pos ? 'Benoit me doit' : 'Je dois à Benoit';
-  const bobLabel = bobD.pos ? 'Bob me doit' : 'Je dois à Bob';
+  const azD = dir(Math.round(azDispMAD)), baD = dir(baOwedDH), bobD = dir(Math.round(bobDispDH));
+  // Une position nettée peut tomber pile à 0 : « me doit 0 » n'aurait aucun sens.
+  const who = (v, name) => Math.round(v) === 0 ? 'soldé — à l\'équilibre'
+                         : (v > 0 ? name + ' me doit' : 'Je dois à ' + name);
+  const azLabel = who(azDispMAD, 'Augustin');
+  const baLabel = who(baOwedDH, 'Benoit');
+  const bobLabel = who(bobDispDH, 'Bob');
 
   // ---- HERO : Position nette totale — TOUT EN DIRHAM ----
   // Position globale estimée entièrement en MAD (somme des 3 positions en dirham
   // natif : Augustin ×tauxMaroc, Benoit + Bob en DH). Aucune conversion croisée.
   const madColor = balColor(combinedMAD);
   const madSub = combinedMAD >= 0 ? 'net en ta faveur · les 3 réunis' : 'je dois au total · les 3 réunis';
-  const brkItem = (name, val, color) => `<span>${name} <span style="color:${color};font-weight:700">${fmtSigned(Math.round(val), 'MAD')}</span></span>`;
-  const madBreak = brkItem('Augustin', azOwedMADTot, azD.color) + brkItem('Benoit', baOwedDH, baD.color) + brkItem('Bob', bobOwedDH, bobD.color);
+  const brkItem = (name, val, color) => `<span>${name} <span style="color:${color};font-weight:700">${fmtZ(val, 'MAD')}</span></span>`;
+  const madBreak = brkItem('Augustin', azDispMAD, azD.color) + brkItem('Benoit', baOwedDH, baD.color) + brkItem('Bob', bobDispDH, bobD.color);
 
   html += `<div style="margin-bottom:18px;padding:16px 18px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);text-align:center">
     <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Position globale estimée — Augustin, Benoit, Bob réunis</div>
     <div style="font-size:2.1rem;font-weight:900;line-height:1.1;color:${madColor}">${fmtSigned(Math.round(combinedMAD), 'MAD')}</div>
     <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${madSub}</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted);justify-content:center">${madBreak}</div>
+    ${netEligible ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+      <button onclick="amToggleNetting()" style="border:1px solid ${netActive ? 'var(--accent)' : 'var(--border)'};background:${netActive ? 'var(--accent)' : 'transparent'};color:${netActive ? '#fff' : 'var(--muted)'};padding:5px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.7rem">
+        ${netActive ? '\u2713 Netting Augustin \u21c4 Bob actif' : 'Netter Augustin \u21c4 Bob (\u2212' + fmtPlain(Math.round(netAmount)) + ' DH)'}
+      </button>
+      <div style="font-size:.63rem;color:var(--muted);margin-top:6px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.45">
+        ${netActive
+          ? `Azarkan r\u00e8gle <strong>${fmtPlain(Math.round(netAmount))} DH</strong> du dispatch de Bob sur ce qu'il te doit. Vue th\u00e9orique : la compensation n'est acquise qu'une fois Azarkan effectivement retransmis \u2014 d'ici l\u00e0 tu as renonc\u00e9 \u00e0 ta cr\u00e9ance sans \u00eatre lib\u00e9r\u00e9 envers Bob. Le pont vers le patrimoine reste sur les valeurs brutes.`
+          : `Les positions Augustin et Bob sont de sens oppos\u00e9s et transitent par le m\u00eame canal \u2014 compensables \u00e0 hauteur de ${fmtPlain(Math.round(netAmount))} DH.`}
+      </div>
+    </div>` : ''}
   </div>`;
 
   // ---- DIAGRAMME : Flux par personne (reçu / envoyé) ⇄ Position (delta) ----
@@ -143,12 +191,12 @@ function renderAmine() {
   // Réconcilie EXACTEMENT avec les positions canoniques (azOwedMADTot, baOwedDH, bobOwedDH).
   // Placé AVANT les cartes ; vue par défaut = Position (delta).
   const fluxRows = [
-    { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc), pos: Math.round(azOwedMADTot), color: azD.color },
-    { name: 'Benoit',   recu: benoitPos.report25 + benoitPos.netPaid26,              pos: Math.round(baOwedDH),     color: baD.color },
-    { name: 'Bob',      recu: bobPos.report + bobPos.netPaid,                       pos: Math.round(bobOwedDH),    color: bobD.color },
-  ].map(r => ({ ...r, envoye: r.recu + r.pos })); // envoyé = reçu + position (delta exact)
+    { name: 'Augustin', recu: Math.round(rtlPaidHT * az.tauxMaroc), pos: Math.round(azOwedMADTot), posDisp: Math.round(azDispMAD), color: azD.color },
+    { name: 'Benoit',   recu: benoitPos.report25 + benoitPos.netPaid26,              pos: Math.round(baOwedDH),     posDisp: Math.round(baOwedDH),  color: baD.color },
+    { name: 'Bob',      recu: bobPos.report + bobPos.netPaid,                       pos: Math.round(bobOwedDH),    posDisp: Math.round(bobDispDH), color: bobD.color },
+  ].map(r => ({ ...r, envoye: r.recu + r.pos })); // envoyé = reçu + position BRUTE (flux réel, jamais netté)
   const fluxMax = Math.max(...fluxRows.map(r => Math.max(r.recu, r.envoye)), 1);
-  const posMax = Math.max(...fluxRows.map(r => Math.abs(r.pos)), 1);
+  const posMax = Math.max(...fluxRows.map(r => Math.abs(r.posDisp)), 1);
 
   const fluxBar = (tag, val, color) => {
     const pct = Math.max(2, Math.round(val / fluxMax * 100));
@@ -173,15 +221,15 @@ function renderAmine() {
 
   let posInner = `<div style="font-size:.64rem;color:var(--muted);margin-bottom:10px">Delta = Envoyé − Reçu · <span style="color:var(--green)">+ = te doit</span> · <span style="color:var(--red)">− = tu lui dois</span> · survole une barre pour voir reçu / envoyé</div>`;
   fluxRows.forEach(r => {
-    const isPos = r.pos >= 0;
-    const w = Math.max(2, Math.round(Math.abs(r.pos) / posMax * 48));
-    const barColor = balColor(r.pos);
-    const lbl = isPos ? 'te doit' : 'tu lui dois';
+    const isPos = r.posDisp >= 0;
+    const w = Math.max(2, Math.round(Math.abs(r.posDisp) / posMax * 48));
+    const barColor = balColor(r.posDisp);
+    const lbl = Math.round(r.posDisp) === 0 ? 'soldé' : (isPos ? 'te doit' : 'tu lui dois');
     // Bulle au survol : détail reçu / envoyé de la personne (données déjà calculées).
     const tip = `<div class="flux-tip" style="display:none;position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.66rem;white-space:nowrap;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.4);pointer-events:none"><span style="color:var(--green);font-weight:700">Reçu ${fmtPlain(r.recu)} DH</span> · <span style="color:#60a5fa;font-weight:700">Envoyé ${fmtPlain(r.envoye)} DH</span></div>`;
     posInner += `<div style="margin-bottom:12px;position:relative;cursor:default" onmouseenter="var t=this.querySelector('.flux-tip');if(t)t.style.display='block'" onmouseleave="var t=this.querySelector('.flux-tip');if(t)t.style.display='none'">
       ${tip}
-      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px"><span style="font-weight:700">${r.name}</span><span style="color:${barColor};font-variant-numeric:tabular-nums">${fmtSigned(r.pos, 'DH')} · ${lbl}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px"><span style="font-weight:700">${r.name}</span><span style="color:${barColor};font-variant-numeric:tabular-nums">${fmtZ(r.posDisp, 'DH')} · ${lbl}</span></div>
       <div style="position:relative;height:15px;background:var(--bg);border-radius:4px">
         <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)"></div>
         <div style="position:absolute;top:1px;bottom:1px;${isPos ? 'left:50%' : 'right:50%'};width:${w}%;background:${barColor};border-radius:3px"></div>
@@ -208,10 +256,10 @@ function renderAmine() {
   // Augustin — position en DH (comme un virement Maroc, comme Benoit/Bob)
   html += `<div class="hero-card" style="border-color:${azD.color};text-align:left">
     <div class="hero-label">Augustin</div>
-    <div class="hero-value" style="font-size:1.35rem;color:${azD.color}">${fmtSigned(Math.round(azOwedMADTot), 'DH')}</div>
+    <div class="hero-value" style="font-size:1.35rem;color:${azD.color}">${fmtZ(azDispMAD, 'DH')}</div>
     <div class="hero-who" style="color:${azD.color}">${azLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(azOwedPersoTot))} perso · prestations RTL − reversé</div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azOwedProTot))} · Perso ${fmtSigned(Math.round(azOwedPersoTot))}</div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(azDispPerso))} perso · prestations RTL − reversé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">Pro ${fmtSigned(Math.round(azDispPro))} · Perso ${fmtSigned(Math.round(azDispPerso))}${netActive ? ` · <span style="color:var(--accent)">brut ${fmtSigned(Math.round(azOwedMADTot), 'DH')}</span>` : ''}</div>
   </div>`;
 
   // Benoit
@@ -226,10 +274,10 @@ function renderAmine() {
   // Bob
   html += `<div class="hero-card" style="border-color:${bobD.color};text-align:left">
     <div class="hero-label">Bob</div>
-    <div class="hero-value" style="font-size:1.35rem;color:${bobD.color}">${fmtSigned(bobOwedDH, 'DH')}</div>
+    <div class="hero-value" style="font-size:1.35rem;color:${bobD.color}">${fmtZ(bobDispDH, 'DH')}</div>
     <div class="hero-who" style="color:${bobD.color}">${bobLabel}</div>
-    <div class="hero-detail">≈ ${fmtSigned(Math.round(bobOwedEUR))} · councils − trop-versé</div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${bobPos.paidCount} council(s) payé(s) · dispatch via Augustin</div>
+    <div class="hero-detail">≈ ${fmtSigned(Math.round(bobDispEUR))} · councils − trop-versé</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:8px">${bobPos.paidCount} council(s) payé(s) · dispatch via Augustin${netActive ? ` · <span style="color:var(--accent)">brut ${fmtSigned(Math.round(bobOwedDH), 'DH')}</span>` : ''}</div>
   </div>`;
 
   html += `</div>`;

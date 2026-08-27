@@ -9,6 +9,54 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.33` — 2026-08-27
+
+### Netting Augustin ⇄ Bob sur « Ma Position » (vue optionnelle)
+
+Azarkan reçoit **à la fois ses propres virements et ceux destinés à Hamza** (dispatch
+*on behalf of*). Quand les positions Augustin et Bob sont de **sens opposés**, elles
+sont donc compensables : se libérer envers Bob passe de toute façon par un virement
+à Azarkan.
+
+Un bouton sur le bloc « Position globale » bascule entre vue brute et vue nettée.
+On transfère `min(|Augustin|, |Bob|)` de l'une vers l'autre, ce qui met la plus petite
+à zéro :
+
+| | Brut | Netté |
+|---|---:|---:|
+| Augustin | +41 615 DH | **0** |
+| Bob | −58 032 DH | **−16 417 DH** |
+| Benoit | +17 566 DH | +17 566 DH |
+| **Net** | +1 149 DH | **+1 149 DH** |
+
+**La somme des trois est invariante** — c'est le test de validité de l'opération.
+
+### Trois garde-fous
+
+1. **Le pont `localStorage` reste TOUJOURS sur les valeurs brutes.** Le netting est
+   une lecture, pas une écriture : le patrimoine continue de voir la créance sur
+   Azarkan et la dette envers Bob séparément.
+2. **La vue « Reçu / Envoyé » n'est jamais nettée.** Elle décrit des flux de trésorerie
+   réels — le netting ne change pas l'argent effectivement envoyé. Seule la vue
+   « Position (delta) » bascule. `envoye = recu + pos` utilise donc la position brute.
+3. **Benoit est exclu.** Il est réglé en direct, sans canal commun : le netter serait
+   purement cosmétique.
+
+### La réserve, affichée dans l'interface
+
+La compensation n'est **acquise qu'une fois qu'Azarkan a effectivement retransmis**.
+D'ici là, tu as renoncé à ta créance sur lui sans être libéré envers Bob : le netting
+anticipe un règlement qui n'a pas eu lieu. C'est pourquoi la vue est **brute par
+défaut** (préférence mémorisée dans `localStorage.am_netting_view`) et que la note
+explicative accompagne le mode actif.
+
+Détail d'implémentation : `fmtSigned()` rend `'0'` sans unité — convention globale
+laissée intacte. Le netting produisant des zéros exacts, un helper local `fmtZ()`
+les affiche avec leur unité, et les libellés passent à « soldé » plutôt que
+« te doit 0 ».
+
+---
+
 ## Mise à jour de données — 2026-08-27
 
 Pas de changement de code, donc pas de bump de version (`v7.32` conservée).
