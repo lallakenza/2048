@@ -189,6 +189,10 @@ const FULL_DATA = {
       // 1 a 3 j de decalage sur la date d ordre, cf. les 6 autres lignes recoupees).
       { date: "17/07/2026", beneficiaire: "Jean Augustin", dh: 10000 },
       { date: "03/08/2026", beneficiaire: "Jean Augustin", dh: 50000 },
+      // Saisi le 27/08/2026 depuis le relevé temps reel, ou l operation figurait
+      // encore comme « en cours » (VIR WEB VERS AZARKAN, marqueur (*)). Virement du
+      // jour : ici la date bancaire EST la date d ordre, pas de decalage a corriger.
+      { date: "27/08/2026", beneficiaire: "Jean Augustin", dh: 20000 },
     ],
     // Paiements à Azarkan via Bridgevale (société UK d'Amine) — EN EUR, canal
     // distinct des virements Maroc (DH). Azarkan facture Bridgevale (AZCS####)

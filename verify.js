@@ -93,9 +93,9 @@ console.log('\n=== AUGUSTIN 2026 ===');
 const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
-check('Total MAD 2026', totalMAD26, 250000); // ...20/06 50k + 12/07 50k + 17/07 10k + 03/08 50k
+check('Total MAD 2026', totalMAD26, 270000); // ...12/07 50k + 17/07 10k + 03/08 50k + 27/08 20k
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(250000 / 10.26 * 100));
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(270000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 103700); // INVRTL013..019 (018+019 émises non payées)
 

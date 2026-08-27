@@ -21,7 +21,7 @@ les 6 lignes déjà connues, puis report des dates de valeur pour les nouvelles.
 
 | Bénéficiaire | Ajouts | Montant |
 |---|---|---|
-| Azarkan (Augustin) | 17/07 · 10 000 + 03/08 · 50 000 | **+60 000 DH** |
+| Azarkan (Augustin) | 17/07 · 10 000 + 03/08 · 50 000 + 27/08 · 20 000 | **+80 000 DH** |
 | Elmouksit (Benoit) | 24/08 · 3 × 50 000 (Attijari) | **+150 000 DH** |
 | Elmouksit (Benoit) | 23/08 · 45 000 + 24/08 · 5 000 (CIH) | **+50 000 DH** |
 
@@ -37,14 +37,19 @@ en attente. RTL encaissé 2026 : 71 400 → **87 550 €**.
 
 | | Avant | Après |
 |---|---|---|
-| Augustin | +127 314 DH | **+21 615 DH** |
+| Augustin | +127 314 DH | **+41 615 DH** |
 | Benoit | −182 434 DH | **+17 566 DH** |
 | Bob | −58 032 DH | −58 032 DH |
-| **Net** | −113 152 DH | **−18 851 DH** |
+| **Net** | −113 152 DH | **+1 149 DH** |
 
 Benoit change de signe : après 200 000 DH de virements, c'est lui qui doit 17 566 DH.
-Gains 2026 : 119 020 → **125 860 DH** (le poste « Virements Augustin » suit le volume
-envoyé, 420 000 → 480 000 DH).
+Le net revient à **+1 149 DH (≈ +36 €)**, soit l'équilibre à 0,2 % près du brut cumulé.
+Gains 2026 : 119 020 → **128 140 DH** (le poste « Virements Augustin » suit le volume
+envoyé, 420 000 → 500 000 DH).
+
+Le dernier virement (27/08 · 20 000 DH) a été saisi depuis le relevé **temps réel**, où
+il figurait encore comme opération en cours (marqueur `(*)`). Virement du jour : la date
+bancaire est ici aussi la date d'ordre.
 
 ### Vérifié sans effet
 
