@@ -184,6 +184,11 @@ const FULL_DATA = {
       { date: "05/06/2026", beneficiaire: "Jean Augustin", dh: 10000 },
       { date: "20/06/2026", beneficiaire: "Jean Augustin", dh: 50000 },
       { date: "12/07/2026", beneficiaire: "Jean Augustin", dh: 50000 },
+      // Releve Attijarinet du 27/08/2026 : 2 virements « VIR.EMIS WEB VERS AZARKAN »
+      // absents du suivi. Dates = dates de valeur bancaires (le releve accuse
+      // 1 a 3 j de decalage sur la date d ordre, cf. les 6 autres lignes recoupees).
+      { date: "17/07/2026", beneficiaire: "Jean Augustin", dh: 10000 },
+      { date: "03/08/2026", beneficiaire: "Jean Augustin", dh: 50000 },
     ],
     // Paiements à Azarkan via Bridgevale (société UK d'Amine) — EN EUR, canal
     // distinct des virements Maroc (DH). Azarkan facture Bridgevale (AZCS####)
@@ -202,7 +207,7 @@ const FULL_DATA = {
       // INVRTL017 : payée le 22/07/2026 — payment advice CLT-UFA 1700002285
       // (doc 1600001939, 15 300,00 EUR, reçu dans bairok.consulting le 17/07/2026).
       { ref: "INVRTL017", periode: "Mai",     jours: 18, montant: 15300, dateFacture: "04/06/2026", dateDue: "04/07/2026", statut: "ok", statutText: "Paid 22/07" },
-      { ref: "INVRTL018", periode: "Juin",    jours: 19, montant: 16150, dateFacture: "03/07/2026", dateDue: "03/08/2026", statut: "w",  statutText: "Invoiced" },
+      { ref: "INVRTL018", periode: "Juin",    jours: 19, montant: 16150, dateFacture: "03/07/2026", dateDue: "03/08/2026", statut: "ok", statutText: "Paid 26/08" },
       // INVRTL019 : facture émise le 05/08/2026 (PO 4500619649, 19 j × 850 €).
       // Période Juillet 2026 (mail « Material for invoicing July 2026 », 05/08).
       // Aucun payment advice à ce jour → en attente.
@@ -215,7 +220,7 @@ const FULL_DATA = {
     ],
     insights: [
       { type: "neutral", titre: "💸 Flux cash 2026 : 3 transactions Amine ↔ Azarkan", desc: "<strong>Reçu d'Azarkan :</strong> Oumaima +800€ · Zakaria −1 200€ = <strong>−400€ net</strong>.<br><strong>Envoyé à Azarkan :</strong> 6 000€ via Nezha → Hanane (virement perso).<br><strong>Net perso :</strong> +800 − 1 200 + 6 000 = <strong>5 600€</strong>." },
-      { type: "pass", titre: "📄 Factures RTL 2026 : 5 payées, 2 émises (en attente)", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, payée 10/06/2026 (payment advice CLT-UFA 1700001784, 12 750€). INVRTL017 (Mai, 18j, 15 300€ HT) facturée 04/06/2026, <strong>payée 22/07/2026</strong> (payment advice CLT-UFA 1700002285, doc 1600001939). INVRTL018 (Juin, 19j, 16 150€ HT) facturée 03/07/2026, due 03/08/2026 — en attente. INVRTL019 (Juillet, 19j, 16 150€ HT) facturée 05/08/2026, due 05/09/2026 — en attente. <strong>Total RTL 2026 = 103 700€ HT (71 400€ encaissés + 32 300€ en attente [018+019]). Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
+      { type: "pass", titre: "📄 Factures RTL 2026 : 6 payées, 1 émise (en attente)", desc: "INVRTL013 (Jan, 11j, 9 350€ HT) payée. INVRTL014 (Fév, 20j, 17 000€ HT) payée le 01/04/2026 (payment advice CLT-UFA 26 350€ couvrant les 2 factures). INVRTL015 (Mars, 20j, 17 000€ HT) facturée 01/04/2026 payée 13/05/2026 (payment advice 17 000€). INVRTL016 (Avril, 15j, 12 750€ HT) facturée 04/05/2026, payée 10/06/2026 (payment advice CLT-UFA 1700001784, 12 750€). INVRTL017 (Mai, 18j, 15 300€ HT) facturée 04/06/2026, <strong>payée 22/07/2026</strong> (payment advice CLT-UFA 1700002285, doc 1600001939). INVRTL018 (Juin, 19j, 16 150€ HT) facturée 03/07/2026, <strong>payée 26/08/2026</strong> (payment advice CLT-UFA 1700002684, doc 1600002379). INVRTL019 (Juillet, 19j, 16 150€ HT) facturée 05/08/2026, due 05/09/2026 — en attente. <strong>Total RTL 2026 = 103 700€ HT (87 550€ encaissés + 16 150€ en attente [019]). Toutes les factures RTL sont HT (TVA 0% — Bairok LLC est basée aux EAU).</strong>" },
     ],
   },
 
@@ -276,6 +281,15 @@ const FULL_DATA = {
       { date: "12/05/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
       { date: "21/05/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
       { date: "19/06/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Remboursement" },
+      // Releve Attijarinet du 27/08/2026 : 3 « VIR.EMIS WEB VERS ELMOUKSIT » le meme
+      // jour, chacun suivi de sa propre COMMISSION VIREMENT WEB (24,20 DH) -> 3 ordres
+      // distincts, pas un doublon d affichage.
+      { date: "24/08/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Virement (Attijari)" },
+      { date: "24/08/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Virement (Attijari)" },
+      { date: "24/08/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 50000, motif: "Virement (Attijari)" },
+      // Second canal : compte CIH Bank (capture fournie le 27/08/2026).
+      { date: "23/08/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 45000, motif: "Virement (CIH)" },
+      { date: "24/08/2026", beneficiaire: "Badrecheikh Elmouksit", dh: 5000, motif: "Virement (CIH)" },
     ],
     notes: [
       "Le virement du 06/03/2026 (31 750 DH) a été comptabilisé dans la clôture 2025. La réconciliation ne prend en compte que les Councils effectivement payés.",

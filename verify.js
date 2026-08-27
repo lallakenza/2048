@@ -93,9 +93,9 @@ console.log('\n=== AUGUSTIN 2026 ===');
 const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
-check('Total MAD 2026', totalMAD26, 190000); // ...06/05 20k + 05/06 10k + 20/06 50k + 12/07 50k
+check('Total MAD 2026', totalMAD26, 250000); // ...20/06 50k + 12/07 50k + 17/07 10k + 03/08 50k
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(190000 / 10.26 * 100));
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(250000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 103700); // INVRTL013..019 (018+019 émises non payées)
 
@@ -111,7 +111,7 @@ check('AZCS paid via Majalis 2026', azcsRecuPaid26, 55312.5); // AZCS0001..0009 
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 71400); // INVRTL013..017 payés (017 payée 22/07, payment advice 1700002285)
+check('RTL paid 2026', amineRecu26, 87550); // INVRTL013..018 payés (018 payée 26/08, payment advice 1700002684)
 
 // Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
 const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
@@ -119,7 +119,7 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 12004.5); // 71400 − 55312.5 AZCS − 2400 Bridgevale − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 28154.5); // 87550 − 55312.5 AZCS − 2400 Bridgevale − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
@@ -199,8 +199,8 @@ check('Report 2025 (computed)', soldeBenoit, 4754);
 
 // Benoit 2026 virements (including 50k MAD payment 02/04/2026)
 const totalPaye26 = sum(ba26.virements, 'dh');
-check('Benoit 2026 virements total', totalPaye26, 350000); // 7 × 50k DH
-check('Benoit 2026 virements count', ba26.virements.length, 7);
+check('Benoit 2026 virements total', totalPaye26, 550000); // 10 × 50k + 45k + 5k DH
+check('Benoit 2026 virements count', ba26.virements.length, 12);
 
 // Summary
 console.log(`\n=============================`);

@@ -9,7 +9,52 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
-## `v7.32` — 2026-08-09
+## Mise à jour de données — 2026-08-27
+
+Pas de changement de code, donc pas de bump de version (`v7.32` conservée).
+
+### Virements non enregistrés, retrouvés en banque
+
+Relevé Attijarinet (28/05 → 27/08) recoupé ligne à ligne avec le suivi. Les dates
+bancaires accusent 1 à 3 jours de décalage sur la date d'ordre — recoupement fait sur
+les 6 lignes déjà connues, puis report des dates de valeur pour les nouvelles.
+
+| Bénéficiaire | Ajouts | Montant |
+|---|---|---|
+| Azarkan (Augustin) | 17/07 · 10 000 + 03/08 · 50 000 | **+60 000 DH** |
+| Elmouksit (Benoit) | 24/08 · 3 × 50 000 (Attijari) | **+150 000 DH** |
+| Elmouksit (Benoit) | 23/08 · 45 000 + 24/08 · 5 000 (CIH) | **+50 000 DH** |
+
+Les 3 virements du 24/08 sont bien 3 ordres distincts : chacun porte sa propre
+`COMMISSION VIREMENT WEB` de 24,20 DH au relevé.
+
+### INVRTL018 payée
+
+Payment advice CLT-UFA du 26.08.2026 (doc 1600002379, 16 150 €). INVRTL019 reste seule
+en attente. RTL encaissé 2026 : 71 400 → **87 550 €**.
+
+### Effet sur les positions
+
+| | Avant | Après |
+|---|---|---|
+| Augustin | +127 314 DH | **+21 615 DH** |
+| Benoit | −182 434 DH | **+17 566 DH** |
+| Bob | −58 032 DH | −58 032 DH |
+| **Net** | −113 152 DH | **−18 851 DH** |
+
+Benoit change de signe : après 200 000 DH de virements, c'est lui qui doit 17 566 DH.
+Gains 2026 : 119 020 → **125 860 DH** (le poste « Virements Augustin » suit le volume
+envoyé, 420 000 → 480 000 DH).
+
+### Vérifié sans effet
+
+AZCS0008 (facture PDF reçue) confirme les valeurs déjà saisies · Bob/ZOR complet
+(3 factures, 3 encaissements Wise 01/06, 13/07, 06/08) · le Wise sortant de 8 000 € du
+12/08 est un transfert interne Bridgevale → Bairok, hors flux de sous-traitance.
+
+---
+
+## `v7.32` — 2026-08-27
 
 ### Historique Binance P2P complet + taux de marché à l'heure exacte
 
