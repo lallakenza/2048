@@ -134,7 +134,7 @@ function renderBenoitYear(dataKey, opts = {}) {
       const refCell = hasRef ? `<td style="font-size:.72rem">${t.ref || ''}${t.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : ''}</td>` : '';
       const statusCell = isClotured
         ? badge('ok', '✓ EBS')
-        : badge(t.statut, t.statutText);
+        : (() => { const e = etatReglement(t); return badge(e.badge, e.libelle); })();
       councilsTableHtml += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${t.tauxMarche ? fmtRate(t.tauxMarche) : '—'}</td><td class="a"${t.delta !== null ? ' style="color:var(--green)"' : ''}>${t.delta !== null ? fmtDelta(t.delta) : '—'}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a"${t.gainFX !== null ? ' style="color:var(--green)"' : ''}>${t.gainFX !== null ? fmtSigned(t.gainFX, '') : '—'}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
     });
     {
@@ -155,7 +155,7 @@ function renderBenoitYear(dataKey, opts = {}) {
       const refCell2 = hasRef ? `<td style="font-size:.72rem">${t.ref || ''}${t.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : ''}</td>` : '';
       const statusCell = isClotured
         ? badge('ok', '✓ EBS')
-        : badge(t.statut, t.statutText);
+        : (() => { const e = etatReglement(t); return badge(e.badge, e.libelle); })();
       councilsTableHtml += `<tr>${isClotured ? `<td>${i+1}</td>` : ''}${refCell2}<td>${dateVal}</td><td class="a">${fmtPlain(t.htEUR)}</td>${ttcCell2}<td class="a">${fmtRate(t.tauxApplique)}</td><td class="a">${fmtPlain(t.dh)}</td><td class="a">${fmtPlain(t.commission)}</td><td class="a">${fmtPlain(t.netBenoit)}</td><td>${statusCell}</td></tr>`;
     });
     {

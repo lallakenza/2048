@@ -259,11 +259,13 @@ function insightFacturesRTL(d) {
   const totalFacture = somme(rtl), totalEncaisse = somme(payees), totalAttente = somme(attente);
   const jours = rtl.reduce((s, f) => s + (f.jours || 0), 0);
 
+  // MÊME source que la cellule de statut du tableau : etatReglement(). C'est ce qui
+  // garantit qu'on ne puisse plus lire « Paid 01/04 » ici et « date non prouvée » là.
   const ligne = (f) => {
-    const r = f.reglement || {};
-    const quand = r.statut === 'paye' && r.date ? ` — <strong>payée le ${fmtDateFr(r.date)}</strong>`
-      : r.statut === 'paye_non_verifie' ? ' — payée, <em>date non prouvée</em>'
-      : f.statut === 'ok' ? ' — payée' : ` — <strong>en attente</strong>${f.dateDue ? ` (échéance ${f.dateDue})` : ''}`;
+    const e = etatReglement(f);
+    const quand = e.status === 'pending' ? ` — <strong>${e.libelle}</strong>`
+      : e.verifiee ? ` — payée le <strong>${e.date}</strong>`
+      : ' — <strong>Paid — preuve/date non vérifiée</strong>';
     return `${f.ref} (${f.periode}, ${f.jours}j, ${fmtPlain(f.montant)} € HT)${quand}`;
   };
 
@@ -390,28 +392,38 @@ function renderAugustin2026(embedded) {
   // il annonce un chiffre et la direction d'un autre.
   const whoOwes = directionPosition(deltaNetPro, 'Augustin');
   const whoOwesEntreprise = directionPosition(deltaEntreprisePaid, 'Augustin');
-  const heroColor = deltaNetPro >= 0 ? 'var(--green)' : 'var(--red)';
-  const heroCls = deltaNetPro >= 0 ? 'green' : 'red';
+  // ── Normalisation au POINT DE VUE D'AMINE ────────────────────────────────
+  // `deltaNetPro` et `deltaEntreprisePaid` sont calculés du point de vue d'AUGUSTIN
+  // (négatif = Augustin doit à Amine). La vue globale, elle, expose l'inverse :
+  // positif = le tiers doit à Amine. La fiche affichait donc −66 239 sous un bandeau
+  // « point de vue Amine » — le libellé était juste, la valeur non.
+  // On ne change aucun calcul : on retourne le signe AU MOMENT DE L'EXPOSER.
+  const vueAmine = (v) => -v;
+  const netProAmine   = vueAmine(deltaNetPro);
+  const netPersoAmine = vueAmine(deltaNetPerso);
+  const entrepriseAmine = vueAmine(deltaEntreprisePaid);
+  const heroColor = netProAmine >= 0 ? 'var(--green)' : 'var(--red)';
+  const heroCls = netProAmine >= 0 ? 'green' : 'red';
 
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise (AZCS) : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL dû à AZCS − reçu : Majalis${bridgevaleEUR ? ' + Bridgevale' : ''} + Report) · <strong>${whoOwesEntreprise}</strong></div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise (AZCS) : <strong style="color:${entrepriseAmine >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(entrepriseAmine)}</strong> (RTL dû à AZCS − reçu : Majalis${bridgevaleEUR ? ' + Bridgevale' : ''} + Report) · <strong>${whoOwesEntreprise}</strong></div>`;
   html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (pro)</div>
-      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPro))}</div>
+      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(netProAmine))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
       ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Virement entreprise · montant brut</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (perso)</div>
-      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPerso))}</div>
+      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(netPersoAmine))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
       ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Cash EUR · Perso = Pro × 0.95</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement Maroc</div>
-      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${deltaNetPro >= 0 ? '+' : '−'}${absNetMAD.toLocaleString('fr-FR')} MAD</div>
+      <div class="hero-value ${heroCls}" style="font-size:1.3rem">${netProAmine >= 0 ? '+' : '−'}${absNetMAD.toLocaleString('fr-FR')} MAD</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
       ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Taux fixe : 1 000€ pro = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD</div>
@@ -627,7 +639,7 @@ function renderAugustin2026(embedded) {
   let rtlTableHtml = `<table>
     <thead><tr><th>Facture</th><th data-sort="date">Période</th><th data-sort="num">Jours</th><th data-sort="num" style="text-align:right">HT (€)</th><th data-sort="date">Date facture</th><th data-sort="date">Échéance</th><th>Statut</th></tr></thead><tbody>`;
   d.rtl.forEach(r => {
-    rtlTableHtml += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.dateFacture || '—'}</td><td>${r.dateDue || '—'}</td><td>${badge(r.statut, r.statutText)}</td></tr>`;
+    rtlTableHtml += `<tr><td>${r.ref}</td><td>${r.periode}</td><td>${r.jours}</td><td class="a">${fmtPlain(r.montant)}</td><td>${r.dateFacture || '—'}</td><td>${r.dateDue || '—'}</td><td>${(() => { const e = etatReglement(r); return badge(e.badge, e.libelle); })()}</td></tr>`;
   });
   rtlTableHtml += `<tr class="tr"><td colspan="3"><strong>Total facturé HT</strong></td><td class="a"><strong>${fmtPlain(totalFacture)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
   html += collapsible('Factures RTL 2026 (HT — TVA 0% Bairok LLC / EAU)', rtlTableHtml);
@@ -649,7 +661,7 @@ function renderAugustin2026(embedded) {
     b26.councils.forEach(c => {
       const ttcVal = Math.round(c.htEUR * (1 + tva) * 100) / 100;
       const bl = c.backlog ? ' <span style="color:var(--yellow)">(backlog)</span>' : '';
-      azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${badge(c.statut, c.statutText)}</td></tr>`;
+      azcsHtml += `<tr><td style="font-size:.72rem">${c.ref || '—'}${bl}</td><td>${c.mois}</td><td>${c.jours || '—'}</td><td class="a">${fmtPlain(c.htEUR)}</td><td class="a" style="color:var(--muted)">${fmtPlain(Math.round(ttcVal))}</td><td>${c.dateFacture || '—'}</td><td>${c.dateDue || '—'}</td><td>${(() => { const e = etatReglement(c); return badge(e.badge, e.libelle); })()}</td></tr>`;
     });
     azcsHtml += `<tr class="tr"><td colspan="3"><strong>Total</strong></td><td class="a"><strong>${fmtPlain(totalHTBenoit)}</strong></td><td class="a" style="color:var(--muted)"><strong>${fmtPlain(totalTTCBenoit)}</strong></td><td></td><td></td><td></td></tr></tbody></table>`;
     html += collapsible('Facturation AZCS → Majalis (Benoit) — ' + fmtPlain(totalHTBenoit) + '€ HT (' + fmtPlain(totalTTCBenoit) + '€ TTC)', azcsHtml);

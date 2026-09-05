@@ -82,6 +82,67 @@ les affiche avec leur unité, et les libellés passent à « soldé » plutôt q
 
 ---
 
+## `v7.37` — 2026-09-05
+
+### Quatre contradictions entre vues, aucun chiffre métier touché
+
+Positions, factures, fenêtre FX et contrat `/data/networth-bridge.json` sont
+inchangés : **+66 239 / +17 566 / −92 376 · net −8 571 DH**, `nettingApplied: false`.
+
+### 1 · Une seule allocation d'arrondi pour toute la page
+
+Le récapitulatif répartissait les restes sur la colonne entière (Augustin 2025 →
+17 858) tandis que le détail les répartissait sur la seule paire Augustin (17 857).
+Deux allocations légitimes, donc deux totaux : 48 639 d'un côté, 48 638 de l'autre.
+
+L'allocation est désormais calculée **une fois**, en amont, et tous les tableaux la
+lisent — le total n'est plus recalculé nulle part, c'est la somme des cellules
+affichées. Vérifié : **17 858 / 30 781 / 48 639** au récapitulatif *comme* au détail.
+
+Trois invariants ajoutés (300 matrices aléatoires) : total d'une source = 2025 + 2026 ·
+total général = somme des sources · total général = sous-total 2025 + sous-total 2026.
+Plus un garde-fou qui **refuse une seconde allocation** sur les gains Augustin.
+
+### 2 · Modèle de preuve unique
+
+INVRTL014 affichait « Paid 01/04 » dans le tableau et « date non prouvée » dans
+l'insight : deux lectures du même fait, chacune interprétant les données à sa façon.
+
+Modèle unique — `status` · `paymentDate` · `paymentEvidenceStatus: verified | missing` —
+et une fonction partagée, `etatReglement()`, que **le tableau et l'insight appellent
+tous les deux**. Une date renseignée ne vaut plus preuve : l'avis CLT-UFA du 01/04
+couvre 013 et 014 globalement, sans ventilation, donc les deux sont `missing`.
+
+À l'écran : INVRTL013 et 014 → « Paid — preuve/date non vérifiée » · INVRTL015→018 →
+« Paid — <date> » · INZOR002/003, longtemps affichées « Paid » sans date, montrent
+enfin la leur.
+
+### 3 · Point de vue Amine dans la fiche Augustin
+
+La fiche exposait `−66 239 DH` sous un bandeau « point de vue Amine » : le libellé était
+juste, la valeur non — elle venait d'une formule calculée du point de vue d'Augustin.
+Aucun calcul n'a changé ; le signe est retourné **au moment de l'exposer**.
+
+Les trois cartes affichent **+6 456 € pro · +6 133 € perso · +66 239 MAD**, toutes avec
+« Augustin doit à Amine ». La Position Entreprise passe à **−25 754 €** : sous la
+convention d'Amine, c'est bien lui qui doit à AZCS sur la jambe société.
+
+### 4 · Contrôle de l'artefact déployé
+
+Le garde-fou de build compare désormais l'artefact **aux calculs internes** : un fichier
+valide mais périmé serait pire qu'un fichier absent — rien ne paraîtrait anormal.
+
+Nouveau `scripts-verifier-artefact.js` : contrôle **HTTP** du fichier réellement servi
+(schéma, positions, net, `dataAsOf`, `nettingApplied`). Le build vérifie ce qu'on écrit,
+celui-ci vérifie ce que le public reçoit.
+
+### Tests
+
+**Dix garde-fous**, `verify.js` : 0 erreur. Avertissement nominatif maintenu sur les
+11 règlements sans preuve datée.
+
+---
+
 ## `v7.36` — 2026-09-05
 
 ### Sept anomalies de lecture, aucun chiffre validé touché

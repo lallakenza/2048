@@ -303,8 +303,10 @@ try {
     ['montant financier figé dans un texte', gardes.montantsEnDurDansLeRecit()],
     ['divergence positions affichées / pont', gardes.pontCoherent(pont)],
     ['somme des arrondis ≠ total affiché', gardes.invariantsArrondi()],
-    ['schéma et formule de l\'artefact publié', gardes.artefactPublie()],
+    ['schéma et formule de l\'artefact publié', gardes.artefactPublie(pont)],
     ['champ paymentEvidence manquant', gardes.preuvesManquantes(ctx.DATA)],
+    ['invariants du tableau des gains', gardes.invariantsGains()],
+    ['allocation d\'arrondi dupliquée', gardes.allocationUnique()],
   ];
   for (const [nom, r] of suite) {
     if (r.ok) { console.log(`✅ ${nom}`); }

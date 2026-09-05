@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "producerVersion": "v7.36",
-  "generatedAt": "2026-09-05T20:42:11.904Z",
+  "producerVersion": "v7.37",
+  "generatedAt": "2026-09-05T21:45:21.235Z",
   "dataAsOf": "2026-09-04",
   "currency": "MAD",
   "signConvention": "positif = le tiers doit à Amine ; négatif = Amine doit au tiers",

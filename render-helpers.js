@@ -327,6 +327,44 @@ function directionPosition(montant, contrepartie) {
 }
 
 /**
+ * ÉTAT DE RÈGLEMENT — source unique pour le tableau ET pour l'insight.
+ *
+ * POURQUOI. INVRTL014 affichait « Paid 01/04 » dans le tableau pendant que l'insight
+ * disait « date non prouvée » : deux lectures du même fait, parce que chacune
+ * interprétait les données à sa façon. Une date RENSEIGNÉE n'est pas une date PROUVÉE —
+ * l'avis CLT-UFA du 01/04 couvre 013 et 014 globalement, sans ventilation par facture.
+ *
+ * La qualité de la preuve est donc portée explicitement (`paymentEvidenceStatus`),
+ * jamais déduite de la présence d'une date.
+ *
+ * @returns {{status, date, verifiee, libelle, court, badge}}
+ */
+function etatReglement(f) {
+  const r = (f && f.reglement) || null;
+  const enAttente = !r || r.status === 'pending';
+  if (enAttente) {
+    return { status: 'pending', date: null, verifiee: false, badge: 'w',
+             libelle: 'En attente' + (f && f.dateDue ? ` (échéance ${f.dateDue})` : ''),
+             court: 'En attente' };
+  }
+  const verifiee = r.paymentEvidenceStatus === 'verified';
+  const dateFr = r.paymentDate ? formaterDateISO(r.paymentDate) : null;
+  return {
+    status: 'paid', date: dateFr, verifiee,
+    badge: verifiee ? 'ok' : 'w',
+    libelle: verifiee ? `Paid — ${dateFr}` : 'Paid — preuve/date non vérifiée',
+    court: verifiee ? `Paid ${dateFr}` : 'Paid ⚠',
+  };
+}
+
+/** `2026-04-01` → `01/04/2026`. Laisse passer une date déjà au format FR. */
+function formaterDateISO(v) {
+  if (typeof v !== 'string') return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
+}
+
+/**
  * Bandeau de convention de signe, à placer sous un solde affiché.
  *
  * POURQUOI. La même relation s'affichait avec deux signes opposés : « Ma Position »
@@ -380,6 +418,6 @@ function repartirArrondi(valeurs) {
 // ces fonctions, pour que le payload publié et l'affichage ne puissent pas diverger.
 // Elles lisent le global `DATA` ; en Node il suffit de le poser avant l'appel.
 if (typeof module !== 'undefined' && module.exports) module.exports = {
-  directionPosition, computeBenoitSolde, computeBobSolde, computeAugustinPosition, repartirArrondi, bandeauConvention,
+  directionPosition, computeBenoitSolde, computeBobSolde, computeAugustinPosition, repartirArrondi, bandeauConvention, etatReglement, formaterDateISO,
 };
-if (typeof window !== 'undefined') { window.directionPosition = directionPosition; window.repartirArrondi = repartirArrondi; window.bandeauConvention = bandeauConvention; }
+if (typeof window !== 'undefined') { window.directionPosition = directionPosition; window.repartirArrondi = repartirArrondi; window.bandeauConvention = bandeauConvention; window.etatReglement = etatReglement; window.formaterDateISO = formaterDateISO; }

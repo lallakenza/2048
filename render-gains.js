@@ -158,6 +158,28 @@ function renderMesGains() {
   const filteredTotal = gy === 2025 ? gains2025 : gy === 2026 ? gains2026 : grandTotal;
   const periodLabel = gy ? String(gy) : '2025 / 2026';
 
+  // ── ALLOCATION D'ARRONDI UNIQUE POUR TOUTE LA PAGE ───────────────────────
+  // Le récapitulatif répartissait les restes sur la colonne entière (Augustin 2025 →
+  // 17 858) tandis que le détail les répartissait sur la seule paire Augustin
+  // (17 857). Deux allocations légitimes, deux chiffres — donc deux totaux.
+  // Il n'y a désormais QU'UNE allocation, calculée ici, et tous les tableaux la lisent.
+  const SOURCES = [
+    { cle: 'augustin', lib: `<strong>Virements Augustin</strong>`, det: () => `${fmtPlain(totalDH25 + totalDH26)} DH envoyés`, v25: gainMAD_az25, v26: gainMAD_az26 },
+    { cle: 'ycarre',   lib: `<strong>Commission Ycarré ${ycarrePct}%</strong>`, det: () => `${fmtPlain(ycarreTotal)} € × ${ycarrePct}%`, v25: commYcarréMAD, v26: null },
+    { cle: 'commBen',  lib: `<strong>Commission Benoit ${benoitPct25}%</strong>`, det: () => 'Sur factures councils', v25: commBenoit25, v26: commBenoit26 },
+    { cle: 'fxBen',    lib: `<strong>Écart taux Benoit</strong>`, det: () => 'Appliqué &lt; marché', v25: fxBenoit25, v26: fxBenoit26 },
+    { cle: 'p2pBen',   lib: `<strong>Spread P2P Benoit</strong>`, det: () => 'Binance vs banque', v25: p2pSavingBenoit25, v26: p2pSavingBenoit26 },
+    { cle: 'bob',      lib: `<strong>Bob ${bobPctA}% + taux</strong>`, det: () => 'Bridgevale · part Amine (hors 3% Augustin)', v25: null, v26: totalBob },
+  ];
+  const A25 = repartirArrondi(SOURCES.map(r => r.v25 || 0));
+  const A26 = repartirArrondi(SOURCES.map(r => r.v26 || 0));
+  const idx = (cle) => SOURCES.findIndex(r => r.cle === cle);
+  const ST25 = A25.reduce((s, v) => s + v, 0);
+  const ST26 = A26.reduce((s, v) => s + v, 0);
+  const TOTAL_AFFICHE = ST25 + ST26;
+  // Valeurs Augustin exposées PARTOUT (récap, détail, insight) — jamais recalculées.
+  const AZ25 = A25[idx('augustin')], AZ26 = A26[idx('augustin')], AZTOT = AZ25 + AZ26;
+
   // ===== BUILD HTML =====
   let html = yearToggle3('Gains', gy);
   html += `<h2 style="font-size:1.05rem;margin-bottom:6px">Mes Gains — Synthèse ${periodLabel}</h2>`;
@@ -200,19 +222,8 @@ function renderMesGains() {
     // affichées d'une année totalisent EXACTEMENT le sous-total affiché, et le total
     // de chaque ligne est la somme de ses deux cellules. Un lecteur qui additionne la
     // colonne — ou la ligne — retrouve le chiffre annoncé.
-    const sources = [
-      { lib: `<strong>Virements Augustin</strong>`, det: `${fmtPlain(totalDH25 + totalDH26)} DH envoyés`, v25: gainMAD_az25,     v26: gainMAD_az26 },
-      { lib: `<strong>Commission Ycarré ${ycarrePct}%</strong>`, det: `${fmtPlain(ycarreTotal)} € × ${ycarrePct}%`, v25: commYcarréMAD, v26: null },
-      { lib: `<strong>Commission Benoit ${benoitPct25}%</strong>`, det: 'Sur factures councils', v25: commBenoit25,   v26: commBenoit26 },
-      { lib: `<strong>Écart taux Benoit</strong>`, det: 'Appliqué &lt; marché',                  v25: fxBenoit25,     v26: fxBenoit26 },
-      { lib: `<strong>Spread P2P Benoit</strong>`, det: 'Binance vs banque',                     v25: p2pSavingBenoit25, v26: p2pSavingBenoit26 },
-      { lib: `<strong>Bob ${bobPctA}% + taux</strong>`, det: 'Bridgevale · part Amine (hors 3% Augustin)', v25: null, v26: totalBob },
-    ];
-    const a25 = repartirArrondi(sources.map(r => r.v25 || 0));
-    const a26 = repartirArrondi(sources.map(r => r.v26 || 0));
-    const st25 = a25.reduce((s, v) => s + v, 0);
-    const st26 = a26.reduce((s, v) => s + v, 0);
-    const totalAffiche = st25 + st26;
+    const sources = SOURCES.map(r => ({ ...r, det: r.det() }));
+    const a25 = A25, a26 = A26, st25 = ST25, st26 = ST26, totalAffiche = TOTAL_AFFICHE;
 
     const cell = (val, aff, base) => val === null ? '<td class="a">—</td>'
       : `<td class="a" style="color:var(--green)">${showPct ? (base ? (val / base * 100).toFixed(1).replace('.', ',') + '%' : '—') : fmtSigned(aff, '')}</td>`;
@@ -249,10 +260,21 @@ function renderMesGains() {
   if (show25) html += `<div class="n ok"><strong>2025 :</strong> taux Augustin = <strong>${tauxAz25}</strong>, taux effectif P2P = <strong>${eff25.toFixed(3).replace('.',',')}</strong> → gain de <strong>${(eff25 - tauxAz25).toFixed(3).replace('.',',')}</strong> MAD/EUR.</div>`;
   if (show26) html += `<div class="n ok"><strong>2026 :</strong> taux Augustin = <strong>${tauxAz26}</strong>, taux effectif P2P = <strong>${eff26.toFixed(3).replace('.',',')}</strong> → gain de <strong>${(eff26 - tauxAz26).toFixed(3).replace('.',',')}</strong> MAD/EUR.</div>`;
 
+  // ── Arrondi UNIQUE, partagé avec le récapitulatif ────────────────────────
+  // Ce tableau arrondissait la somme (48 638) tandis que le récapitulatif répartissait
+  // les restes (48 639) : deux politiques d'arrondi sur la même donnée, donc deux
+  // totaux. Les valeurs affichées sont désormais calculées une seule fois, par la même
+  // fonction, et le total N'EST PLUS RECALCULÉ : c'est la somme des cellules affichées.
+  const azCoutP2P  = repartirArrondi([eurCoutP2P25, eurCoutP2P26]);
+  const azGainEUR  = repartirArrondi([gainEUR_az25, gainEUR_az26]);
+  const azGainMAD  = [AZ25, AZ26];   // ← allocation unique de la page, pas un recalcul
+  const azCredite  = repartirArrondi([eurCredite25, eurCredite26]);
+  const azDH       = [totalDH25, totalDH26];
+
   html += `<table><thead><tr><th>Période</th><th data-sort="num" style="text-align:right">Taux eff. P2P</th><th data-sort="num" style="text-align:right">DH envoyés</th><th data-sort="num" style="text-align:right">EUR crédités</th><th data-sort="num" style="text-align:right">Coût réel EUR</th><th data-sort="num" style="text-align:right">Gain EUR</th><th data-sort="num" style="text-align:right">Gain MAD</th></tr></thead><tbody>`;
-  if (show25) html += `<tr><td>2025 (Fév-Déc)</td><td class="a">${eff25.toFixed(3).replace('.',',')}</td><td class="a">${fmtPlain(totalDH25)}</td><td class="a">${fmtPlain(eurCredite25)}</td><td class="a">${fmtPlain(Math.round(eurCoutP2P25))}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainEUR_az25), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az25), '')}</td></tr>`;
-  if (show26) html += `<tr><td>2026 (Jan-Fév)</td><td class="a">${eff26.toFixed(3).replace('.',',')}</td><td class="a">${fmtPlain(totalDH26)}</td><td class="a">${fmtPlain(eurCredite26)}</td><td class="a">${fmtPlain(Math.round(eurCoutP2P26))}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainEUR_az26), '')}</td><td class="a" style="color:var(--green)">${fmtSigned(Math.round(gainMAD_az26), '')}</td></tr>`;
-  if (!gy) html += `<tr class="tr"><td><strong>Total</strong></td><td></td><td class="a"><strong>${fmtPlain(totalDH25 + totalDH26)}</strong></td><td class="a"><strong>${fmtPlain(eurCredite25 + eurCredite26)}</strong></td><td class="a"><strong>${fmtPlain(Math.round(eurCoutP2P25 + eurCoutP2P26))}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainEUR_az25 + gainEUR_az26), '')}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(Math.round(gainMAD_az25 + gainMAD_az26), '')}</strong></td></tr>`;
+  if (show25) html += `<tr><td>2025 (Fév-Déc)</td><td class="a">${eff25.toFixed(3).replace('.',',')}</td><td class="a">${fmtPlain(azDH[0])}</td><td class="a">${fmtPlain(azCredite[0])}</td><td class="a">${fmtPlain(azCoutP2P[0])}</td><td class="a" style="color:var(--green)">${fmtSigned(azGainEUR[0], '')}</td><td class="a" style="color:var(--green)">${fmtSigned(azGainMAD[0], '')}</td></tr>`;
+  if (show26) html += `<tr><td>2026 (Jan-Sep)</td><td class="a">${eff26.toFixed(3).replace('.',',')}</td><td class="a">${fmtPlain(azDH[1])}</td><td class="a">${fmtPlain(azCredite[1])}</td><td class="a">${fmtPlain(azCoutP2P[1])}</td><td class="a" style="color:var(--green)">${fmtSigned(azGainEUR[1], '')}</td><td class="a" style="color:var(--green)">${fmtSigned(azGainMAD[1], '')}</td></tr>`;
+  if (!gy) html += `<tr class="tr"><td><strong>Total</strong></td><td></td><td class="a"><strong>${fmtPlain(azDH[0] + azDH[1])}</strong></td><td class="a"><strong>${fmtPlain(azCredite[0] + azCredite[1])}</strong></td><td class="a"><strong>${fmtPlain(azCoutP2P[0] + azCoutP2P[1])}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(azGainEUR[0] + azGainEUR[1], '')}</strong></td><td class="a" style="color:var(--green)"><strong>${fmtSigned(azGainMAD[0] + azGainMAD[1], '')}</strong></td></tr>`;
   html += `</tbody></table></div>`;
 
   // ===== BREAKDOWN BENOIT =====
