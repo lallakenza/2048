@@ -114,7 +114,7 @@ virements: [
   // ...
   {
     date:         "15/04/2026",
-    beneficiaire: "Benoit Chevalier",   // ou "Badrecheikh Elmouksit" — nick() les mappe à "Benoit"
+    beneficiaire: "Benoit Chevalier",   // ou "Benoit" — nick() les mappe à "Benoit"
     dh:           50000,
     motif:        "Remboursement",
   },

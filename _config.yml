@@ -27,7 +27,6 @@ exclude:
   - verify.js
   - render.js
   - scripts/
-  - content_escaped.json
   - "*.md"
   - Architecture.md
   - BUG_TRACKER.md

@@ -13,7 +13,7 @@
 // CONVENTIONS:
 //   azOwedPro/Perso/MAD = -posNet (positif = Augustin me doit)
 //   baOwedDH = -soldeBenoit (positif = Benoit me doit)
-//   *Tot = alias de azOwed* (la commission de gestion Azarkan sur le flux Bob
+//   *Tot = alias de azOwed* (la commission de gestion Augustin sur le flux Bob
 //          n'entre plus dans les soldes depuis le 09/08/2026 — modèle 10 % / 3 %)
 //
 // BRIDGE: exporte les positions vers localStorage pour le dashboard networth.
@@ -23,10 +23,10 @@
 
 // Toggle du diagramme "Flux par personne" : bascule entre la vue Reçu/Envoyé
 // et la vue Position (delta). Global car le HTML est injecté via innerHTML.
-// Netting Augustin <-> Bob (AFFICHAGE SEULEMENT). Azarkan est le canal physique de
-// l'argent de Hamza : Amine se libere de sa dette envers Bob en versant a Azarkan.
-// Compenser la creance sur Azarkan contre le dispatch de Bob est donc un vrai
-// mecanisme de reglement -- mais tant qu'Azarkan n'a pas retransmis, Amine a
+// Netting Augustin <-> Bob (AFFICHAGE SEULEMENT). Augustin est le canal physique de
+// l'argent de Hamza : Amine se libere de sa dette envers Bob en versant a Augustin.
+// Compenser la creance sur Augustin contre le dispatch de Bob est donc un vrai
+// mecanisme de reglement -- mais tant qu'Augustin n'a pas retransmis, Amine a
 // abandonne sa creance SANS etre libere envers Bob. D'ou : vue optionnelle, brute
 // par defaut, et le pont localStorage reste TOUJOURS sur les valeurs brutes.
 // Actif PAR DEFAUT (v7.34) : c'est la lecture utile au quotidien. La vue brute
@@ -91,7 +91,7 @@ function renderAmine() {
   const azOwedMAD = -posNetMAD;
 
   // Flux Bob : Amine retient 10 % sur ce que ZOR envoie, puis verse le solde EN DH
-  // à Azarkan « on behalf of Hamza ». Azarkan prélève ensuite SA commission de
+  // à Augustin « on behalf of Hamza ». Augustin prélève ensuite SA commission de
   // gestion (3 %) sur ce qu'il retransmet en euros — c'est une affaire entre lui
   // et Hamza, PAS une charge d'Amine. Elle n'entre donc dans AUCUN solde ici.
   const azOwedProTot   = azOwedPro;
@@ -183,7 +183,7 @@ function renderAmine() {
       </button>
       <div style="font-size:.63rem;color:var(--muted);margin-top:6px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.45">
         ${netActive
-          ? `Azarkan r\u00e8gle <strong>${fmtPlain(Math.round(netAmount))} DH</strong> du dispatch de Bob sur ce qu'il te doit. Vue th\u00e9orique : la compensation n'est acquise qu'une fois Azarkan effectivement retransmis \u2014 d'ici l\u00e0 tu as renonc\u00e9 \u00e0 ta cr\u00e9ance sans \u00eatre lib\u00e9r\u00e9 envers Bob. Le pont vers le patrimoine reste sur les valeurs brutes.`
+          ? `Augustin r\u00e8gle <strong>${fmtPlain(Math.round(netAmount))} DH</strong> du dispatch de Bob sur ce qu'il te doit. Vue th\u00e9orique : la compensation n'est acquise qu'une fois Augustin effectivement retransmis \u2014 d'ici l\u00e0 tu as renonc\u00e9 \u00e0 ta cr\u00e9ance sans \u00eatre lib\u00e9r\u00e9 envers Bob. Le pont vers le patrimoine reste sur les valeurs brutes.`
           : `Les positions Augustin et Bob sont de sens oppos\u00e9s et transitent par le m\u00eame canal \u2014 compensables \u00e0 hauteur de ${fmtPlain(Math.round(netAmount))} DH.`}
       </div>
     </div>` : ''}
@@ -296,7 +296,7 @@ function renderAmine() {
     <strong>Net Pro = ${fmtSigned(Math.round(posNetPro))} · Perso = Pro × ${PERSO_FACTOR} = ${fmtSigned(Math.round(posNetPerso))} · MAD = Pro × ${az.tauxMaroc} = ${fmtSigned(Math.round(posNetMAD), 'MAD')}</strong>
   </div>`;
   detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
-    <strong>Flux Bob — hors position Augustin :</strong> Amine retient <strong>10 %</strong> sur ce que ZOR envoie, puis verse le solde <strong>en DH à Azarkan</strong> (on behalf of Hamza). La commission de gestion d'Azarkan (3 %, prélevée quand il retransmet en euros) est une affaire entre lui et Hamza — elle n'entre dans aucun solde d'Amine.
+    <strong>Flux Bob — hors position Augustin :</strong> Amine retient <strong>10 %</strong> sur ce que ZOR envoie, puis verse le solde <strong>en DH à Augustin</strong> (on behalf of Hamza). La commission de gestion d'Augustin (3 %, prélevée quand il retransmet en euros) est une affaire entre lui et Hamza — elle n'entre dans aucun solde d'Amine.
   </div>`;
   detailHtml += `<div style="font-size:.72rem;color:var(--muted);padding:8px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
     <strong>Benoit :</strong> Report 2025 = ${fmtSigned(benoitPos.report25, 'DH')}.
@@ -335,7 +335,7 @@ function renderAmine() {
         persoEUR: Math.round(azOwedPersoTot),
         mad: Math.round(azOwedMADTot),
         tauxMaroc: az.tauxMaroc,
-        // (bobCommissionDH retiré : la commission de gestion d'Azarkan sur le flux
+        // (bobCommissionDH retiré : la commission de gestion d'Augustin sur le flux
         //  Bob n'est plus une charge d'Amine — voir le modèle 10 % / 3 %.)
       },
       benoit: {

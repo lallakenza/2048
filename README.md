@@ -24,12 +24,52 @@ chiffrées AES-256-GCM côté repo.
 
 ## 🚀 Quick start
 
+## ⚠ Sécurité — état réel, à lire avant toute chose
+
+**Ce dépôt est public et le chiffrement des données n'y protège rien.** Trois faits mesurés :
+
+1. **Les clés sont livrées au navigateur.** `index.html` contient
+   `decryptBlob(ENCRYPTED_PRIV, 'BINGA')` et `decryptBlob(blob, isBinga ? 'TIGRE' : upper)`.
+   Le fichier est servi en HTTP 200 : n'importe qui le télécharge et lit les mots de passe.
+   Un chiffrement dont le client embarque la clé n'est pas une authentification — c'est une
+   porte fermée avec la clé sur la serrure.
+2. **Les codes étaient aussi publiés dans ce README** et apparaissent encore dans les
+   commentaires de fichiers servis. Les en retirer serait cosmétique tant que le point 1 tient.
+3. **`encrypt.js` contenait toutes les données en clair** — montants, numéros de facture,
+   références bancaires, et la table de correspondance des vrais noms derrière les alias, ce qui
+   annulait l'intérêt du système d'alias. Corrigé : les données vivent hors du dépôt
+   (`~/facturation-data/source.js`), ce script n'en garde que la logique.
+
+### Ce qui ne peut PAS être corrigé dans le code
+
+Tant que le site est servi publiquement, tout ce que le navigateur peut lire, un visiteur le
+peut aussi. Deux issues, au choix :
+
+- **Dépôt et site privés.** Le plus simple. GitHub Pages sur dépôt privé exige un plan payant ;
+  sinon, héberger derrière une porte réelle (Cloudflare Access, gratuit jusqu'à 50 utilisateurs).
+- **Données côté serveur avec authentification.** Le navigateur ne reçoit que ce à quoi le
+  compte connecté a droit, et aucune clé.
+
+### Actions manuelles indispensables
+
+- **Changer les quatre codes** (`TIGRE`, `COUPA`, `BINGA`, `EPONGE`) : ils sont publics.
+  Les changer sans traiter le point 1 ne fait que gagner du temps.
+- **Décider de la visibilité** du dépôt et du site.
+- **Purger l'historique Git** si les anciennes valeurs doivent disparaître — opération
+  destructive, à valider explicitement, et qui casse tous les clones existants.
+
+---
+
 ### Lire le site
 1. https://lallakenza.github.io/2048/
-2. Saisir le pseudo :
-   - `TIGRE` → vue complète (Augustin + Benoit)
-   - `COUPA` → vue Benoit uniquement (à partager avec Benoit)
-   - `BINGA` → mode pro (+ taux marché, FX P2P, Mes Gains, Radar USDT, dark theme)
+2. Saisir le pseudo correspondant à la vue voulue.
+
+> **Les pseudos ne sont pas écrits ici, et ne doivent l'être nulle part dans ce dépôt.**
+> Ils étaient publiés dans ce README alors que `data-enc.js` est servi publiquement :
+> n'importe qui pouvait lire le code, télécharger le blob et tout déchiffrer. Le
+> chiffrement ne protégeait donc rien. Les pseudos vivent dans un gestionnaire de mots
+> de passe ; les retirer d'ici ne suffit pas — **ils doivent être changés**, l'historique
+> Git conservant les anciennes valeurs.
 
 ### Modifier les données
 ```bash
@@ -101,11 +141,13 @@ quoi que ce soit. Le script lui-même le chiffre en `data-enc.js` et
 manuellement — ils sont régénérés par `node encrypt.js`.
 
 ### 2. Trois niveaux d'accès via 3 mots de passe
-| Pseudo | Déchiffre quoi | Usage |
+| Vue | Déchiffre quoi | Usage |
 |---|---|---|
-| `TIGRE` | `ENCRYPTED_FULL` | Vue Amine (tous les onglets publics) |
-| `COUPA` | `ENCRYPTED_BENOIT` | Vue Benoit (à lui partager) |
-| `BINGA` | `ENCRYPTED_FULL` + `ENCRYPTED_PRIV` | Mode pro (+ taux marché, commissions, FX P2P, Radar) |
+| Vue complète | `ENCRYPTED_FULL` | Amine (tous les onglets publics) |
+| Vue Benoit | `ENCRYPTED_BENOIT` | à partager avec Benoit |
+| Mode pro | `ENCRYPTED_FULL` + `ENCRYPTED_PRIV` | + taux marché, commissions, FX P2P, Radar |
+
+Les pseudos correspondants ne figurent pas dans ce dépôt (voir l'avertissement plus haut).
 
 Saisir un pseudo INVALIDE → on tombe sur le **jeu 2048** (façade). Rien ne
 laisse penser qu'on vient de tomber sur une gate protégée — c'est voulu.
@@ -155,8 +197,8 @@ variables. À bumper sur chaque commit substantiel. Voir [`CHANGELOG.md`](./CHAN
 ### Nicknames (jamais de vrais noms sur le site)
 | Vrai nom | Nickname |
 |---|---|
-| Jean Augustin / Mohammed Azarkan | **Augustin** |
-| Benoit Chevalier / Badrecheikh Elmouksit / Badre | **Benoit** |
+| Jean Augustin / Augustin | **Augustin** |
+| Benoit Chevalier / Benoit / Badre | **Benoit** |
 
 Gérés dans `render-helpers.js` (`NICK_MAP`, `nick()`, `nickText()`).
 

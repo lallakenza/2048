@@ -29,7 +29,7 @@ vue brute la conserve.
 
 Les trois garde-fous de `v7.33` sont inchangés — le pont `localStorage` reste sur les
 valeurs brutes, la vue « Reçu / Envoyé » n'est jamais nettée, et Benoit reste exclu.
-La réserve (« compensation acquise seulement une fois Azarkan retransmis ») s'affiche
+La réserve (« compensation acquise seulement une fois Augustin retransmis ») s'affiche
 désormais par défaut, ce qui est cohérent : elle accompagne le mode actif.
 
 ---
@@ -38,10 +38,10 @@ désormais par défaut, ce qui est cohérent : elle accompagne le mode actif.
 
 ### Netting Augustin ⇄ Bob sur « Ma Position » (vue optionnelle)
 
-Azarkan reçoit **à la fois ses propres virements et ceux destinés à Hamza** (dispatch
+Augustin reçoit **à la fois ses propres virements et ceux destinés à Hamza** (dispatch
 *on behalf of*). Quand les positions Augustin et Bob sont de **sens opposés**, elles
 sont donc compensables : se libérer envers Bob passe de toute façon par un virement
-à Azarkan.
+à Augustin.
 
 Un bouton sur le bloc « Position globale » bascule entre vue brute et vue nettée.
 On transfère `min(|Augustin|, |Bob|)` de l'une vers l'autre, ce qui met la plus petite
@@ -60,7 +60,7 @@ On transfère `min(|Augustin|, |Bob|)` de l'une vers l'autre, ce qui met la plus
 
 1. **Le pont `localStorage` reste TOUJOURS sur les valeurs brutes.** Le netting est
    une lecture, pas une écriture : le patrimoine continue de voir la créance sur
-   Azarkan et la dette envers Bob séparément.
+   Augustin et la dette envers Bob séparément.
 2. **La vue « Reçu / Envoyé » n'est jamais nettée.** Elle décrit des flux de trésorerie
    réels — le netting ne change pas l'argent effectivement envoyé. Seule la vue
    « Position (delta) » bascule. `envoye = recu + pos` utilise donc la position brute.
@@ -69,7 +69,7 @@ On transfère `min(|Augustin|, |Bob|)` de l'une vers l'autre, ce qui met la plus
 
 ### La réserve, affichée dans l'interface
 
-La compensation n'est **acquise qu'une fois qu'Azarkan a effectivement retransmis**.
+La compensation n'est **acquise qu'une fois qu'Augustin a effectivement retransmis**.
 D'ici là, tu as renoncé à ta créance sur lui sans être libéré envers Bob : le netting
 anticipe un règlement qui n'a pas eu lieu. C'est pourquoi la vue est **brute par
 défaut** (préférence mémorisée dans `localStorage.am_netting_view`) et que la note
@@ -94,7 +94,7 @@ les 6 lignes déjà connues, puis report des dates de valeur pour les nouvelles.
 
 | Bénéficiaire | Ajouts | Montant |
 |---|---|---|
-| Azarkan (Augustin) | 17/07 · 10 000 + 03/08 · 50 000 + 27/08 · 20 000 | **+80 000 DH** |
+| Augustin (Augustin) | 17/07 · 10 000 + 03/08 · 50 000 + 27/08 · 20 000 | **+80 000 DH** |
 | Elmouksit (Benoit) | 24/08 · 3 × 50 000 (Attijari) | **+150 000 DH** |
 | Elmouksit (Benoit) | 23/08 · 45 000 + 24/08 · 5 000 (CIH) | **+50 000 DH** |
 
@@ -344,10 +344,10 @@ Suite à l'audit multi-agents (40 findings vérifiés), premier lot de correctif
   « Moyenne DH/mois » 2026 était ~3× trop haute. Dérivé du calendrier (auto-MAJ).
 
 **Sécurité (noms réels hors des fichiers servis)**
-- Chaînes rendues « Azarkan » → alias « Augustin » (`render-augustin.js`,
+- Chaînes rendues « Augustin » → alias « Augustin » (`render-augustin.js`,
   `render-amine.js`) ; commentaires nominatifs nettoyés ; identifiants renommés
   (`*Badre*` → `*Benoit*`). `render-benoit.js` : motif de virement passé par
-  `nickText()`. Plus aucun nom réel (Azarkan/Badre/Hamza/…) dans le source servi.
+  `nickText()`. Plus aucun nom réel (Augustin/Badre/Hamza/…) dans le source servi.
 
 **Gardes**
 - `fmtSigned(null/undefined)` renvoie `—` au lieu de `+NaN €` (`render-helpers.js`).
@@ -480,7 +480,7 @@ devise native (Augustin €, Benoit/Bob DH).
 
 ## `v7.22` — 2026-07-12
 
-### Rebuild de l'onglet « Ma Position » + agrégation des flux Azarkan (on behalf)
+### Rebuild de l'onglet « Ma Position » + agrégation des flux Augustin (on behalf)
 
 **Onglet « Ma Position » repensé.** L'onglet répondait relation par relation
 sans jamais donner la vue d'ensemble. Nouveau layout en pyramide inversée :
@@ -497,12 +497,12 @@ sans jamais donner la vue d'ensemble. Nouveau layout en pyramide inversée :
   page (grille 5 colonnes) est remplacée par le hero. Le bridge localStorage
   vers networth est inchangé (mêmes clés, mêmes valeurs).
 
-**Flux perso ↔ Azarkan agrégés.** Dans la reco table (② Position Net), les
+**Flux perso ↔ Augustin agrégés.** Dans la reco table (② Position Net), les
 lignes nominatives par intermédiaire (Oumaima, Zakaria, Nezha→Hanane) sont
 regroupées par sens :
 
-- `Virement envoyé à Azarkan (on behalf)` (montant > 0) et
-  `Virement reçu d'Azarkan (on behalf)` (montant < 0), 1 ligne par sens.
+- `Virement envoyé à Augustin (on behalf)` (montant > 0) et
+  `Virement reçu d'Augustin (on behalf)` (montant < 0), 1 ligne par sens.
 - Un dépliable `▸ détail des N flux via intermédiaires` garde la traçabilité
   nominative. Règle générale : tout nouveau flux « et similaire » se range
   automatiquement par le signe de son montant. Les totaux sont inchangés
@@ -576,8 +576,8 @@ Bump v7.19 → v7.20.
 
 ### Augustin : nouveau canal de paiement « Bridgevale » (EUR direct) + INVRTL018 + INZOR002
 
-**Paiements Bridgevale → Augustin (nouveau modèle).** Amine paie désormais Azarkan
-**en EUR via Bridgevale** (société UK), car Azarkan refuse les paiements depuis
+**Paiements Bridgevale → Augustin (nouveau modèle).** Amine paie désormais Augustin
+**en EUR via Bridgevale** (société UK), car Augustin refuse les paiements depuis
 Dubai (Bairok). Amine lui rend une part du CA RTL **sans commission**. Nouveau champ
 `augustin2026.virementsBridgevale` (EUR, canal distinct des virements Maroc en DH) :
 - 1ère entrée : **AZCS0010** (Prestation SAP Juin, **2 400 €**, payé via Bridgevale).
@@ -634,7 +634,7 @@ full (TIGRE/BINGA) a tout.
 
 **2. Commentaires de code scrubés.** Tous les vrais noms dans les commentaires des
 fichiers servis (render-amine/augustin/bob/gains/helpers, index.html) remplacés par
-les alias (plusieurs étaient des « decoder rings » explicites type « Azarkan = alias
+les alias (plusieurs étaient des « decoder rings » explicites type « Augustin = alias
 Augustin »).
 
 **3. `commissionMohammedRate` → `commissionAugustinRate`** (le nom de propriété
@@ -645,7 +645,7 @@ exposait « Mohammed »). Renommé dans les données + les 5 lecteurs.
 les vrais noms dans le DOM post-login faute de `nickText()` ; corrigé. Vérifié dans
 les 4 modes (TIGRE/COUPA/TESLA/BINGA) + bascules d'année : 0 vrai nom rendu.
 
-**5. Alias société** : ZOR Consulting → « Molenbeck » désormais aussi dans la table
+**5. Alias société** : Molenbeck → « Molenbeck » désormais aussi dans la table
 `_nick` (chiffrée) → toute occurrence « ZOR » dans les données s'affiche « Molenbeck ».
 
 Reste exposés (acceptable) : les **alias** (Augustin/Benoit/Bob) et noms de sociétés
@@ -675,7 +675,7 @@ de `.nojekyll` (réexposerait tout).
 `NICK_MAP` (mapping vrais noms ↔ alias). Le masquer nécessite de déplacer la map
 dans le blob chiffré — chantier séparé.
 
-**Anonymat Molenbeck** : la société de Hamza (réelle = ZOR Consulting) est désormais
+**Anonymat Molenbeck** : la société de Hamza (réelle = Molenbeck) est désormais
 nommée **« Molenbeck »** partout (alias, comme Augustin/Benoit/Bob pour les personnes).
 ZOR n'apparaît dans aucun fichier servi ; le mapping ZOR↔Molenbeck reste local
 (mémoire), jamais dans `NICK_MAP` public.
@@ -724,7 +724,7 @@ plus rien (vérifié). Bump v7.13 → v7.14 (changement de code dans l'inline sc
 `bob2026` :
 - HT 3 600 € × taux 10,6 = **38 160 DH** brut.
 - Commission 13 % : 3 816 DH (Amine 10 %) + 1 145 DH (Augustin 3 %).
-- **Net Bob = 33 199 DH** → Amine doit dispatcher ce montant à Hamza (via Azarkan).
+- **Net Bob = 33 199 DH** → Amine doit dispatcher ce montant à Hamza (via Augustin).
 - Solde Bob 2026 : **+33 199 DH** (Amine doit Bob). Visible dashboard + Mes Gains
   (part Amine 3 816 DH).
 - **À préciser** (non fournis) : période exacte de la prestation, réf facture
@@ -737,17 +737,17 @@ Bump : v7.13 → v7.14
 
 ## `v7.13` — 2026-06-19
 
-### Nouveau tiers : Bob (Hamza El Azzouzi) — onglet + porte dédiée
+### Nouveau tiers : Bob (Bob) — onglet + porte dédiée
 
-Introduction d'un 3ème tiers à côté d'Augustin (Azarkan) et Benoit (Badre).
-Alias **Bob** (= Hamza El Azzouzi), suivant la convention d'obfuscation : les
+Introduction d'un 3ème tiers à côté d'Augustin (Augustin) et Benoit (Badre).
+Alias **Bob** (= Bob), suivant la convention d'obfuscation : les
 vrais noms n'apparaissent jamais en clair (id `bob`, clé `bob2026`,
 `render-bob.js`) ; `nick()`/`nickText()` traduisent à l'affichage.
 
 **Modèle comptable (`bob2026`, 2026 uniquement, en-cours)** :
 - Amine facture Hamza via **Bridgevale Consulting** (société UK) → flux
   international **HT, pas de TVA** (Hamza en BE, Bridgevale au UK).
-- **Azarkan (Augustin)** récupère et dispatche temporairement les fonds à
+- **Augustin (Augustin)** récupère et dispatche temporairement les fonds à
   Hamza (en attendant qu'il ait son propre compte).
 - **Commission 13 % = 10 % Amine + 3 % Augustin** (dispatch). Net Hamza = brut
   − 13 %. Le 3 % Augustin n'est PAS un gain Amine (exclu de "Mes Gains").
@@ -825,7 +825,7 @@ Convention documentée en commentaire dans `encrypt.js` :
 > identique à tauxApplique → 0 gain FX sur ces lignes). On ne met un
 > autre tauxMarche QUE quand un cours marché réel est disponible.
 
-Pour Azarkan (`augustin2026.tauxMaroc: 10.26`) : rien à changer, déjà
+Pour Augustin (`augustin2026.tauxMaroc: 10.26`) : rien à changer, déjà
 correct par convention deal annuel (v7.6).
 
 Bump : v7.10 → v7.11
@@ -836,7 +836,7 @@ Bump : v7.10 → v7.11
 
 ### Benoit 2026 — paiement AZCS0002 + nouvelle facture AZCS0007
 
-Trois PDFs reçus de Badre : 1 facture Azarkan + 2 reçus de paiement
+Trois PDFs reçus de Badre : 1 facture Augustin + 2 reçus de paiement
 BNP Paribas Fortis (Majalis → AZCS, pay-on-behalf model).
 
 **AZCS0002 — passé à PAYÉ** :
@@ -911,7 +911,7 @@ avec un system date erroné (snapshot Apr 23 dans le contexte session),
 la date a été figée 13 jours trop tôt. La banque confirme exécution
 **06/05/2026** — date corrigée pour matcher.
 
-**Ajout 3 virements Benoit (Badrecheikh Elmouksit)** :
+**Ajout 3 virements Benoit (Benoit)** :
 - 11/05/2026 — 50 000 DH (remboursement)
 - 11/05/2026 — 50 000 DH (remboursement)
 - 12/05/2026 — 50 000 DH (remboursement)

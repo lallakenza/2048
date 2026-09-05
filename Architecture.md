@@ -10,12 +10,12 @@ Site statique hébergé sur GitHub Pages (`lallakenza/2048` — l'ancien nom int
 
 | Nickname (site) | Personne réelle | Rôle |
 |---|---|---|
-| **Augustin** | Mohammed Azarkan | Consultant SAP chez RTL via Bairok Consulting LLC (EAU) |
-| **Benoit** / **Benoit Chevalier** / **Badrecheikh Elmouksit** | Badre | Bénéficiaire des paiements Councils, tracking en DH |
+| **Augustin** | Augustin | Consultant SAP chez RTL via Bairok Consulting LLC (EAU) |
+| **Benoit** / **Benoit Chevalier** / **Benoit** | Badre | Bénéficiaire des paiements Councils, tracking en DH |
 | **Amine** | Amine (propriétaire du site) | Gestionnaire facturation, retient commissions |
-| **Jean Augustin** | Bénéficiaire virements Maroc | Azarkan côté DH |
+| **Jean Augustin** | Bénéficiaire virements Maroc | Augustin côté DH |
 | **Nezha** | Femme d'Amine | Émettrice des virements perso EUR |
-| **Hanane** | Femme d'Azarkan | Réceptrice des virements perso EUR |
+| **Hanane** | Femme d'Augustin | Réceptrice des virements perso EUR |
 
 **Règle absolue** : on n'affiche JAMAIS les vrais noms sur le site, uniquement les nicknames. Deux fonctions assurent ça :
 - `nick(name)` : mapping exact (champs bénéficiaire, etc.)
@@ -27,7 +27,7 @@ Site statique hébergé sur GitHub Pages (`lallakenza/2048` — l'ancien nom int
 |---|---|---|
 | **Bridgevale** | **Amine** | Société d'Amine. |
 | **Bairok Consulting LLC** | **Amine** | Société d'Amine aux EAU (Sharjah). Facture RTL en HT (TVA 0%). IBAN IFX Payments (GB). |
-| **AZCS (Azarkan Consulting Services)** | **Azarkan (Augustin)** | Société d'Azarkan en Belgique. Facture Councils/Majalis en TTC (21% TVA belge). |
+| **AZCS (Augustin Consulting Services)** | **Augustin (Augustin)** | Société d'Augustin en Belgique. Facture Councils/Majalis en TTC (21% TVA belge). |
 | **Majalis** | **Badre (Benoit)** | Société de Badre. Paie les factures AZCS pour le compte d'Amine (pay-on-behalf). |
 | **CLT-UFA S.A. (RTL Group)** | Client externe | Client final au Luxembourg. Paie les factures Bairok. |
 
@@ -39,7 +39,7 @@ Site statique hébergé sur GitHub Pages (`lallakenza/2048` — l'ancien nom int
 
 Chaque transaction est postée en parallèle dans 3 "devises" (comme SAP qui maintient 2-3 currencies en //) avec des taux de conversion fixes.
 
-### Azarkan (Augustin)
+### Augustin (Augustin)
 
 Le "Pro" est le montant de base (position entreprise nette des paiements).
 
@@ -89,10 +89,10 @@ Le "Pro" est le HT EUR des factures Councils (AZCS → Majalis).
 
 | Personne | Commission Amine | Taux EUR/MAD | Monnaie de suivi |
 |---|---|---|---|
-| Azarkan (Augustin) | 5% sur cash EUR (Perso = Pro × 0.95) | `tauxMaroc` annuel (deal — 10 en 2025, 10,26 en 2026) | EUR (3 options : Pro, Perso, MAD) |
+| Augustin (Augustin) | 5% sur cash EUR (Perso = Pro × 0.95) | `tauxMaroc` annuel (deal — 10 en 2025, 10,26 en 2026) | EUR (3 options : Pro, Perso, MAD) |
 | Badre (Benoit) | 10% sur DH (après conversion) | Per-transaction (~10.6) | DH |
 
-**Important** : un virement de 1 000€ fait par Badre à Azarkan aura un équivalent DH différent pour chacun d'eux car Amine a des deals différents avec eux (taux Azarkan négocié à l'année, taux Badre par-transaction ~10.6).
+**Important** : un virement de 1 000€ fait par Badre à Augustin aura un équivalent DH différent pour chacun d'eux car Amine a des deals différents avec eux (taux Augustin négocié à l'année, taux Badre par-transaction ~10.6).
 
 ---
 
@@ -186,7 +186,7 @@ Le `<script>`-loader dans `index.html` ajoute automatiquement `?t=${Date.now()}`
 
 ### benoit2025 / benoit2026
 - `commissionRate` : 0.10 (10% commission Amine)
-- `tvaRate` : 0.21 (21% TVA belge). Azarkan reçoit TTC, on comptabilise HT
+- `tvaRate` : 0.21 (21% TVA belge). Augustin reçoit TTC, on comptabilise HT
 - `councils[]` : Factures AZCS → Majalis
   - `htEUR` : Montant hors taxes en EUR
   - `tauxApplique` : Taux EUR/MAD appliqué (variable par transaction : 10.5–10.7)
@@ -204,7 +204,7 @@ Le `<script>`-loader dans `index.html` ajoute automatiquement `?t=${Date.now()}`
 
 ## Calculs clés
 
-### Position Azarkan (render-augustin.js)
+### Position Augustin (render-augustin.js)
 ```
 // Position Entreprise (identique Pro et Perso)
 posEntreprise = RTL_paid_HT − AZCS_paid_HT + report2025
@@ -249,7 +249,7 @@ Calculé dynamiquement dans `renderBenoit2026()` à partir des données 2025.
 ```
 TTC = HT × (1 + tvaRate)    // Ex: 5000 × 1.21 = 6050€
 ```
-Azarkan (AZCS) reçoit le TTC. Le site comptabilise en HT. La colonne TTC est affichée à titre indicatif.
+Augustin (AZCS) reçoit le TTC. Le site comptabilise en HT. La colonne TTC est affichée à titre indicatif.
 
 ---
 
