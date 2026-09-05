@@ -6,6 +6,22 @@ function renderFXP2P() {
   if (!window.PRIV) return '<div style="padding:40px;text-align:center;color:var(--muted)"><p style="font-size:1.1rem">🔒 Section réservée</p></div>';
   const d = DATA.fxP2P;
   const fy = window.fxYear || 0;
+
+  // ── Fenêtre « 3 derniers mois » : GLISSANTE, dérivée des données ───────────
+  // Elle était figée au 2025-12-01. Comme les données avancent et pas la borne,
+  // la « fenêtre 3 mois » couvrait 9 mois au 4 septembre — le libellé mentait et
+  // les statistiques comparaient deux périodes de longueurs différentes.
+  const dataAsOf = (DATA._meta && DATA._meta.derniereOperation) || new Date().toISOString().slice(0, 10);
+  const debut3m = (() => {
+    // Arithmétique de calendrier en composants, PAS via toISOString() : la Date est
+    // construite en heure locale et toISOString repasse en UTC, ce qui reculait la
+    // borne d'un jour (03/06 au lieu du 04/06) sur un fuseau à l'est de Greenwich.
+    const [a, m, j] = dataAsOf.split('-').map(Number);
+    const d0 = new Date(Date.UTC(a, m - 1, j));
+    d0.setUTCMonth(d0.getUTCMonth() - 3);
+    return d0.toISOString().slice(0, 10);
+  })();
+  const fmtDateFr = (iso) => { const [a, m, j] = iso.split('-'); return `${j}/${m}/${a}`; };
   const yearFilter = fy ? (t => t.date.startsWith(String(fy))) : null;
 
   // ===== LEG 1: EUR → AED (IFX spread = perte) =====
@@ -117,8 +133,7 @@ function renderFXP2P() {
   const all = computePeriodStats(leg1, leg2, leg3);
   let r3m = null;
   if (!fy) {
-    const cutoff3m = '2025-12-01';
-    r3m = computePeriodStats(leg1.filter(t => t.date >= cutoff3m), leg2.filter(t => t.date >= cutoff3m), leg3.filter(t => t.date >= cutoff3m));
+    r3m = computePeriodStats(leg1.filter(t => t.date >= debut3m), leg2.filter(t => t.date >= debut3m), leg3.filter(t => t.date >= debut3m));
   }
 
   // ===== CARDS =====
@@ -193,13 +208,19 @@ function renderFXP2P() {
   const synthLabel = fy ? `Synthèse — ${fy}` : 'Synthèse — Période totale (depuis mars 2025)';
   html += renderSynthTable(synthLabel, all, 'total');
   if (r3m) {
-    const l1_3m = leg1.filter(t => t.date >= '2025-12-01');
-    const l2_3m = leg2.filter(t => t.date >= '2025-12-01');
-    const l3_3m = leg3.filter(t => t.date >= '2025-12-01');
-    html += renderSynthTable(`Synthèse — 3 derniers mois (depuis déc. 2025) — ${l1_3m.length} / ${l2_3m.length} / ${l3_3m.length} tx`, r3m, '3m');
+    // La borne était figée au 2025-12-01 : la « fenêtre 3 mois » s'allongeait donc
+    // indéfiniment (9 mois au 4 septembre) et le libellé mentait. Elle est désormais
+    // dérivée de la dernière opération connue — elle glisse avec les données.
+    const l1_3m = leg1.filter(t => t.date >= debut3m);
+    const l2_3m = leg2.filter(t => t.date >= debut3m);
+    const l3_3m = leg3.filter(t => t.date >= debut3m);
+    html += renderSynthTable(`Synthèse — 3 derniers mois (depuis le ${fmtDateFr(debut3m)}) — ${l1_3m.length} / ${l2_3m.length} / ${l3_3m.length} tx`, r3m, '3m');
   }
 
-  html += `<div class="n"><strong>Impact (10k€)</strong> = pour chaque leg, combien tu gagnes ou perds en EUR sur une transaction de 10 000€. Les spreads s'additionnent : −89€ (IFX) − 21€ (buy) + 484€ (sell) = net. Le <strong>taux effectif EUR→MAD</strong> = chaîne de taux pondérés : taux IFX × prix vente P2P ÷ prix achat P2P.</div>`;
+  // Les trois montants étaient écrits en dur (−89 / −21 / +484) : ils dataient d'un
+  // jeu de données antérieur et ne bougeaient plus avec les calculs. Ils sont
+  // désormais lus dans les mêmes agrégats que le tableau juste au-dessus.
+  html += `<div class="n"><strong>Impact (10k€)</strong> = pour chaque leg, combien tu gagnes ou perds en EUR sur une transaction de 10 000€. Les spreads s'additionnent : ${fmtImpact(all.l1.impact)} (IFX) ${fmtImpact(all.l2.impact)} (buy) ${fmtImpact(all.l3.impact)} (sell) = <strong>${fmtImpact(all.impNet)}</strong>. Le <strong>taux effectif EUR→MAD</strong> = chaîne de taux pondérés : taux IFX × prix vente P2P ÷ prix achat P2P.</div>`;
 
   // ===== LEG 1 DETAIL =====
   html += `<div class="s"><div class="st">Leg 1 — EUR → AED (conversions IFX) — ${leg1.length} transactions</div><table>
@@ -321,7 +342,7 @@ function renderFXP2P() {
 
   // Method note
   html += `<div class="n ok">
-    <strong>Méthode :</strong> <strong>Leg 1</strong> — données IFX vs taux marché EUR/AED du jour (fawazahmed0/currency-api). <strong>Leg 2</strong> — prix P2P Binance vs peg AED/USD (3,6725). <strong>Leg 3</strong> — prix P2P Binance vs USD/MAD marché. <strong>Taux effectif EUR→MAD</strong> = chaîne de taux pondérés (IFX × sell ÷ buy). <strong>Impact (10k€)</strong> = spread% × 10 000 EUR (approximation linéaire).${r3m ? ' <strong>3 derniers mois</strong> = transactions depuis déc. 2025.' : ''}
+    <strong>Méthode :</strong> <strong>Leg 1</strong> — données IFX vs taux marché EUR/AED du jour (fawazahmed0/currency-api). <strong>Leg 2</strong> — prix P2P Binance vs peg AED/USD (3,6725). <strong>Leg 3</strong> — prix P2P Binance vs USD/MAD marché. <strong>Taux effectif EUR→MAD</strong> = chaîne de taux pondérés (IFX × sell ÷ buy). <strong>Impact (10k€)</strong> = spread% × 10 000 EUR (approximation linéaire).${r3m ? ` <strong>3 derniers mois</strong> = transactions depuis le ${fmtDateFr(debut3m)}, fenêtre glissante calculée depuis la dernière opération connue (${fmtDateFr(dataAsOf)}).` : ''}
   </div>`;
 
   return html;

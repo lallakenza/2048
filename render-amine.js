@@ -353,6 +353,17 @@ function renderAmine() {
         mad: Math.round(combinedMAD),            // net position MAD
       },
     }));
+
+    // ── Payload de PONT, même schéma que `bridge.enc.js` ─────────────────────
+    // Conservé le temps que Networth bascule sur l'artefact versionné. Il est
+    // construit par la MÊME fonction que l'artefact (lib/bridge.js) : ce qui est
+    // affiché et ce qui est publié ne peuvent donc pas diverger.
+    if (typeof construirePont === 'function') {
+      const pont = construirePont(DATA, {
+        computeAugustinPosition, computeBenoitSolde, computeBobSolde,
+      }, { sourceVersion: window.APP_VERSION || null });
+      localStorage.setItem('facturation_bridge', JSON.stringify(pont));
+    }
   } catch(e) { /* localStorage unavailable — ignore silently */ }
 
   return html;

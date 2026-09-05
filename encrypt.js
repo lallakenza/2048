@@ -136,6 +136,27 @@ const ENCRYPTED_PRIV = "${privB64}";
   fs.writeFileSync('data-priv.enc.js', privOutput);
   console.log('→ Written to data-priv.enc.js');
 
+  // ── 5) PONT vers Networth — artefact versionné, chiffré comme le reste ──────
+  // Networth lisait `localStorage.facturation_positions`, écrit seulement quand
+  // quelqu'un ouvrait 2048 et saisissait le mot de passe : hors de cette visite, il
+  // travaillait sur un instantané périmé sans pouvoir le savoir. L'artefact est
+  // produit au build, porte sa propre fraîcheur et se lit sans visite préalable.
+  // Il reste CHIFFRÉ : publier des positions financières en clair dans un dépôt
+  // public serait un recul par rapport à la protection actuelle.
+  const { charger } = require('./lib/charger-donnees.js');
+  const { construirePont } = require('./lib/bridge.js');
+  const versionSite = (fs.readFileSync('index.html', 'utf8')
+    .match(/APP_VERSION = '([^']+)'/) || [])[1] || null;
+  const ctx = charger();
+  ctx.DATA._meta = FULL_DATA._meta;
+  const pont = construirePont(ctx.DATA, ctx.helpers, { sourceVersion: versionSite });
+  const pontB64 = encryptData(pont, 'PONT');
+  fs.writeFileSync('bridge.enc.js', `// Auto-generated — DO NOT EDIT
+// Pont Networth (AES-256-GCM, PBKDF2). Schéma ${pont.schemaVersion} · données au ${pont.dataAsOf}.
+const ENCRYPTED_BRIDGE = "${pontB64}";
+`);
+  console.log(`→ Written to bridge.enc.js (schéma ${pont.schemaVersion}, dataAsOf ${pont.dataAsOf}, source ${pont.sourceVersion})`);
+
   console.log('\nDone. Remember to remove data.js from the repo (data is now encrypted).');
 }
 

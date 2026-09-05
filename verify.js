@@ -96,7 +96,7 @@ check('Total MAD 2026', totalMAD26, 270000); // ...12/07 50k + 17/07 10k + 03/08
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
 check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(270000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
-check('Total RTL facturé 2026', totalRTL26, 103700); // INVRTL013..019 (018+019 émises non payées)
+check('Total RTL facturé 2026', totalRTL26, 116450); // INVRTL013..020 (019+020 émises non payées)
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
 check('Divers net montant 2026', diversNet26, 5600); // +800 - 1200 + 6000
@@ -110,15 +110,15 @@ check('AZCS paid via Majalis 2026', azcsRecuPaid26, 55312.5); // AZCS0001..0009 
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 87550); // INVRTL013..018 payés (018 payée 26/08, payment advice 1700002684)
+check('RTL paid 2026', amineRecu26, 87550); // INVRTL013..018 payés — 019 et 020 restent dues (28 900 €)
 
 // Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
 const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
-check('Bridgevale EUR 2026', bridgevaleEUR26, 2400);
+check('Bridgevale EUR 2026', bridgevaleEUR26, 4800); // AZCS0010 (02/07) + AZCS0012 (04/09)
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 28154.5); // 87550 − 55312.5 AZCS − 2400 Bridgevale − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 25754.5); // 87550 − 55312.5 AZCS − 4800 Bridgevale − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
@@ -281,6 +281,38 @@ for (const [nom, jeu] of casLimites) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ============================================================================
+// GARDE-FOUS — les cinq régressions déjà constatées, qu'on refuse de revoir.
+// Chacune a été vérifiée « sensible » : elle se déclenche sur le défaut d'origine.
+// ============================================================================
+console.log('\n=== GARDE-FOUS ===');
+try {
+  const gardes = require('./lib/garde-fous.js');
+  const { charger } = require('./lib/charger-donnees.js');
+  const { derniereOperation } = require('./lib/data-freshness.js');
+  const { construirePont } = require('./lib/bridge.js');
+  const ctx = charger();
+  const asOf = derniereOperation(ctx.DATA).date;
+  ctx.DATA._meta = { derniereOperation: asOf };
+  const pont = construirePont(ctx.DATA, ctx.helpers, { sourceVersion: null });
+
+  const suite = [
+    ['statut payé sans preuve structurée', gardes.payeSansPreuve(ctx.DATA)],
+    ['séquence jugée hors périmètre émetteur', gardes.sequencePerimetreEmetteur(ctx.DATA)],
+    ['fenêtre « 3 mois » trop longue', gardes.fenetreTroisMois(asOf)],
+    ['montant financier figé dans un texte', gardes.montantsEnDurDansLeRecit()],
+    ['divergence positions affichées / pont', gardes.pontCoherent(pont)],
+  ];
+  for (const [nom, r] of suite) {
+    if (r.ok) { console.log(`✅ ${nom}`); }
+    else { errors++; console.log(`❌ ${nom}`); (r.detail || []).slice(0, 8).forEach(d => console.log(`     ${d}`)); }
+  }
+  console.log(`   → pont : schéma ${pont.schemaVersion} · données au ${pont.dataAsOf} · ${pont.dueDates.length} échéance(s) ouverte(s)`);
+} catch (e) {
+  errors++;
+  console.log('❌ garde-fous : ' + e.message);
+}
+
 console.log(`\n=============================`);
 if (errors === 0) {
   console.log(`✅ Aucun échec (${val.avertissements} avertissement(s) à traiter)`);

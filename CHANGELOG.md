@@ -82,6 +82,89 @@ les affiche avec leur unité, et les libellés passent à « soldé » plutôt q
 
 ---
 
+## `v7.35` — 2026-09-05
+
+### Opérations de septembre, preuves structurées et pont versionné
+
+Trois pièces intégrées depuis les archives Notion, puis trois défauts de méthode
+corrigés dans la foulée.
+
+| Flux | Pièce | Effet |
+|---|---|---|
+| RTL | INVRTL020 · 12 750 € · émise 03/09, échéance 03/10 | non encaissée |
+| ZOR | INZOR004 · 3 600 € · émise 01/09 | encaissée le 04/09 (Wise #2352466206) |
+| AZCS → Bridgevale | AZCS0012 · 2 400 € · reçue 31/08 | réglée le 04/09 (Wise #2352472310) |
+
+**AZCS0012 appartient au flux Augustin/Bridgevale, pas au flux Majalis/Benoit.**
+
+### Positions — recalculées, jamais saisies
+
+| | Avant | Après |
+|---|---:|---:|
+| RTL facturé / encaissé / en attente | 103 700 / 87 550 / 16 150 | **116 450 / 87 550 / 28 900** |
+| Augustin | +41 615 DH | **+66 239 DH** |
+| Benoit | +17 566 DH | +17 566 DH |
+| Bob | −58 032 DH | **−92 376 DH** |
+| **Position globale brute** | +1 149 DH | **−8 571 DH** |
+
+`dataAsOf` (**2026-09-04**) est *dérivé* de la dernière opération financière, pas saisi :
+une date dérivée ne peut pas prétendre une fraîcheur que les données n'ont pas.
+
+### Preuve de règlement : un libellé n'est plus une preuve
+
+Le contrôle acceptait `statutText: "Paid"` comme trace. Chaque règlement porte désormais
+un bloc structuré `{ statut, date, montant, devise, preuve }`, sur un vocabulaire fermé :
+`paye` (exige date + montant + pièce), `paye_non_verifie`, `inconnu`, `en_attente`.
+
+Onze règlements sont déclarés **`paye_non_verifie`** plutôt que d'inventer une date —
+notamment AZCS0008 (facture archivée, aucune preuve de paiement), INZOR001 (seule la
+notification Wise atteste) et INVRTL013 (l'avis CLT-UFA du 01/04 couvre 013 + 014
+globalement, sans ventilation par facture). Un trou déclaré vaut mieux qu'un trou masqué.
+
+### Séquence : périmètre émetteur, pas périmètre relation
+
+AZCS0010 était signalée « manquante » entre 0009 et 0011. Elle ne l'était pas : AZ
+Consulting numérote en continu pour **tous** ses clients, et 0010/0012 sont rangées
+dans `virementsBridgevale`. La séquence est désormais jugée sur l'ensemble du jeu de
+données. Les factures groupées (`INVRTL004+5`) sont développées avant contrôle.
+
+### Fenêtre « 3 mois », arrondis, horodatages
+
+- La borne était figée au `2025-12-01` : la fenêtre couvrait **277 jours** au 4 septembre.
+  Elle glisse maintenant depuis `dataAsOf` → **04/06/2026**.
+- Le texte `−89 −21 +484` était gelé ; il est lu dans les mêmes agrégats que le tableau :
+  **−89 (IFX) −14 (buy) +510 (sell) = +407**.
+- Les gains gardent leur pleine précision et n'arrondissent qu'au rendu — le total ne
+  varie plus (stable sur 5 rendus successifs).
+- Le Radar affiche **deux** horodatages : prix relevé et dernier point du graphe, avec
+  l'écart en clair (4 h à la vérification).
+
+### Pont Networth — artefact versionné et chiffré
+
+`bridge.enc.js`, produit au build et chiffré comme le reste : publier des positions
+financières en clair dans un dépôt public aurait été un recul.
+
+Il expose `schemaVersion`, `generatedAt`, `dataAsOf`, `sourceVersion`, `currency`,
+`positionsGross`, `positionsNettingScenario`, `dueDates`, `evidenceStatus`.
+
+**Le brut reste séparé de la compensation.** `positionsNettingScenario` décrit un
+règlement qui n'a pas eu lieu : tant qu'Azarkan n'a pas retransmis à Hamza, la créance
+sur l'un et la dette envers l'autre coexistent. Le total est identique dans les deux
+vues — un scénario qui déplacerait le total créerait de la valeur.
+
+Le payload `localStorage` est conservé pour compatibilité, **construit par la même
+fonction** (`lib/bridge.js`, chargée en Node comme au navigateur) : l'affichage et la
+publication ne peuvent pas diverger.
+
+### Cinq garde-fous
+
+Chacun a été vérifié *sensible* — il se déclenche sur le défaut d'origine :
+statut payé sans preuve · séquence hors périmètre émetteur · fenêtre « 3 mois » au-delà
+de 92 jours · montant signé figé dans un texte narratif · divergence entre positions
+affichées et payload du pont.
+
+---
+
 ## Mise à jour de données — 2026-08-27
 
 Pas de changement de code, donc pas de bump de version (`v7.32` conservée).

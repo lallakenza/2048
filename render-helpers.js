@@ -326,5 +326,10 @@ function directionPosition(montant, contrepartie) {
   return m > 0 ? ('Amine doit à ' + qui) : (qui + ' doit à Amine');
 }
 
-if (typeof module !== 'undefined' && module.exports) module.exports = { directionPosition };
+// Exporté aussi pour Node : le générateur du pont (lib/bridge.js) appelle EXACTEMENT
+// ces fonctions, pour que le payload publié et l'affichage ne puissent pas diverger.
+// Elles lisent le global `DATA` ; en Node il suffit de le poser avant l'appel.
+if (typeof module !== 'undefined' && module.exports) module.exports = {
+  directionPosition, computeBenoitSolde, computeBobSolde, computeAugustinPosition,
+};
 if (typeof window !== 'undefined') window.directionPosition = directionPosition;

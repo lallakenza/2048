@@ -142,8 +142,13 @@ function renderMesGains() {
   const totalBob = commBob26 + fxBob26;
 
   // ===== YEAR TOTALS =====
-  const gains2025 = gainMAD_az25 + commYcarréMAD + commBenoit25 + fxBenoit25 + Math.round(p2pSavingBenoit25);
-  const gains2026 = gainMAD_az26 + commBenoit26 + fxBenoit26 + Math.round(p2pSavingBenoit26) + commBob26 + fxBob26;
+  // ARRONDI UNE SEULE FOIS, À L'AFFICHAGE.
+  // Les agrégats arrondissaient `p2pSavingBenoit25/26` AVANT de sommer, alors que
+  // d'autres blocs arrondissaient la somme. Les deux chemins divergeaient d'une unité
+  // et le total oscillait entre 233 219, 233 220 et 233 221 DH selon l'endroit lu.
+  // On garde donc la pleine précision jusqu'au rendu.
+  const gains2025 = gainMAD_az25 + commYcarréMAD + commBenoit25 + fxBenoit25 + p2pSavingBenoit25;
+  const gains2026 = gainMAD_az26 + commBenoit26 + fxBenoit26 + p2pSavingBenoit26 + commBob26 + fxBob26;
   const grandTotal = gains2025 + gains2026;
 
   // ===== YEAR FILTER =====
@@ -307,9 +312,9 @@ function renderMesGains() {
   if (show25) html += `<div class="insight pass"><div class="t">👩 Ycarré (Oum Yakout) : ${fmtPlain(commYcarréEUR)} € de commission (2025)</div><div class="d">${fmtPlain(ycarreTotal)} € payés en 2025 (6 paiements EBS). Commission ${ycarrePct}% = <strong>${fmtPlain(commYcarréEUR)} €</strong> (≈ ${fmtPlain(commYcarréMAD)} DH).</div></div>`;
 
   // Benoit
-  const fBenoit25 = commBenoit25 + fxBenoit25 + Math.round(p2pSavingBenoit25);
-  const fBenoit26 = commBenoit26 + fxBenoit26 + Math.round(p2pSavingBenoit26);
-  const totalGainsBenoit = totalComm + totalFxBenoit + Math.round(p2pSavingBenoit);
+  const fBenoit25 = commBenoit25 + fxBenoit25 + p2pSavingBenoit25;
+  const fBenoit26 = commBenoit26 + fxBenoit26 + p2pSavingBenoit26;
+  const totalGainsBenoit = totalComm + totalFxBenoit + p2pSavingBenoit;
   const benoitDisplay = gy === 2025 ? fBenoit25 : gy === 2026 ? fBenoit26 : totalGainsBenoit;
   html += `<div class="insight pass"><div class="t">🤝 Benoit : ${fmtPlain(benoitDisplay)} DH ${gy ? '(' + gy + ')' : 'cumulés'}</div><div class="d">${gy === 2025 ? `Commission ${benoitPct25}% : <strong>${fmtPlain(commBenoit25)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit25)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit25))} DH</strong>.` : gy === 2026 ? `Commission ${benoitPct25}% : <strong>${fmtPlain(commBenoit26)} DH</strong> · Écart taux : <strong>${fmtPlain(fxBenoit26)} DH</strong> · P2P : <strong>${fmtPlain(Math.round(p2pSavingBenoit26))} DH</strong>.` : `Commission ${benoitPct25}% : <strong>${fmtPlain(totalComm)} DH</strong> (${fmtPlain(commBenoit25)} + ${fmtPlain(commBenoit26)}) · Écart taux : <strong>${fmtPlain(totalFxBenoit)} DH</strong> · P2P spread : <strong>${fmtPlain(Math.round(p2pSavingBenoit))} DH</strong>.`}</div></div>`;
 

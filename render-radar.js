@@ -61,7 +61,8 @@ function renderRadar() {
     <div class="radar-refresh-bar" id="radarRefreshBar">
       <button id="radarRefreshBtn" onclick="window.radarLoad(true)" title="Raccourci : R" style="appearance:none;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px">🔄 Rafraîchir <span class="radar-kbd" style="color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.12)">R</span></button>
       <div style="font-size:.72rem;color:var(--muted);line-height:1.5">
-        Dernière MAJ : <span id="radarLastUpdate" style="color:var(--text);font-weight:600">—</span>
+        Prix relevé : <span id="radarLastUpdate" style="color:var(--text);font-weight:600">—</span>
+        <span id="radarHistPoint" style="color:var(--muted)"></span>
         <span class="countdown" id="radarCountdown">auto 60s</span>
       </div>
       <div id="radarStatus" style="margin-left:auto;font-size:.72rem;color:var(--muted)">⏳ Chargement…</div>
@@ -186,6 +187,26 @@ async function radarLoad(manual) {
     window._radarState.lastLoadAt = Date.now();
     const lastEl = document.getElementById('radarLastUpdate');
     if (lastEl) lastEl.textContent = radarFmtTime(new Date());
+
+    // ── DEUX horodatages, jamais un seul ─────────────────────────────────────
+    // Le prix affiché vient d'un appel live ; le dernier point du graphe vient du
+    // cron P2P, qui tourne à son propre rythme. Un unique « Dernière MAJ » laissait
+    // croire que les deux décrivaient le même instant. On montre donc les deux, et
+    // on signale explicitement l'écart dès qu'il dépasse l'heure.
+    const histEl = document.getElementById('radarHistPoint');
+    if (histEl) {
+      const h = (window.DATA && window.DATA.fxP2P && window.DATA.fxP2P.history) || [];
+      const dernier = h.length ? h[h.length - 1] : null;
+      const ts = dernier && (dernier.ts || dernier.date || dernier.t);
+      if (!ts) {
+        histEl.textContent = ' · graphe : aucun point daté';
+      } else {
+        const d = new Date(ts);
+        const ecartH = (Date.now() - d.getTime()) / 3600000;
+        const retard = ecartH >= 1 ? ` (il y a ${Math.round(ecartH)} h)` : '';
+        histEl.innerHTML = ` · dernier point du graphe : <strong style="color:${ecartH >= 3 ? 'var(--yellow)' : 'var(--text)'}">${radarFmtTime(d)}${retard}</strong>`;
+      }
+    }
     if (statusEl) statusEl.innerHTML = parts.join(' · ');
   } catch (e) {
     console.error('[radar] load failed:', e);
