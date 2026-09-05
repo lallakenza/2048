@@ -1,31 +1,30 @@
-// Verification script - run with Node.js to check all amounts
-// Usage: node verify.js
-// Decrypts data from data-enc.js using TIGRE, then runs all checks.
+// ============================================================================
+// verify.js — contrôles de cohérence des données de facturation.
+//
+// Usage : node verify.js
+//
+// Il déchiffrait `data-enc.js` avec le mot de passe 'TIGRE' ÉCRIT EN DUR dans ce
+// fichier versionné. Il lit désormais la source en clair, hors dépôt : plus aucune
+// clé ici, et on vérifie ce qui fait foi plutôt que sa copie chiffrée.
+//
+// Il ne comparait que des totaux à des constantes écrites à la main : il attrapait
+// une somme fausse, jamais une facture manquante, une échéance absente, une séquence
+// trouée, un statut « payé » sans encaissement, ni ce que Net Worth consomme
+// réellement. Ces contrôles-là sont ajoutés, et chaque échec NOMME l'objet fautif.
+// ============================================================================
 
-const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
+const { validerFactures } = require('./lib/validate-invoices.js');
 
-const SALT = 'facturation-augustin-2025';
-
-function decrypt(b64, password) {
-  const pwd = password.toUpperCase();
-  const key = crypto.pbkdf2Sync(pwd, SALT, 100000, 32, 'sha256');
-  const raw = Buffer.from(b64, 'base64');
-  const iv = raw.slice(0, 12);
-  const tag = raw.slice(12, 28);
-  const ct = raw.slice(28);
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-  decipher.setAuthTag(tag);
-  let dec = decipher.update(ct, null, 'utf8');
-  dec += decipher.final('utf8');
-  return JSON.parse(dec);
+const SOURCE = process.env.FACT_DATA_SOURCE
+  || path.join(require('os').homedir(), 'facturation-data', 'source.js');
+if (!fs.existsSync(SOURCE)) {
+  console.error('✗ Source introuvable : ' + SOURCE);
+  console.error('  Les données en clair vivent hors du dépôt. Renseigne FACT_DATA_SOURCE si besoin.');
+  process.exit(2);
 }
-
-// Load encrypted blob
-const encFile = fs.readFileSync('data-enc.js', 'utf8');
-const fullMatch = encFile.match(/ENCRYPTED_FULL = "([^"]+)"/);
-if (!fullMatch) { console.error('Cannot find ENCRYPTED_FULL in data-enc.js'); process.exit(1); }
-const DATA = decrypt(fullMatch[1], 'TIGRE');
+const DATA = require(SOURCE).FULL_DATA;
 
 let errors = 0;
 function check(label, actual, expected) {
@@ -202,9 +201,92 @@ const totalPaye26 = sum(ba26.virements, 'dh');
 check('Benoit 2026 virements total', totalPaye26, 550000); // 10 × 50k + 45k + 5k DH
 check('Benoit 2026 virements count', ba26.virements.length, 12);
 
-// Summary
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTRÔLES STRUCTURELS — factures, échéances, séquences, encaissements
+// ═══════════════════════════════════════════════════════════════════════════
+console.log('\n=== FACTURES : STRUCTURE ===');
+const val = validerFactures(DATA);
+for (const a of val.anomalies) {
+  const marque = a.gravite === 'erreur' ? '❌' : '⚠️ ';
+  console.log(`${marque} [${a.contexte}] ${a.message}`);
+  if (a.gravite === 'erreur') errors++;
+}
+if (!val.anomalies.length) console.log(`✅ ${val.lots} lot(s) de factures : aucune anomalie`);
+else console.log(`   → ${val.erreurs} erreur(s), ${val.avertissements} avertissement(s) sur ${val.lots} lot(s)`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LES TROIS CONTREPARTIES ET LEUR SOMME
+// verify.js ne regardait ni Bob ni la position combinée — celle-là même que Net
+// Worth consomme. Une divergence sur Bob passait donc inaperçue.
+// ═══════════════════════════════════════════════════════════════════════════
+console.log('\n=== CONTREPARTIES ===');
+const contreparties = { augustin2026: 'Augustin', benoit2026: 'Benoit', bob2026: 'Bob' };
+let manquantes = [];
+for (const [cle, nom] of Object.entries(contreparties)) {
+  if (!DATA[cle]) { manquantes.push(nom); continue; }
+  const lots = Object.entries(DATA[cle]).filter(([, v]) =>
+    Array.isArray(v) && v.some(x => x && (x.montant != null || x.htEUR != null)));
+  const facture = lots.reduce((s2, [, v]) =>
+    s2 + v.reduce((a, x) => a + (x.montant != null ? x.montant : (x.htEUR || 0)), 0), 0);
+  console.log(`✅ ${nom} : ${lots.length} lot(s), ${Math.round(facture).toLocaleString('fr-FR')} € facturés`);
+}
+if (manquantes.length) {
+  console.log(`❌ contrepartie(s) absente(s) du jeu de données : ${manquantes.join(', ')}`);
+  errors += manquantes.length;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONVERSIONS EUR / MAD
+// ═══════════════════════════════════════════════════════════════════════════
+console.log('\n=== CONVERSIONS ===');
+const taux = [
+  ['Augustin tauxMaroc', DATA.augustin2026 && DATA.augustin2026.tauxMaroc],
+  ['Benoit commissionRate', DATA.benoit2026 && DATA.benoit2026.commissionRate],
+];
+for (const [nom, t] of taux) {
+  if (t == null) { console.log(`❌ ${nom} absent — toute conversion en dépend`); errors++; }
+  else if (typeof t !== 'number' || !isFinite(t) || t <= 0) {
+    console.log(`❌ ${nom} invalide : ${JSON.stringify(t)}`); errors++;
+  } else console.log(`✅ ${nom} = ${t}`);
+}
+// Les taux appliqués par facture doivent rester cohérents entre eux.
+const tauxAppliques = new Set();
+for (const bloc of [DATA.benoit2026, DATA.bob2026]) {
+  for (const c of (bloc && bloc.councils) || []) if (c.tauxApplique) tauxAppliques.add(c.tauxApplique);
+}
+if (tauxAppliques.size > 3) {
+  console.log(`❌ ${tauxAppliques.size} taux différents appliqués aux factures (${[...tauxAppliques].join(', ')}) — vérifier`);
+  errors++;
+} else console.log(`✅ taux appliqués : ${[...tauxAppliques].join(', ') || '(aucun)'}`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CAS LIMITES — la structure doit résister aux données absentes
+// ═══════════════════════════════════════════════════════════════════════════
+console.log('\n=== CAS LIMITES ===');
+const casLimites = [
+  ['jeu vide', {}],
+  ['lot vide', { x: { factures: [] } }],
+  ['lignes nulles', { x: { factures: [null, undefined] } }],
+  ['montant nul', { x: { factures: [{ ref: 'INVRTL999', montant: 0 }] } }],
+  ['montant négatif', { x: { factures: [{ ref: 'INVRTL998', montant: -100 }] } }],
+];
+for (const [nom, jeu] of casLimites) {
+  try {
+    validerFactures(jeu);
+    console.log(`✅ ${nom} : traité sans exception`);
+  } catch (e) {
+    console.log(`❌ ${nom} : le validateur lève « ${e.message} »`);
+    errors++;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 console.log(`\n=============================`);
-console.log(`Total: ${errors === 0 ? '✅ ALL CHECKS PASSED' : `❌ ${errors} ERROR(S) FOUND`}`);
+if (errors === 0) {
+  console.log(`✅ Aucun échec (${val.avertissements} avertissement(s) à traiter)`);
+} else {
+  console.log(`❌ ${errors} ÉCHEC(S) — voir les lignes ❌ ci-dessus`);
+}
 console.log(`=============================`);
 
 process.exit(errors > 0 ? 1 : 0);

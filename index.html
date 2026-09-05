@@ -863,7 +863,7 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
 <!-- ============================================ -->
 <div class="site-wrap" id="siteWrap">
 <div class="header">
-  <h1>Réconciliation Facturation 2025–2026 <span class="version-badge" id="versionBadge" title="Version du site"><span class="dot"></span><span id="versionTag">—</span><span class="date" id="versionDate"></span></span></h1>
+  <h1>Réconciliation Facturation 2025–2026 <span class="version-badge" id="versionBadge" title="Version du site"><span class="dot"></span><span id="versionTag">—</span><span class="date" id="versionDate"></span></span><span class="version-badge" id="dataBadge" title="Dernière opération financière saisie — distincte de la version du site" style="margin-left:6px;display:none"><span class="dot" id="dataDot"></span><span id="dataFresh">—</span></span></h1>
   <p>Suivi des paiements et positions multi-devises · EUR · MAD · USDT (taux du jour)</p>
 </div>
 <div class="tabs" id="tabBar"></div>
@@ -1180,6 +1180,27 @@ window.DATA = {};
           const dateEl = document.getElementById('versionDate');
           if (tagEl) tagEl.textContent = window.APP_VERSION || 'dev';
           if (dateEl && window.APP_VERSION_DATE) dateEl.textContent = ' · ' + window.APP_VERSION_DATE;
+
+          // Fraîcheur des DONNÉES, distincte de la version du site. Le cron P2P et
+          // data-history déclenchent des déploiements sans qu'aucune opération financière
+          // n'ait bougé : un seul badge laissait croire que tout était à jour.
+          const meta = (window.DATA && window.DATA._meta) || null;
+          const bEl = document.getElementById('dataBadge');
+          const fEl = document.getElementById('dataFresh');
+          const dEl = document.getElementById('dataDot');
+          if (bEl && fEl && meta && meta.derniereOperation) {
+            const j = Math.floor((Date.now() - new Date(meta.derniereOperation + 'T00:00:00')) / 86400000);
+            fEl.textContent = 'données · ' + meta.derniereOperation + (j > 0 ? ' (' + j + ' j)' : '');
+            // Au-delà de deux semaines sans opération saisie, le point passe à l'orange :
+            // ce n'est pas une panne, c'est une saisie en retard, et ça doit se voir.
+            if (dEl) {
+              dEl.style.background = j > 30 ? '#f87171' : (j > 14 ? '#fbbf24' : '#4ade80');
+              dEl.style.boxShadow = 'none';
+            }
+            bEl.title = 'Dernière opération financière saisie : ' + meta.derniereOperation
+              + ' (' + (meta.champSource || '?') + '). La version du site, elle, change à chaque déploiement.';
+            bEl.style.display = '';
+          }
         } catch(e){}
         buildTabs();
         renderAll();

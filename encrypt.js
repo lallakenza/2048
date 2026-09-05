@@ -89,6 +89,19 @@ function encryptData(data, password) {
 async function main() {
   console.log('Encrypting all data...\n');
 
+  // Fraîcheur DÉRIVÉE des données, injectée dans le blob. Le badge du site affichait
+  // `APP_VERSION_DATE`, bumpée à chaque déploiement : le cron P2P le rajeunissait sans
+  // qu'aucune opération financière n'ait bougé. Une date dérivée n'avance que si une
+  // opération avance.
+  const { derniereOperation } = require('./lib/data-freshness.js');
+  const fraicheur = derniereOperation(FULL_DATA);
+  FULL_DATA._meta = {
+    derniereOperation: fraicheur.date,
+    champSource: fraicheur.source,
+    genereLe: new Date().toISOString().slice(0, 10),
+  };
+  console.log('  dernière opération financière :', fraicheur.date, '(' + fraicheur.source + ')');
+
   // 1) Full data → TIGRE
   const fullB64 = encryptData(FULL_DATA, 'TIGRE');
   console.log(`FULL (TIGRE): ${JSON.stringify(FULL_DATA).length} bytes → ${fullB64.length} base64 chars`);
