@@ -307,3 +307,24 @@ function yearToggle3(section, activeYear) {
     <div class="year-btn ${activeYear===2026?'active':''}" data-year="2026" onclick="switch${section}Year(2026)">2026</div>
   </div>`;
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Direction d'une position : « qui doit à qui ».
+//
+// Le bandeau « Position Entreprise (AZCS) » affichait `deltaEntreprisePaid` mais y
+// accolait une direction calculée sur `deltaNetPro` — une AUTRE position
+// (Entreprise moins virements Maroc moins divers). Les deux peuvent être de signes
+// opposés : l'interface annonçait alors un montant et son contraire.
+//
+// Convention, identique partout : positif = Amine doit à la contrepartie ; négatif =
+// la contrepartie doit à Amine. Le zéro a son propre libellé — le traiter comme
+// positif faisait dire « Amine doit 0 € », ce qui n'est pas une dette.
+function directionPosition(montant, contrepartie) {
+  const m = Math.round(Number(montant) || 0);
+  const qui = contrepartie || 'Augustin';
+  if (m === 0) return 'Position à l’équilibre';
+  return m > 0 ? ('Amine doit à ' + qui) : (qui + ' doit à Amine');
+}
+
+if (typeof module !== 'undefined' && module.exports) module.exports = { directionPosition };
+if (typeof window !== 'undefined') window.directionPosition = directionPosition;

@@ -347,11 +347,15 @@ function renderAugustin2026(embedded) {
   const absNetPro = Math.abs(Math.round(deltaNetPro));
   const absNetPerso = Math.abs(Math.round(deltaNetPerso));
   const absNetMAD = Math.abs(Math.round(deltaNetPro * d.tauxMaroc));
-  const whoOwes = deltaNetPro >= 0 ? 'Amine doit à Augustin' : 'Augustin doit à Amine';
+  // `whoOwes` qualifie la position NET PRO (les cartes hero). Le bandeau Entreprise
+  // juste en dessous affiche un AUTRE montant : il lui faut sa propre direction, sinon
+  // il annonce un chiffre et la direction d'un autre.
+  const whoOwes = directionPosition(deltaNetPro, 'Augustin');
+  const whoOwesEntreprise = directionPosition(deltaEntreprisePaid, 'Augustin');
   const heroColor = deltaNetPro >= 0 ? 'var(--green)' : 'var(--red)';
   const heroCls = deltaNetPro >= 0 ? 'green' : 'red';
 
-  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise (AZCS) : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL dû à AZCS − reçu : Majalis${bridgevaleEUR ? ' + Bridgevale' : ''} + Report) · <strong>${whoOwes}</strong></div>`;
+  html += `<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px">Position Entreprise (AZCS) : <strong style="color:${deltaEntreprisePaid >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtSigned(deltaEntreprisePaid)}</strong> (RTL dû à AZCS − reçu : Majalis${bridgevaleEUR ? ' + Bridgevale' : ''} + Report) · <strong>${whoOwesEntreprise}</strong></div>`;
   html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (pro)</div>
