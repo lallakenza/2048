@@ -94,6 +94,7 @@ function renderBenoitYear(dataKey, opts = {}) {
     <div class="hero-label">Position actuelle</div>
     <div class="hero-value ${heroColor}">${fmtSigned(solde, 'DH')}</div>
     <div class="hero-who" style="color:var(--${heroColor})">${heroMsg}</div>
+    ${bandeauConvention('contrepartie', 'Benoit')}
     <div class="hero-detail">${isClotured ? 'Clôture ' + year : 'En cours ' + year + ' · Basé sur ' + paidTransactions.length + ' factures payées'}</div>
   </div>`;
 

@@ -157,6 +157,22 @@ const ENCRYPTED_BRIDGE = "${pontB64}";
 `);
   console.log(`→ Written to bridge.enc.js (schéma ${pont.schemaVersion}, dataAsOf ${pont.dataAsOf}, source ${pont.sourceVersion})`);
 
+  // ── 6) Artefact MINIMAL en clair — /data/networth-bridge.json ──────────────
+  // Source inter-applications. Il ne contient AUCUNE facture ni montant unitaire :
+  // seulement les trois soldes agrégés et leur net. C'est cette pauvreté qui rend
+  // sa publication en clair acceptable là où le blob détaillé reste chiffré.
+  const { pontMinimal, validerPontMinimal } = require('./lib/bridge.js');
+  const minimal = pontMinimal(pont);
+  const ctrl = validerPontMinimal(minimal);
+  if (!ctrl.ok) {
+    console.error('✗ Artefact de pont invalide :');
+    ctrl.erreurs.forEach(x => console.error('   ' + x));
+    process.exit(1);
+  }
+  fs.mkdirSync('data', { recursive: true });
+  fs.writeFileSync('data/networth-bridge.json', JSON.stringify(minimal, null, 2) + '\n');
+  console.log(`→ Written to data/networth-bridge.json (net ${minimal.netPositionMad} MAD, nettingApplied ${minimal.nettingApplied})`);
+
   console.log('\nDone. Remember to remove data.js from the repo (data is now encrypted).');
 }
 

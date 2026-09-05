@@ -326,10 +326,60 @@ function directionPosition(montant, contrepartie) {
   return m > 0 ? ('Amine doit à ' + qui) : (qui + ' doit à Amine');
 }
 
+/**
+ * Bandeau de convention de signe, à placer sous un solde affiché.
+ *
+ * POURQUOI. La même relation s'affichait avec deux signes opposés : « Ma Position »
+ * montre −92 376 DH « je dois à Bob » (point de vue d'Amine), tandis que l'onglet Bob
+ * montre +92 376 DH « Amine doit payer Bob » (point de vue de Bob, qui s'y connecte
+ * lui-même). Aucun des deux n'est faux — mais rien ne disait lequel on lisait.
+ *
+ * On ne renverse donc pas les signes : on NOMME le point de vue partout.
+ *
+ * @param {'amine'|'contrepartie'} pointDeVue
+ */
+function bandeauConvention(pointDeVue, contrepartie) {
+  const txt = pointDeVue === 'amine'
+    ? `Point de vue <strong>Amine</strong> · positif = ${contrepartie} doit à Amine · négatif = Amine doit à ${contrepartie}`
+    : `Point de vue <strong>${contrepartie}</strong> · positif = Amine doit à ${contrepartie} · négatif = ${contrepartie} a un excédent`;
+  return `<div style="font-size:.62rem;color:var(--muted);margin-top:6px;line-height:1.4">${txt}</div>`;
+}
+
+/**
+ * Arrondit une série de valeurs en CONSERVANT leur somme.
+ *
+ * POURQUOI. Arrondir chaque ligne puis les additionner ne donne pas le même résultat
+ * qu'arrondir la somme : le tableau des gains affichait 237 036 en total alors que les
+ * lignes visibles faisaient 237 035. Aucun des deux n'est « faux » — mais un lecteur
+ * qui additionne la colonne doit retrouver le total, sinon il croit à une erreur.
+ *
+ * Méthode des plus forts restes : on arrondit vers le bas, puis on distribue les unités
+ * manquantes aux valeurs dont la partie décimale était la plus grande.
+ *
+ * @param {number[]} valeurs
+ * @returns {number[]} entiers dont la somme vaut Math.round(somme des valeurs)
+ */
+function repartirArrondi(valeurs) {
+  const bas = valeurs.map(v => Math.floor(v));
+  const cible = Math.round(valeurs.reduce((s, v) => s + v, 0));
+  let reste = cible - bas.reduce((s, v) => s + v, 0);
+  const ordre = valeurs
+    .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac);
+  const out = bas.slice();
+  // `reste` peut être négatif si les valeurs sont négatives : on ajuste dans le bon sens.
+  const pas = reste >= 0 ? 1 : -1;
+  for (let k = 0; k < Math.abs(reste); k++) {
+    const cible2 = ordre[(pas > 0 ? k : ordre.length - 1 - k) % ordre.length];
+    out[cible2.i] += pas;
+  }
+  return out;
+}
+
 // Exporté aussi pour Node : le générateur du pont (lib/bridge.js) appelle EXACTEMENT
 // ces fonctions, pour que le payload publié et l'affichage ne puissent pas diverger.
 // Elles lisent le global `DATA` ; en Node il suffit de le poser avant l'appel.
 if (typeof module !== 'undefined' && module.exports) module.exports = {
-  directionPosition, computeBenoitSolde, computeBobSolde, computeAugustinPosition,
+  directionPosition, computeBenoitSolde, computeBobSolde, computeAugustinPosition, repartirArrondi, bandeauConvention,
 };
-if (typeof window !== 'undefined') window.directionPosition = directionPosition;
+if (typeof window !== 'undefined') { window.directionPosition = directionPosition; window.repartirArrondi = repartirArrondi; window.bandeauConvention = bandeauConvention; }

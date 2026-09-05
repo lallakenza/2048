@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0.0",
+  "producerVersion": "v7.36",
+  "generatedAt": "2026-09-05T20:42:11.904Z",
+  "dataAsOf": "2026-09-04",
+  "currency": "MAD",
+  "signConvention": "positif = le tiers doit à Amine ; négatif = Amine doit au tiers",
+  "positionsGross": {
+    "augustin": 66239,
+    "benoit": 17566,
+    "bob": -92376
+  },
+  "netPositionMad": -8571,
+  "nettingApplied": false
+}

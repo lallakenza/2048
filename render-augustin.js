@@ -246,6 +246,44 @@ function renderAugustin2025(embedded) {
 }
 
 // ---- AUGUSTIN 2026 ----
+/**
+ * Insight « Factures RTL » DÉRIVÉ de la collection canonique `d.rtl`.
+ * Aucun montant n'est écrit ici : tout vient des mêmes lignes que le tableau.
+ */
+function insightFacturesRTL(d) {
+  const rtl = (d && d.rtl) || [];
+  if (!rtl.length) return null;
+  const payees = rtl.filter(f => f.statut === 'ok');
+  const attente = rtl.filter(f => f.statut !== 'ok');
+  const somme = (a) => a.reduce((s, f) => s + (f.montant || 0), 0);
+  const totalFacture = somme(rtl), totalEncaisse = somme(payees), totalAttente = somme(attente);
+  const jours = rtl.reduce((s, f) => s + (f.jours || 0), 0);
+
+  const ligne = (f) => {
+    const r = f.reglement || {};
+    const quand = r.statut === 'paye' && r.date ? ` — <strong>payée le ${fmtDateFr(r.date)}</strong>`
+      : r.statut === 'paye_non_verifie' ? ' — payée, <em>date non prouvée</em>'
+      : f.statut === 'ok' ? ' — payée' : ` — <strong>en attente</strong>${f.dateDue ? ` (échéance ${f.dateDue})` : ''}`;
+    return `${f.ref} (${f.periode}, ${f.jours}j, ${fmtPlain(f.montant)} € HT)${quand}`;
+  };
+
+  return {
+    type: attente.length ? 'warn' : 'pass',
+    titre: `📄 Factures RTL 2026 : ${payees.length} payée${payees.length > 1 ? 's' : ''}, ${attente.length} en attente`,
+    desc: `${rtl.map(ligne).join('. ')}. <strong>Total RTL 2026 = ${fmtPlain(totalFacture)} € HT sur ${jours} jours `
+        + `(${fmtPlain(totalEncaisse)} € encaissés + ${fmtPlain(totalAttente)} € en attente`
+        + `${attente.length ? ' [' + attente.map(f => f.ref).join(', ') + ']' : ''}). `
+        + `Toutes les factures RTL sont HT (TVA 0 % — Bairok LLC est basée aux EAU).</strong>`,
+  };
+}
+
+/** `2026-09-04` → `04/09/2026`. Laisse passer une date déjà au format FR. */
+function fmtDateFr(iso) {
+  if (typeof iso !== 'string') return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+}
+
 function renderAugustin2026(embedded) {
   const d = DATA.augustin2026;
 
@@ -361,18 +399,21 @@ function renderAugustin2026(embedded) {
       <div class="hero-label">Si paiement France (pro)</div>
       <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPro))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
+      ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Virement entreprise · montant brut</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement France (perso)</div>
       <div class="hero-value ${heroCls}" style="font-size:1.3rem">${fmtSigned(Math.round(deltaNetPerso))}</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
+      ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Cash EUR · Perso = Pro × 0.95</div>
     </div>
     <div class="hero-card" style="border-color:${heroColor}">
       <div class="hero-label">Si paiement Maroc</div>
       <div class="hero-value ${heroCls}" style="font-size:1.3rem">${deltaNetPro >= 0 ? '+' : '−'}${absNetMAD.toLocaleString('fr-FR')} MAD</div>
       <div class="hero-who" style="color:${heroColor}">→ ${whoOwes}</div>
+      ${bandeauConvention('amine', 'Augustin')}
       <div class="hero-detail">Taux fixe : 1 000€ pro = ${(d.tauxMaroc * 1000).toLocaleString('fr-FR')} MAD</div>
     </div>
   </div>`;
@@ -662,9 +703,18 @@ function renderAugustin2026(embedded) {
   }
 
   // Insights 2026
-  if (d.insights) {
+  // L'insight RTL était une CHAÎNE FIGÉE dans les données : il annonçait encore
+  // « 6 payées, 1 émise » et 103 700 € alors que le tableau au-dessus, lui, lisait
+  // la collection réelle. Deux calculs parallèles sur la même chose finissent
+  // toujours par diverger — celui-ci est donc dérivé de `d.rtl`, la collection
+  // canonique, exactement comme le tableau.
+  if (d.insights || (d.rtl && d.rtl.length)) {
     let insightsHtml2026 = '';
-    d.insights.forEach(ins => {
+    const insRtl = insightFacturesRTL(d);
+    if (insRtl) {
+      insightsHtml2026 += `<div class="insight ${insRtl.type}"><div class="t">${nickText(insRtl.titre)}</div><div class="d">${nickText(insRtl.desc)}</div></div>`;
+    }
+    (d.insights || []).forEach(ins => {
       const cls = ins.type === 'pass' ? 'pass' : ins.type === 'warn' ? 'warn' : ins.type === 'fail' ? 'fail' : '';
       insightsHtml2026 += `<div class="insight ${cls}"><div class="t">${nickText(ins.titre)}</div><div class="d">${nickText(ins.desc)}</div></div>`;
     });

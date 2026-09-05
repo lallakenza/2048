@@ -886,8 +886,12 @@ th[data-sort].sort-desc::after{content:'▼';opacity:.7}
      once the user unlocks the reconciliation view. Bump on every
      substantive deploy (see project README / commit history). -->
 <script>
-  window.APP_VERSION = 'v7.35';
-  window.APP_VERSION_DATE = '2026-08-27';
+  window.APP_VERSION = 'v7.36';
+  // DATE DE DÉPLOIEMENT du code — à ne pas confondre avec la date des DONNÉES, qui est
+  // dérivée des opérations et affichée séparément (« données · … »). Les deux avaient
+  // divergé : le badge associait v7.35 au 27 août alors que la version venait d'être
+  // publiée. Le libellé dit désormais explicitement ce que la date décrit.
+  window.APP_VERSION_DATE = '2026-09-05';
 </script>
 
 <!-- Scripts: dynamic loader with auto cache-busting (no manual ?v= needed) -->
@@ -1180,7 +1184,7 @@ window.DATA = {};
           const tagEl = document.getElementById('versionTag');
           const dateEl = document.getElementById('versionDate');
           if (tagEl) tagEl.textContent = window.APP_VERSION || 'dev';
-          if (dateEl && window.APP_VERSION_DATE) dateEl.textContent = ' · ' + window.APP_VERSION_DATE;
+          if (dateEl && window.APP_VERSION_DATE) dateEl.textContent = ' · déployé le ' + window.APP_VERSION_DATE;
 
           // Fraîcheur des DONNÉES, distincte de la version du site. Le cron P2P et
           // data-history déclenchent des déploiements sans qu'aucune opération financière

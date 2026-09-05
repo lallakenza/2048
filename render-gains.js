@@ -195,18 +195,38 @@ function renderMesGains() {
 
   if (!gy) {
     const colSuffix = showPct ? '%' : 'DH';
-    // Full 2-year table
+    // ── Tableau 2 ans, arrondi À SOMME CONSERVÉE ─────────────────────────────
+    // Chaque colonne est arrondie par la méthode des plus forts restes : les cellules
+    // affichées d'une année totalisent EXACTEMENT le sous-total affiché, et le total
+    // de chaque ligne est la somme de ses deux cellules. Un lecteur qui additionne la
+    // colonne — ou la ligne — retrouve le chiffre annoncé.
+    const sources = [
+      { lib: `<strong>Virements Augustin</strong>`, det: `${fmtPlain(totalDH25 + totalDH26)} DH envoyés`, v25: gainMAD_az25,     v26: gainMAD_az26 },
+      { lib: `<strong>Commission Ycarré ${ycarrePct}%</strong>`, det: `${fmtPlain(ycarreTotal)} € × ${ycarrePct}%`, v25: commYcarréMAD, v26: null },
+      { lib: `<strong>Commission Benoit ${benoitPct25}%</strong>`, det: 'Sur factures councils', v25: commBenoit25,   v26: commBenoit26 },
+      { lib: `<strong>Écart taux Benoit</strong>`, det: 'Appliqué &lt; marché',                  v25: fxBenoit25,     v26: fxBenoit26 },
+      { lib: `<strong>Spread P2P Benoit</strong>`, det: 'Binance vs banque',                     v25: p2pSavingBenoit25, v26: p2pSavingBenoit26 },
+      { lib: `<strong>Bob ${bobPctA}% + taux</strong>`, det: 'Bridgevale · part Amine (hors 3% Augustin)', v25: null, v26: totalBob },
+    ];
+    const a25 = repartirArrondi(sources.map(r => r.v25 || 0));
+    const a26 = repartirArrondi(sources.map(r => r.v26 || 0));
+    const st25 = a25.reduce((s, v) => s + v, 0);
+    const st26 = a26.reduce((s, v) => s + v, 0);
+    const totalAffiche = st25 + st26;
+
+    const cell = (val, aff, base) => val === null ? '<td class="a">—</td>'
+      : `<td class="a" style="color:var(--green)">${showPct ? (base ? (val / base * 100).toFixed(1).replace('.', ',') + '%' : '—') : fmtSigned(aff, '')}</td>`;
+
     html += `<div class="s"><div class="st">Récapitulatif des gains par source et année ${toggleBtn}</div><table>
       <thead><tr><th>Source</th><th>Détail</th><th style="text-align:right">2025 (${colSuffix})</th><th style="text-align:right">2026 (${colSuffix})</th><th style="text-align:right">Total (${colSuffix})</th></tr></thead><tbody>`;
-    html += `<tr><td><strong>Virements Augustin</strong></td><td>${fmtPlain(totalDH25 + totalDH26)} DH envoyés</td><td class="a" style="color:var(--green)">${fmtV(gainMAD_az25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(gainMAD_az26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalGainAz, grandTotal)}</td></tr>`;
-    html += `<tr><td><strong>Commission Ycarré ${ycarrePct}%</strong></td><td>${fmtPlain(ycarreTotal)} € × ${ycarrePct}%</td><td class="a" style="color:var(--green)">${fmtV(commYcarréMAD, gains2025)}</td><td class="a">—</td><td class="a" style="color:var(--green)">${fmtV(commYcarréMAD, grandTotal)}</td></tr>`;
-    html += `<tr><td><strong>Commission Benoit ${benoitPct25}%</strong></td><td>Sur factures councils</td><td class="a" style="color:var(--green)">${fmtV(commBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(commBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalComm, grandTotal)}</td></tr>`;
-    html += `<tr><td><strong>Écart taux Benoit</strong></td><td>Appliqué &lt; marché</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(fxBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalFxBenoit, grandTotal)}</td></tr>`;
-    html += `<tr><td><strong>Spread P2P Benoit</strong></td><td>Binance vs banque</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit25, gains2025)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit26, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(p2pSavingBenoit, grandTotal)}</td></tr>`;
-    html += `<tr><td><strong>Bob ${bobPctA}% + taux</strong></td><td>Bridgevale · part Amine (hors 3% Augustin)</td><td class="a">—</td><td class="a" style="color:var(--green)">${fmtV(totalBob, gains2026)}</td><td class="a" style="color:var(--green)">${fmtV(totalBob, grandTotal)}</td></tr>`;
-    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2025</strong></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2025, gains2025, ' DH')}</td><td></td><td></td></tr>`;
-    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2026</strong></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(gains2026, gains2026, ' DH')}</td><td></td></tr>`;
-    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL GAINS</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)">${fmtVb(grandTotal, grandTotal, ' DH')}</td></tr>`;
+    sources.forEach((r, i) => {
+      const t = (r.v25 === null ? 0 : a25[i]) + (r.v26 === null ? 0 : a26[i]);
+      html += `<tr><td>${r.lib}</td><td>${r.det}</td>${cell(r.v25, a25[i], gains2025)}${cell(r.v26, a26[i], gains2026)}`
+            + `<td class="a" style="color:var(--green)">${showPct ? ((r.v25 || 0) + (r.v26 || 0)) / grandTotal * 100 >= 0 ? (((r.v25 || 0) + (r.v26 || 0)) / grandTotal * 100).toFixed(1).replace('.', ',') + '%' : '—' : fmtSigned(t, '')}</td></tr>`;
+    });
+    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2025</strong></td><td></td><td class="a" style="color:var(--green)"><strong>${showPct ? '100,0%' : fmtSigned(st25, ' DH')}</strong></td><td></td><td></td></tr>`;
+    html += `<tr class="tr"><td><strong>SOUS-TOTAL 2026</strong></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${showPct ? '100,0%' : fmtSigned(st26, ' DH')}</strong></td><td></td></tr>`;
+    html += `<tr class="tr" style="background:rgba(76,175,80,.08)"><td><strong>TOTAL GAINS</strong></td><td></td><td></td><td></td><td class="a" style="color:var(--green)"><strong>${showPct ? '100,0%' : fmtSigned(totalAffiche, ' DH')}</strong></td></tr>`;
     html += `</tbody></table></div>`;
   } else {
     const colSuffix = showPct ? '%' : 'DH';

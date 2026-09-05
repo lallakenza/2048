@@ -82,6 +82,91 @@ les affiche avec leur unité, et les libellés passent à « soldé » plutôt q
 
 ---
 
+## `v7.36` — 2026-09-05
+
+### Sept anomalies de lecture, aucun chiffre validé touché
+
+Les positions de la V7.35 sont inchangées (Augustin +66 239, Benoit +17 566,
+Bob −92 376, net **−8 571 DH**), le netting reste théorique et la fenêtre FX
+démarre toujours au 04/06/2026. Ce qui change, c'est ce que le site *dit*.
+
+### 1 · Insight Augustin — le calcul parallèle est supprimé
+
+L'insight RTL était une **chaîne figée dans les données** : il annonçait « 6 payées,
+1 émise » et 103 700 € pendant que le tableau, lui, lisait la collection réelle. Il est
+désormais dérivé de `d.rtl`, exactement comme le tableau : **8 factures, 6 payées,
+2 en attente · 116 450 € facturés · 87 550 € encaissés · 28 900 € dus
+(INVRTL019, INVRTL020)**.
+
+### 2 · Arrondis — les colonnes s'additionnent enfin
+
+Le total affichait 237 036 quand les lignes visibles faisaient 237 035, et la ligne
+Augustin donnait 17 858 + 30 781 = 48 638. Arrondir la somme et sommer les arrondis ne
+peuvent pas coïncider — sauf à répartir les restes.
+
+Le moteur garde la pleine précision ; l'affichage applique la **méthode des plus forts
+restes** par colonne (`repartirArrondi`). Résultat vérifié à l'écran : chaque ligne vaut
+la somme de ses cellules (Augustin **48 639**), chaque colonne vaut son sous-total
+(105 080 / 131 956), et leur somme vaut le total (**237 036**).
+
+### 3 · FX trois mois — on ne mesure pas ce qui n'existe pas
+
+Aucune conversion EUR→AED sur la fenêtre : `effEURMAD` valait 0 *par construction*, ce
+qui se lisait « spread nul » au lieu de « indisponible ».
+
+- Circuit complet EUR→MAD : **N/A**, et toutes les conclusions sur son spread supprimées.
+- Legs P2P seuls, conservés séparément : **+527 € par 10 k€**.
+- Leg EUR→AED vide : **N/A** plutôt que « +0,00 % · Gain ».
+- `+-0,03 %` → **−0,03 %**, et le leg AED→USDT (+3 €) est classé **Gain**, plus « Perte ».
+
+Signe, couleur et badge sont désormais *dérivés* de la valeur. Ils étaient écrits en dur
+par ligne — un tableau qui décide du signe avant de regarder la valeur finit par
+contredire ses propres chiffres.
+
+### 4 · Date de version
+
+Le badge associait V7.35 au 27 août alors que la version venait d'être publiée.
+`APP_VERSION_DATE` = **2026-09-05** et le libellé dit maintenant « déployé le … », à
+distinguer de « données · 04/09/2026 », qui reste dérivée des opérations.
+
+### 5 · Traçabilité — `paymentEvidence`
+
+Chaque règlement porte un état explicite : `complete` (11), `missing` (11), `n/a` (2).
+Aucune date n'a été inventée. Le validateur **maintient un avertissement nominatif**
+tant que la pièce manque : INVRTL013/014, AZCS0001→0008, INZOR001.
+
+AZCS0010 n'est toujours pas « manquante » : la continuité est validée **par émetteur**,
+AZ Consulting numérotant en continu pour Majalis comme pour Bridgevale.
+
+### 6 · Contrat Networth — `/data/networth-bridge.json`
+
+Artefact minimal versionné, **sans aucune facture** : c'est cette pauvreté qui rend sa
+publication acceptable là où le blob détaillé reste chiffré. Il expose `schemaVersion`,
+`producerVersion`, `generatedAt`, `dataAsOf`, `currency`, la **convention de signe
+écrite en clair**, les positions brutes, `netPositionMad: -8571` et
+`nettingApplied: false`.
+
+Le build refuse d'écrire un artefact non conforme : schéma contrôlé et **formule
+vérifiée** (le net doit égaler la somme des trois positions). `localStorage` est
+conservé pour compatibilité.
+
+### 7 · Convention de signe
+
+La même relation s'affichait avec deux signes opposés — −92 376 « je dois à Bob » dans
+Ma Position, +92 376 « Amine doit payer Bob » dans l'onglet Bob. Aucun n'est faux : les
+onglets sont consultés par les contreparties elles-mêmes. On ne renverse donc pas les
+signes, on **nomme le point de vue** sous chaque solde.
+
+### Tests
+
+Huit garde-fous, chacun vérifié *sensible* sur son défaut d'origine : preuve de
+règlement · périmètre émetteur · fenêtre > 92 j · montant figé dans un texte ·
+divergence positions/pont · **somme des arrondis ≠ total** (test de propriété,
+404 cas) · **schéma et formule de l'artefact** · **champ `paymentEvidence`**.
+`verify.js` : 0 erreur.
+
+---
+
 ## `v7.35` — 2026-09-05
 
 ### Opérations de septembre, preuves structurées et pont versionné

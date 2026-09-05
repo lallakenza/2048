@@ -302,12 +302,22 @@ try {
     ['fenêtre « 3 mois » trop longue', gardes.fenetreTroisMois(asOf)],
     ['montant financier figé dans un texte', gardes.montantsEnDurDansLeRecit()],
     ['divergence positions affichées / pont', gardes.pontCoherent(pont)],
+    ['somme des arrondis ≠ total affiché', gardes.invariantsArrondi()],
+    ['schéma et formule de l\'artefact publié', gardes.artefactPublie()],
+    ['champ paymentEvidence manquant', gardes.preuvesManquantes(ctx.DATA)],
   ];
   for (const [nom, r] of suite) {
     if (r.ok) { console.log(`✅ ${nom}`); }
     else { errors++; console.log(`❌ ${nom}`); (r.detail || []).slice(0, 8).forEach(d => console.log(`     ${d}`)); }
   }
   console.log(`   → pont : schéma ${pont.schemaVersion} · données au ${pont.dataAsOf} · ${pont.dueDates.length} échéance(s) ouverte(s)`);
+  // Avertissement MAINTENU tant que la pièce manque : ce n'est pas un échec, mais
+  // ça ne doit jamais disparaître silencieusement.
+  const preuves = gardes.preuvesManquantes(ctx.DATA);
+  if (preuves.aProuver.length) {
+    console.log(`⚠️  ${preuves.aProuver.length} règlement(s) sans preuve datée — paymentEvidence: missing`);
+    console.log(`     ${preuves.aProuver.join(', ')}`);
+  }
 } catch (e) {
   errors++;
   console.log('❌ garde-fous : ' + e.message);

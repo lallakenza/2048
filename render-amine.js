@@ -176,6 +176,7 @@ function renderAmine() {
     <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Position globale estimée — Augustin, Benoit, Bob réunis</div>
     <div style="font-size:2.1rem;font-weight:900;line-height:1.1;color:${madColor}">${fmtSigned(Math.round(combinedMAD), 'MAD')}</div>
     <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${madSub}</div>
+    ${bandeauConvention('amine', 'chaque tiers')}
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--muted);justify-content:center">${madBreak}</div>
     ${netEligible ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
       <button onclick="amToggleNetting()" style="border:1px solid ${netActive ? 'var(--accent)' : 'var(--border)'};background:${netActive ? 'var(--accent)' : 'transparent'};color:${netActive ? '#fff' : 'var(--muted)'};padding:5px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.7rem">

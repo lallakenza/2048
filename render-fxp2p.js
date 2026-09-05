@@ -126,6 +126,14 @@ function renderFXP2P() {
       l2: { aed: s2AED, usdt: s2USDT, prix: s2prix, pct: s2pct, impact: impL2 },
       l3: { usdt: s3USDT, mad: s3MAD, madM: s3MADm, spread: s3spread, prix: s3prix, mkt: s3mkt, pct: s3pct, impact: impL3 },
       ratio, impNet, effEURMAD, mktEURMAD, spreadEURMAD, spreadEURMADpct, impEURMAD,
+      // Le circuit COMPLET EUR→MAD suppose une conversion EUR→AED dans la période.
+      // Sans elle, `effEURMAD` vaut 0 par construction (s1tIFX = 0) — ce n'est pas
+      // « un spread nul », c'est une valeur INDISPONIBLE. Les confondre laissait lire
+      // « spread 0 % » là où il n'y avait rien à mesurer.
+      chaineComplete: l1.length > 0 && s1EUR > 0,
+      nbL1: l1.length,
+      // Résultat des seuls legs P2P (2 et 3), lui, toujours mesurable.
+      impP2P: impL2 + impL3,
     };
   }
 
@@ -140,13 +148,27 @@ function renderFXP2P() {
   const periodLabel = fy ? String(fy) : 'total';
   html += `<div class="cards">
     <div class="card"><div class="l">Spread EUR→MAD (${periodLabel})</div><div class="v ${all.spreadEURMAD >= 0 ? 'green' : 'red'}">${all.spreadEURMAD >= 0 ? '+' : ''}${all.spreadEURMADpct.toFixed(2)}%</div></div>
-    ${r3m ? `<div class="card"><div class="l">Spread EUR→MAD (3 mois)</div><div class="v ${r3m.spreadEURMAD >= 0 ? 'green' : 'red'}">${r3m.spreadEURMAD >= 0 ? '+' : ''}${r3m.spreadEURMADpct.toFixed(2)}%</div></div>` : ''}
+    ${r3m ? (r3m.chaineComplete
+      ? `<div class="card"><div class="l">Spread EUR→MAD (3 mois)</div><div class="v ${r3m.spreadEURMAD >= 0 ? 'green' : 'red'}">${r3m.spreadEURMAD >= 0 ? '+' : ''}${r3m.spreadEURMADpct.toFixed(2)}%</div></div>`
+      : `<div class="card"><div class="l">Spread EUR→MAD (3 mois)</div><div class="v" style="color:var(--muted)">N/A</div></div>`) : ''}
     <div class="card"><div class="l">Taux effectif (${periodLabel})</div><div class="v blue">${all.effEURMAD.toFixed(2)}</div></div>
-    ${r3m ? `<div class="card"><div class="l">Taux effectif (3 mois)</div><div class="v blue">${r3m.effEURMAD.toFixed(2)}</div></div>` : ''}
+    ${r3m ? (r3m.chaineComplete
+      ? `<div class="card"><div class="l">Taux effectif (3 mois)</div><div class="v blue">${r3m.effEURMAD.toFixed(2)}</div></div>`
+      : `<div class="card"><div class="l">Taux effectif (3 mois)</div><div class="v" style="color:var(--muted)">N/A</div></div>`) : ''}
     <div class="card"><div class="l">Impact sur 10k€ (${periodLabel})</div><div class="v ${all.impEURMAD >= 0 ? 'green' : 'red'}">${all.impEURMAD >= 0 ? '+' : ''}${Math.round(all.impEURMAD)}€</div></div>
-    ${r3m ? `<div class="card"><div class="l">Impact sur 10k€ (3 mois)</div><div class="v ${r3m.impEURMAD >= 0 ? 'green' : 'red'}">${r3m.impEURMAD >= 0 ? '+' : ''}${Math.round(r3m.impEURMAD)}€</div></div>` : ''}
+    ${r3m ? (r3m.chaineComplete
+      ? `<div class="card"><div class="l">Impact sur 10k€ (3 mois)</div><div class="v ${r3m.impEURMAD >= 0 ? 'green' : 'red'}">${r3m.impEURMAD >= 0 ? '+' : ''}${Math.round(r3m.impEURMAD)}€</div></div>`
+      : `<div class="card"><div class="l">Legs P2P seuls (3 mois)</div><div class="v ${r3m.impP2P >= 0 ? 'green' : 'red'}">${r3m.impP2P >= 0 ? '+' : ''}${Math.round(r3m.impP2P)}€</div></div>`) : ''}
     <div class="card"><div class="l">Transactions</div><div class="v">${leg1.length} / ${leg2.length} / ${leg3.length}</div></div>
   </div>`;
+
+  // ── Signe, couleur et badge DÉRIVÉS de la valeur ──────────────────────────
+  // Ils étaient écrits en dur par ligne : le leg AED→USDT affichait « +-0,03 % » et
+  // restait étiqueté « Perte » alors qu'il rapportait +3 €. Un tableau qui décide du
+  // signe avant de regarder la valeur finit par contredire ses propres chiffres.
+  const pct = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',') + '%';
+  const styleSigne = (v) => 'color:' + (v >= 0 ? 'var(--green)' : 'var(--red)');
+  const badgeSigne = (v) => v >= 0 ? badge('ok', 'Gain') : badge('e', 'Perte');
 
   // ===== Helper: format EUR impact =====
   const fmtImpact = (v) => {
@@ -159,46 +181,66 @@ function renderFXP2P() {
     let h = `<div class="s"><div class="st">${label}</div><table>
       <thead><tr><th>Étape</th><th>Volume</th><th style="text-align:right">Taux pondéré</th><th style="text-align:right">Taux marché</th><th style="text-align:right">Spread</th><th style="text-align:right">Impact (10k€)</th><th>Type</th></tr></thead><tbody>`;
 
-    h += `<tr>
+    // Sans conversion EUR→AED sur la période, la ligne n'a rien à mesurer : afficher
+    // « +0,00 % · Gain » laisserait croire à un spread nul mesuré, pas à une absence.
+    h += s.chaineComplete ? `<tr>
       <td><strong>1. EUR → AED</strong> (IFX)</td>
       <td>${fmtPlain(Math.round(s.l1.eur))} EUR <span style="font-size:.65rem;color:var(--muted)">(${(s.ratio*100).toFixed(0)}% P2P)</span></td>
       <td class="a">${s.l1.tIFX.toFixed(4).replace('.', ',')}</td>
       <td class="a">${s.l1.tMkt.toFixed(4).replace('.', ',')}</td>
-      <td class="a" style="color:var(--red)">−${s.l1.pct.toFixed(2)}%</td>
-      <td class="a" style="color:var(--red)">${fmtImpact(s.l1.impact)}</td>
-      <td>${badge('e', 'Perte')}</td></tr>`;
+      <td class="a" style="${styleSigne(s.l1.impact)}">${pct(-s.l1.pct)}</td>
+      <td class="a" style="${styleSigne(s.l1.impact)}">${fmtImpact(s.l1.impact)}</td>
+      <td>${badgeSigne(s.l1.impact)}</td></tr>` : `<tr>
+      <td><strong>1. EUR → AED</strong> (IFX)</td>
+      <td colspan="5" style="color:var(--muted)">Aucune conversion sur la période — rien à mesurer</td>
+      <td>${badge('w', 'N/A')}</td></tr>`;
 
     h += `<tr>
       <td><strong>2. AED → USDT</strong> (Binance P2P)</td>
       <td>${fmtPlain(Math.round(s.l2.aed))} AED</td>
       <td class="a">${s.l2.prix.toFixed(4).replace('.', ',')}</td>
       <td class="a">${peg.toFixed(4).replace('.', ',')}</td>
-      <td class="a" style="color:var(--red)">+${s.l2.pct.toFixed(2)}%</td>
-      <td class="a" style="color:var(--red)">${fmtImpact(s.l2.impact)}</td>
-      <td>${badge('e', 'Perte')}</td></tr>`;
+      <td class="a" style="${styleSigne(s.l2.impact)}">${pct(s.l2.pct)}</td>
+      <td class="a" style="${styleSigne(s.l2.impact)}">${fmtImpact(s.l2.impact)}</td>
+      <td>${badgeSigne(s.l2.impact)}</td></tr>`;
 
     h += `<tr>
       <td><strong>3. USDT → MAD</strong> (Binance P2P)</td>
       <td>${fmtPlain(Math.round(s.l3.usdt))} USDT</td>
       <td class="a">${s.l3.prix.toFixed(4).replace('.', ',')}</td>
       <td class="a">${s.l3.mkt.toFixed(4).replace('.', ',')}</td>
-      <td class="a" style="color:var(--green)">+${s.l3.pct.toFixed(2)}%</td>
-      <td class="a" style="color:var(--green)">${fmtImpact(s.l3.impact)}</td>
-      <td>${badge('ok', 'Gain')}</td></tr>`;
+      <td class="a" style="${styleSigne(s.l3.impact)}">${pct(s.l3.pct)}</td>
+      <td class="a" style="${styleSigne(s.l3.impact)}">${fmtImpact(s.l3.impact)}</td>
+      <td>${badgeSigne(s.l3.impact)}</td></tr>`;
 
     h += `<tr class="tr">
       <td><strong>Net P2P</strong></td><td></td><td></td><td></td><td></td>
       <td class="a" style="color:${s.impNet >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmtImpact(s.impNet)}</strong></td>
       <td>${s.impNet >= 0 ? badge('ok', 'Gain net') : badge('e', 'Perte nette')}</td></tr>`;
 
-    // Effective EUR→MAD row
-    h += `<tr style="background:var(--blue-bg)">
-      <td colspan="2"><strong>Taux effectif EUR → MAD</strong></td>
-      <td class="a" style="color:var(--accent)"><strong>${s.effEURMAD.toFixed(2)}</strong></td>
-      <td class="a">${s.mktEURMAD.toFixed(2)}</td>
-      <td class="a" style="color:${s.spreadEURMAD >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${s.spreadEURMAD >= 0 ? '+' : ''}${s.spreadEURMADpct.toFixed(2)}%</strong></td>
-      <td class="a" style="color:${s.spreadEURMAD >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmtImpact(s.impEURMAD)}</strong></td>
-      <td>${s.spreadEURMAD >= 0 ? badge('ok', 'Gain') : badge('e', 'Perte')}</td></tr>`;
+    // Circuit complet EUR→MAD — mesurable SEULEMENT si la période contient une
+    // conversion EUR→AED. Sinon : N/A, et surtout aucune conclusion.
+    if (s.chaineComplete) {
+      h += `<tr style="background:var(--blue-bg)">
+        <td colspan="2"><strong>Taux effectif EUR → MAD</strong></td>
+        <td class="a" style="color:var(--accent)"><strong>${s.effEURMAD.toFixed(2)}</strong></td>
+        <td class="a">${s.mktEURMAD.toFixed(2)}</td>
+        <td class="a" style="${styleSigne(s.spreadEURMAD)}"><strong>${pct(s.spreadEURMADpct)}</strong></td>
+        <td class="a" style="${styleSigne(s.spreadEURMAD)}"><strong>${fmtImpact(s.impEURMAD)}</strong></td>
+        <td>${badgeSigne(s.spreadEURMAD)}</td></tr>`;
+    } else {
+      h += `<tr style="background:var(--blue-bg)">
+        <td colspan="2"><strong>Taux effectif EUR → MAD</strong></td>
+        <td class="a" colspan="4" style="color:var(--muted)">
+          <strong>N/A</strong> — aucune conversion EUR→AED sur la période : le circuit complet n'est pas mesurable.
+        </td>
+        <td>${badge('w', 'Indisponible')}</td></tr>`;
+      h += `<tr>
+        <td colspan="2"><strong>Legs P2P seuls (2 + 3)</strong></td>
+        <td class="a" colspan="3" style="color:var(--muted);font-size:.72rem">mesuré sans la conversion bancaire</td>
+        <td class="a" style="${styleSigne(s.impP2P)}"><strong>${fmtImpact(s.impP2P)}</strong></td>
+        <td>${badgeSigne(s.impP2P)}</td></tr>`;
+    }
 
     h += `</tbody></table></div>`;
     return h;
@@ -291,13 +333,15 @@ function renderFXP2P() {
   // Insight 1: Effective EUR→MAD spread comparison
   const r3mStr1 = r3m ? ` / ${r3m.spreadEURMAD >= 0 ? '+' : ''}${r3m.spreadEURMADpct.toFixed(2)}% (3 mois)` : '';
   html += `<div class="insight ${all.spreadEURMAD >= 0 ? 'pass' : 'fail'}"><div class="t">${all.spreadEURMAD >= 0 ? '✅' : '❌'} Spread effectif EUR→MAD : ${all.spreadEURMAD >= 0 ? '+' : ''}${all.spreadEURMADpct.toFixed(2)}% (${periodLabel})${r3mStr1}</div><div class="d">
-    <strong>${fy ? fy : 'Période totale'} :</strong> taux effectif <strong>${all.effEURMAD.toFixed(2)} MAD/EUR</strong> vs marché ${all.mktEURMAD.toFixed(2)} → sur 10k€ : <strong>${fmtImpact(all.impEURMAD)}</strong>.${r3m ? `<br><strong>3 derniers mois :</strong> taux effectif <strong>${r3m.effEURMAD.toFixed(2)} MAD/EUR</strong> vs marché ${r3m.mktEURMAD.toFixed(2)} → sur 10k€ : <strong>${fmtImpact(r3m.impEURMAD)}</strong>. ${r3m.spreadEURMADpct > all.spreadEURMADpct ? 'Le spread s\'améliore sur les 3 derniers mois.' : 'Le spread se dégrade légèrement sur les 3 derniers mois.'}` : ''}
+    <strong>${fy ? fy : 'Période totale'} :</strong> taux effectif <strong>${all.effEURMAD.toFixed(2)} MAD/EUR</strong> vs marché ${all.mktEURMAD.toFixed(2)} → sur 10k€ : <strong>${fmtImpact(all.impEURMAD)}</strong>.${r3m ? (r3m.chaineComplete
+      ? `<br><strong>3 derniers mois :</strong> taux effectif <strong>${r3m.effEURMAD.toFixed(2)} MAD/EUR</strong> vs marché ${r3m.mktEURMAD.toFixed(2)} → sur 10k€ : <strong>${fmtImpact(r3m.impEURMAD)}</strong>. ${r3m.spreadEURMADpct > all.spreadEURMADpct ? 'Le spread s\'améliore sur les 3 derniers mois.' : 'Le spread se dégrade légèrement sur les 3 derniers mois.'}`
+      : `<br><strong>3 derniers mois :</strong> aucune conversion EUR→AED sur la fenêtre — le circuit complet EUR→MAD n'est <strong>pas mesurable</strong>, et aucune comparaison avec la banque n'est possible. Seuls les legs P2P sont observés : <strong>${fmtImpact(r3m.impP2P)}</strong> par 10 k€.`) : ''}
   </div></div>`;
 
   // Insight 2: Net gain per period
-  const r3mStr2 = r3m ? ` / ${fmtImpact(r3m.impNet)} (3 mois)` : '';
+  const r3mStr2 = r3m ? ` / ${fmtImpact(r3m.impP2P)} (3 mois, legs P2P seuls)` : '';
   html += `<div class="insight ${all.impNet >= 0 ? 'pass' : 'warn'}"><div class="t">${all.impNet >= 0 ? '✅' : '⚠️'} Bilan net P2P par 10k€ : ${fmtImpact(all.impNet)} (${periodLabel})${r3mStr2}</div><div class="d">
-    Le gain du Leg 3 (vente USDT→MAD à +${all.l3.pct.toFixed(1)}%) ${all.impNet >= 0 ? 'compense' : 'ne compense pas totalement'} les pertes des Legs 1 et 2.${r3m ? ` Sur les 3 derniers mois, le premium MAD est de <strong>+${r3m.l3.pct.toFixed(1)}%</strong> (vs ${all.l3.pct.toFixed(1)}% sur la période totale).` : ''}
+    Le gain du Leg 3 (vente USDT→MAD à +${all.l3.pct.toFixed(1)}%) ${all.impNet >= 0 ? 'compense' : 'ne compense pas totalement'} les pertes des Legs 1 et 2.${r3m ? ` Sur les 3 derniers mois, le premium MAD est de <strong>${pct(r3m.l3.pct)}</strong> (vs ${pct(all.l3.pct)} sur la période totale).` : ''}
   </div></div>`;
 
   // Insight 3: Leg 3 dominance
@@ -308,7 +352,10 @@ function renderFXP2P() {
 
   // Insight 4: Leg 1 IFX spread
   const r3mStr4 = r3m ? ` / −${r3m.l1.pct.toFixed(2)}% (3 mois)` : '';
-  const r3mDetail4 = r3m ? ` ${r3m.l1.pct < all.l1.pct ? 'Le spread IFX s\'améliore sur les 3 derniers mois (' + r3m.l1.pct.toFixed(2) + '%).' : 'Le spread IFX est stable sur les 3 derniers mois.'}` : '';
+  // Sans conversion EUR→AED sur la fenêtre, il n'y a pas de spread IFX à commenter.
+  const r3mDetail4 = (r3m && r3m.chaineComplete)
+    ? ` ${r3m.l1.pct < all.l1.pct ? 'Le spread IFX s\'améliore sur les 3 derniers mois (' + r3m.l1.pct.toFixed(2) + '%).' : 'Le spread IFX est stable sur les 3 derniers mois.'}`
+    : (r3m ? ' Aucune conversion EUR→AED sur les 3 derniers mois : le spread IFX n\'est pas mesurable sur cette fenêtre.' : '');
   html += `<div class="insight warn"><div class="t">🏦 Spread IFX (Leg 1) : −${all.l1.pct.toFixed(2)}% (${periodLabel})${r3mStr4} → ${fmtImpact(all.l1.impact)} sur 10k€</div><div class="d">
     IFX prend en moyenne <strong>${all.l1.pct.toFixed(2)}%</strong> de spread sur la conversion EUR→AED, soit <strong>${fmtImpact(all.l1.impact)}</strong> par tranche de 10 000€.${r3mDetail4}
   </div></div>`;

@@ -67,6 +67,7 @@ function renderBob2026() {
     <div class="hero-label">Position actuelle</div>
     <div class="hero-value ${heroColor}">${fmtSigned(solde, 'DH')}</div>
     <div class="hero-who" style="color:var(--${heroColor})">${heroMsg}</div>
+    ${bandeauConvention('contrepartie', 'Bob')}
     <div class="hero-detail">En cours ${year} · Basé sur ${paid.length} facture(s) payée(s)</div>
   </div>`;
 
