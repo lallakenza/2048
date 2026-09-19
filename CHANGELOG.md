@@ -82,6 +82,29 @@ les affiche avec leur unité, et les libellés passent à « soldé » plutôt q
 
 ---
 
+## `v7.38` — 2026-09-19
+
+### Paiement annoncé ≠ paiement encaissé
+
+L'avis CLT-UFA 1700002925 est arrivé le **19/09** et annonce le règlement d'INVRTL019
+(16 150 €) pour le **23/09/2026**. CLT-UFA envoie toujours ses avis quelques jours
+avant la date de valeur (celui du 26/08 avait été reçu le 21/08). Si on avait booké le
+paiement à réception, Augustin aurait bougé de 165 699 DH quatre jours trop tôt et
+`dataAsOf` serait passé dans le futur.
+
+- La facture reste `pending`. L'annonce est consignée à part (`scheduledDate`,
+  `scheduledRef`), sans effet sur les positions : net inchangé à **−5 871 DH**.
+- Tableau et insight affichent tous deux « En attente — paiement annoncé le 23/09/2026 »
+  (même `etatReglement()`).
+- Le pont chiffré expose `paiementAnnonce` dans ses échéances.
+- **Garde-fou 11** : refuse tout `paymentDate` (et tout `dataAsOf`) postérieur à la
+  date du build. Vérifié sensible : il rejette INVRTL019 payée au 23/09 un 19/09.
+
+La facture INVRTL019 et son timesheet signé (152 h, 19 j, 15/06 → 17/07) concordent
+avec la saisie existante : rien à corriger.
+
+---
+
 ## Mise à jour de données — 2026-09-19
 
 Pas de changement de code : version `v7.37` conservée.

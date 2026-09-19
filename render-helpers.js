@@ -343,6 +343,14 @@ function etatReglement(f) {
   const r = (f && f.reglement) || null;
   const enAttente = !r || r.status === 'pending';
   if (enAttente) {
+    // A payment ANNOUNCED for a later date (e.g. a CLT-UFA advice received a few days
+    // before the value date) stays pending: an announcement is not a collection.
+    if (r && r.scheduledDate) {
+      const annonce = formaterDateISO(r.scheduledDate);
+      return { status: 'pending', date: null, verifiee: false, badge: 'w', annonce,
+               libelle: `En attente — paiement annoncé le ${annonce}`,
+               court: `Annoncé ${annonce}` };
+    }
     return { status: 'pending', date: null, verifiee: false, badge: 'w',
              libelle: 'En attente' + (f && f.dateDue ? ` (échéance ${f.dateDue})` : ''),
              court: 'En attente' };

@@ -307,6 +307,7 @@ try {
     ['champ paymentEvidence manquant', gardes.preuvesManquantes(ctx.DATA)],
     ['invariants du tableau des gains', gardes.invariantsGains()],
     ['allocation d\'arrondi dupliquée', gardes.allocationUnique()],
+    ['règlement daté dans le futur', gardes.reglementsFuturs(ctx.DATA)],
   ];
   for (const [nom, r] of suite) {
     if (r.ok) { console.log(`✅ ${nom}`); }
