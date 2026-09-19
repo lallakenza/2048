@@ -106,7 +106,7 @@ check('Divers count 2026 (Oum + Zak + Nezha)', az26.divers.length, 3);
 const azcsAll26 = DATA.benoit2026.councils;
 const azcsPaid26 = azcsAll26.filter(c => c.statut === 'ok');
 const azcsRecuPaid26 = sum(azcsPaid26, 'htEUR');
-check('AZCS paid via Majalis 2026', azcsRecuPaid26, 55312.5); // AZCS0001..0009 + 0011 (Juillet 5000, payé 02/08)
+check('AZCS paid via Majalis 2026', azcsRecuPaid26, 59062.5); // AZCS0001..0009 + 0011 (Juillet 5000, payé 02/08) // + AZCS0013 (3 750 EUR HT, reglee 15/09/2026)
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
@@ -118,7 +118,7 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 4800); // AZCS0010 (02/07) + AZCS0
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 25754.5); // 87550 − 55312.5 AZCS − 4800 Bridgevale − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 22004.5); // 87550 − 59062.5 AZCS − 4800 Bridgevale − 1683 report
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;

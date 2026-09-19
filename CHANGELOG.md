@@ -82,6 +82,42 @@ les affiche avec leur unité, et les libellés passent à « soldé » plutôt q
 
 ---
 
+## Mise à jour de données — 2026-09-19
+
+Pas de changement de code : version `v7.37` conservée.
+
+### AZCS0013 — councils Majalis d'août, facturé et réglé
+
+| Pièce | Détail |
+|---|---|
+| Facture AZ Consulting → Majalis | 31/08/2026 · « Prestation SAP Août 2026 » · 6 j × 625 € = **3 750 € HT** · 4 537,50 € TTC · échéance 15/10/2026 |
+| Règlement | virement Majalis → AZCS **exécuté le 15/09/2026**, 4 537,50 €, communication AZCS0013, réf. BNP Fortis 2609151431465478 |
+
+`paymentEvidenceStatus: verified`, par cohérence avec AZCS0011 (même nature de pièce).
+Réserve consignée dans la source : le détail de transaction BNP précise lui-même ne
+constituer « ni un extrait de compte ni une preuve de paiement ».
+
+La séquence AZ Consulting reste continue au périmètre émetteur : 0012 (Bridgevale),
+0013 (Majalis). L'overlay PRIV indexé par position reçoit son index 10.
+
+### Effet — point de vue Amine
+
+| | Avant | Après | Écart |
+|---|---:|---:|---:|
+| Augustin | +66 239 | **+104 714 DH** | +38 475 (3 750 € × 10,26) |
+| Benoit | +17 566 | **−18 209 DH** | −35 775 (3 750 € × 10,6 × 0,9) |
+| Bob | −92 376 | −92 376 DH | — |
+| **Net** | −8 571 | **−5 871 DH** | **+2 700** |
+
+Les +2 700 DH de net sont la marge d'Amine sur ce council : ce qu'Augustin lui doit en
+plus, moins ce qu'il doit désormais à Benoit. Benoit change de signe — c'est de nouveau
+Amine qui lui doit.
+
+`dataAsOf` : 2026-09-04 → **2026-09-15** (dérivé). Gains 2026 : 131 956 → **137 615 DH**
+(commission Benoit +3 975).
+
+---
+
 ## `v7.37` — 2026-09-05
 
 ### Quatre contradictions entre vues, aucun chiffre métier touché
