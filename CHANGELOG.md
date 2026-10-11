@@ -9,6 +9,36 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## `v7.39` — 2026-10-11
+
+### Delta du 11/10/2026 : RTL, Binance, virements en cours
+Aucune règle métier touchée, aucun historique réimporté — seuls les événements
+réellement nouveaux ou corrigés.
+
+- **INVRTL019 encaissée.** L'avis annonçait le 23/09 ; l'encaissement IFX est daté du
+  24/09/2026 (réf. `INVRTL019-7001700117000029252026`). Les deux dates sont conservées
+  séparément : `scheduledDate` reste l'annonce, `paymentDate` est la date bancaire.
+  Un seul règlement, preuve vérifiée.
+- **INVRTL021 ajoutée** (septembre, prestation 17/08 → 11/09) : 17 j × 850 € = 14 450 €,
+  facture du 06/10, envoyée le 07/10, échéance 06/11. Non encaissée.
+  Périmètre RTL INVRTL013–021 : 130 900 € facturés = 103 700 € encaissés + 27 200 € en attente.
+- **Binance P2P rapproché avec l'export officiel** : chaque opération porte son `orderId`
+  et son heure UTC. 46 opérations Completed manquaient (18 achats / 120 067,770 AED,
+  28 ventes / 330 500 MAD) → 62 achats et 115 ventes, 568 688,290 AED et 1 464 028,51 MAD.
+  Cinq dates décalées d'un jour (date locale au lieu d'UTC sur des ordres après 23 h UTC)
+  corrigées sans toucher aux cours utilisés ; les décimales AED de l'export sont préservées.
+  Pour les 28 nouvelles ventes, le cours USD/MAD vient des relevés horaires du dépôt
+  (`tauxMarcheSrc`) : aucun cours inventé. Annulations et ordre en attente du 11/10 exclus.
+- **80 000 DH du 10/10/2026 montrés sans être comptés.** Les deux virements (`404881515`
+  50 000 DH, `404881607` 30 000 DH) sont « Executed » au suivi mais encore « (*) » au relevé,
+  et leur affectation (Augustin, Bob ou dette personnelle) n'est pas prouvée. Nouveau bloc
+  « Virements en cours, non affectés » : hors de tous les totaux, `dispatchFor: null`.
+  Les taire cacherait 80 000 DH ; les imputer inventerait une affectation.
+
+### Contrôles
+`verify.js` vérifie désormais les volumes et l'unicité des identifiants Binance, la
+chronologie UTC des deux legs, et que les virements en cours restent exclus des totaux.
+
 ## `v7.34` — 2026-08-27
 
 ### Le netting Augustin ⇄ Bob devient la vue par défaut
@@ -353,7 +383,7 @@ Il expose `schemaVersion`, `generatedAt`, `dataAsOf`, `sourceVersion`, `currency
 `positionsGross`, `positionsNettingScenario`, `dueDates`, `evidenceStatus`.
 
 **Le brut reste séparé de la compensation.** `positionsNettingScenario` décrit un
-règlement qui n'a pas eu lieu : tant qu'Azarkan n'a pas retransmis à Hamza, la créance
+règlement qui n'a pas eu lieu : tant qu'Augustin n'a pas retransmis à Hamza, la créance
 sur l'un et la dette envers l'autre coexistent. Le total est identique dans les deux
 vues — un scénario qui déplacerait le total créerait de la valeur.
 

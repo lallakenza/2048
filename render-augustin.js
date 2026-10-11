@@ -691,6 +691,23 @@ function renderAugustin2026(embedded) {
 
   html += collapsible('Virements Maroc 2026', virementsMarocHtml);
 
+  // Virements EN COURS et NON AFFECTES — hors de tous les totaux.
+  // Ils sont montres parce que l'argent est parti ; ils ne sont imputes a personne
+  // parce que l'affectation n'est pas prouvee. Les deux affirmations doivent tenir
+  // ensemble : les taire reviendrait a cacher 80 000 DH, les imputer a inventer.
+  if (d.virementsEnCours && d.virementsEnCours.length) {
+    const totalEnCours = d.virementsEnCours.reduce((s, v) => s + v.dh, 0);
+    let ecHtml = `<table>
+      <thead><tr><th>Réf</th><th data-sort="date">Date</th><th>Bénéficiaire</th><th data-sort="num" style="text-align:right">DH</th><th>Affectation</th></tr></thead><tbody>`;
+    d.virementsEnCours.forEach(v => {
+      ecHtml += `<tr><td style="font-size:.72rem">${v.ref || ''}</td><td>${v.date}</td><td>${nick(v.beneficiaire)}</td><td class="a">${fmtPlain(v.dh)}</td>`
+        + `<td style="font-size:.72rem;color:var(--muted)">${v.dispatchFor ? nick(v.dispatchFor) : 'non établie'}</td></tr>`;
+    });
+    ecHtml += `<tr class="tr"><td></td><td colspan="2"><strong>Total en cours</strong></td><td class="a"><strong>${fmtPlain(totalEnCours)}</strong></td><td></td></tr></tbody></table>`;
+    ecHtml += `<div class="n warn"><strong>${fmtPlain(totalEnCours)} DH hors totaux.</strong> Le suivi les donne « Executed », le relevé les marque encore en cours « (*) » : ils ne sont donc pas comptés comme des règlements définitifs. Leur affectation — Augustin, Bob ou dette personnelle — n'est pas prouvée, donc elle n'est pas devinée : aucune position ne bouge tant qu'elle n'est pas établie.</div>`;
+    html += collapsible('⏳ Virements en cours, non affectés — ' + fmtPlain(totalEnCours) + ' DH', ecHtml);
+  }
+
   // Divers 2026 (cash direct) — avec Pro vs Perso
   if (d.divers && d.divers.length) {
     const totalDiversPerso = diversItems.reduce((s, x) => s + x.perso, 0);

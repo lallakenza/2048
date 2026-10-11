@@ -24,7 +24,9 @@ if (!fs.existsSync(SOURCE)) {
   console.error('  Les données en clair vivent hors du dépôt. Renseigne FACT_DATA_SOURCE si besoin.');
   process.exit(2);
 }
-const DATA = require(SOURCE).FULL_DATA;
+const SRC = require(SOURCE);
+const DATA = SRC.FULL_DATA;
+const PRIV = SRC.PRIV_DATA;
 
 let errors = 0;
 function check(label, actual, expected) {
@@ -85,7 +87,7 @@ check('Divers total net', totalDiversCalc, 1170);
 check('Divers vérifié (abs)', az.diversVerifie, 9170);
 
 const totalRTL = sum(az.rtl, 'montant');
-check('Total RTL', totalRTL, 198475);
+check('Total RTL', totalRTL, 198475); // 2025 : inchange (INVRTL021 est une facture 2026)
 
 // ===== AUGUSTIN 2026 =====
 console.log('\n=== AUGUSTIN 2026 ===');
@@ -96,7 +98,7 @@ check('Total MAD 2026', totalMAD26, 270000); // ...12/07 50k + 17/07 10k + 03/08
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
 check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(270000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
-check('Total RTL facturé 2026', totalRTL26, 116450); // INVRTL013..020 (019+020 émises non payées)
+check('Total RTL facturé 2026', totalRTL26, 130900); // INVRTL013..021 — 020+021 émises non payées (27 200 €)
 
 const diversNet26 = az26.divers.reduce((s, x) => s + x.montant, 0);
 check('Divers net montant 2026', diversNet26, 5600); // +800 - 1200 + 6000
@@ -110,7 +112,7 @@ check('AZCS paid via Majalis 2026', azcsRecuPaid26, 59062.5); // AZCS0001..0009 
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 87550); // INVRTL013..018 payés — 019 et 020 restent dues (28 900 €)
+check('RTL paid 2026', amineRecu26, 103700); // INVRTL013..019 payés (019 encaissée IFX le 24/09/2026)
 
 // Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
 const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
@@ -118,7 +120,31 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 4800); // AZCS0010 (02/07) + AZCS0
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 22004.5); // 87550 − 59062.5 AZCS − 4800 Bridgevale − 1683 report
+check('Position Entreprise (paid)', posEntreprise, 38154.5); // 103700 − 59062.5 AZCS − 4800 Bridgevale − 1683 report
+
+// Virements EN COURS : montres, jamais comptes. Ils doivent rester hors des totaux
+// definitifs et sans affectation tant que celle-ci n'est pas prouvee.
+const enCours26 = az26.virementsEnCours || [];
+check('Virements en cours 2026 (DH)', sum(enCours26, 'dh'), 80000);
+check('Virements en cours — non affectes', enCours26.filter(v => v.dispatchFor == null).length, enCours26.length);
+check('Virements en cours exclus du total Maroc', totalMAD26, 270000);
+
+// ===== BINANCE P2P (export officiel C2C, rapprochement du 11/10/2026) =====
+console.log('\n=== BINANCE P2P ===');
+const l2 = PRIV.fxP2P.leg2.transactions, l3 = PRIV.fxP2P.leg3.transactions;
+check('Achats Completed', l2.length, 62);
+check('Ventes Completed', l3.length, 115);
+check('Volume achats (AED, 3 dec.)', Math.round(sum(l2, 'aed') * 1000), 568688290);
+check('Volume ventes (MAD)', Math.round(sum(l3, 'mad') * 100), 146402851);
+const ordres = [...l2, ...l3];
+check('Identifiants d ordre presents', ordres.filter(t => t.orderId).length, ordres.length);
+check('Identifiants d ordre uniques', new Set(ordres.map(t => t.orderId)).size, ordres.length);
+check('Ventes avec cours de marche', l3.filter(t => t.tauxMarche > 0).length, l3.length);
+// Les dates doivent etre les dates UTC : une liste triee par date+heure UTC le prouve.
+for (const [nom, arr] of [['achats', l2], ['ventes', l3]]) {
+  const cles = arr.map(t => t.date + (t.hUTC || ''));
+  check('Chronologie UTC ' + nom, JSON.stringify(cles) === JSON.stringify([...cles].sort()), true);
+}
 
 // Divers : montant = PERSO normally. proOrigin items: montant = PRO, Perso = Pro × 0.95
 const PERSO_FACTOR = 0.95;
