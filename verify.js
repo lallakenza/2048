@@ -108,7 +108,7 @@ check('Divers count 2026 (Oum + Zak + Nezha)', az26.divers.length, 3);
 const azcsAll26 = DATA.benoit2026.councils;
 const azcsPaid26 = azcsAll26.filter(c => c.statut === 'ok');
 const azcsRecuPaid26 = sum(azcsPaid26, 'htEUR');
-check('AZCS paid via Majalis 2026', azcsRecuPaid26, 59062.5); // AZCS0001..0009 + 0011 (Juillet 5000, payé 02/08) // + AZCS0013 (3 750 EUR HT, reglee 15/09/2026)
+check('AZCS paid via Majalis 2026', azcsRecuPaid26, 64999.99); // AZCS0001..0009 + 0011 + 0013 // + AZCS0014 (5 937,49 EUR HT, deduit du virement 7 184,36 TTC du 30/09/2026)
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
@@ -120,7 +120,7 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 4800); // AZCS0010 (02/07) + AZCS0
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', posEntreprise, 38154.5); // 103700 − 59062.5 AZCS − 4800 Bridgevale − 1683 report
+check('Position Entreprise (paid)', Math.round(posEntreprise * 100) / 100, 32217.01); // 103700 − 64999.99 AZCS − 4800 Bridgevale − 1683 report
 
 // Virements EN COURS : montres, jamais comptes. Ils doivent rester hors des totaux
 // definitifs et sans affectation tant que celle-ci n'est pas prouvee.
