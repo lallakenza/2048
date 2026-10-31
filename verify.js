@@ -94,9 +94,9 @@ console.log('\n=== AUGUSTIN 2026 ===');
 const az26 = DATA.augustin2026;
 check('Report 2025', az26.report2025, -1683);
 const totalMAD26 = sum(az26.virementsMaroc, 'dh');
-check('Total MAD 2026', totalMAD26, 270000); // ...12/07 50k + 17/07 10k + 03/08 50k + 27/08 20k
+check('Total MAD 2026', totalMAD26, 400000); // ...12/07 50k + 17/07 10k + 03/08 50k + 27/08 20k + 12/10 50k + 12/10 30k + 29/10 50k
 const totalEUR26 = totalMAD26 / az26.tauxMaroc;
-check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(270000 / 10.26 * 100));
+check('Total EUR Maroc 2026', Math.round(totalEUR26 * 100), Math.round(400000 / 10.26 * 100));
 const totalRTL26 = sum(az26.rtl.filter(r => r.ref !== '—'), 'montant');
 check('Total RTL facturé 2026', totalRTL26, 130900); // INVRTL013..021 — 020+021 émises non payées (27 200 €)
 
@@ -112,7 +112,7 @@ check('AZCS paid via Majalis 2026', azcsRecuPaid26, 65000); // AZCS0001..0009 + 
 
 const paidRTL26 = az26.rtl.filter(r => r.statut === 'ok');
 const amineRecu26 = sum(paidRTL26, 'montant');
-check('RTL paid 2026', amineRecu26, 103700); // INVRTL013..019 payés (019 encaissée IFX le 24/09/2026)
+check('RTL paid 2026', amineRecu26, 116450); // INVRTL013..020 payés (020 encaissée IFX le 22/10/2026)
 
 // Paiements Bridgevale (EUR B2B à la société AZCS) — dans la Position Entreprise
 const bridgevaleEUR26 = az26.virementsBridgevale ? az26.virementsBridgevale.reduce((s, x) => s + x.eur, 0) : 0;
@@ -120,14 +120,14 @@ check('Bridgevale EUR 2026', bridgevaleEUR26, 4800); // AZCS0010 (02/07) + AZCS0
 
 // Position Entreprise (paid) = ce qu'AZCS doit recevoir (RTL) − reçu (Majalis + Bridgevale) + report
 const posEntreprise = amineRecu26 - azcsRecuPaid26 - bridgevaleEUR26 + az26.report2025;
-check('Position Entreprise (paid)', Math.round(posEntreprise * 100) / 100, 32217); // 103700 − 65000 AZCS − 4800 Bridgevale − 1683 report
+check('Position Entreprise (paid)', Math.round(posEntreprise * 100) / 100, 44967); // 116450 − 65000 AZCS − 4800 Bridgevale − 1683 report
 
 // Virements EN COURS : montres, jamais comptes. Ils doivent rester hors des totaux
 // definitifs et sans affectation tant que celle-ci n'est pas prouvee.
 const enCours26 = az26.virementsEnCours || [];
-check('Virements en cours 2026 (DH)', sum(enCours26, 'dh'), 80000);
+check('Virements en cours 2026 (DH)', sum(enCours26, 'dh'), 0); // les 2 du 10/10 exécutés le 12/10, imputés le 31/10
 check('Virements en cours — non affectes', enCours26.filter(v => v.dispatchFor == null).length, enCours26.length);
-check('Virements en cours exclus du total Maroc', totalMAD26, 270000);
+check('Virements en cours exclus du total Maroc', totalMAD26, 400000);
 
 // ===== BINANCE P2P (export officiel C2C, rapprochement du 11/10/2026) =====
 console.log('\n=== BINANCE P2P ===');

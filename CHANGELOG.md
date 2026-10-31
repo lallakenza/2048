@@ -9,6 +9,21 @@ Le site a démarré sans versionnage ; l'introduction du système s'est faite en
 
 ---
 
+## Data — 2026-10-31
+
+### Augustin : INVRTL020 encaissée, virements Maroc d'octobre imputés
+Mise à jour de données seule (pas de changement de version).
+- **INVRTL020** (août, 12 750 €) : payée le 22/10/2026, SEPA CLT-UFA S.A. reçu sur iBanq (Bairok).
+- **Virements Maroc** : les 2 virements du 10/10 tenus « en cours » (50 000 + 30 000 DH) sont
+  exécutés (date de valeur 12/10, relevé Attijarinet) ; nouveau virement de 50 000 DH le 29/10.
+  Affectation confirmée par Amine : netting Augustin (part RTL), pas un dispatch Bob.
+  `virementsEnCours` est vide.
+- Position Augustin : −66 → −881 DH (la part d'INVRTL020, 130 815 DH, est quasi soldée par les
+  130 000 DH virés). Bob (−92 376 DH) et Benoit (−74 853 DH) inchangés. Net pont : −168 110 DH.
+- `verify.js` : valeurs attendues mises à jour (Maroc 400 000 DH, RTL payé 116 450 €).
+
+---
+
 ## `v7.39` — 2026-10-11
 
 ### Delta du 11/10/2026 : RTL, Binance, virements en cours
