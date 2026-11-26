@@ -325,8 +325,15 @@ function renderAugustin2026(embedded) {
   // --- Virements Maroc ---
   const totalMAD = sum(d.virementsMaroc, 'dh');
   const virementsProEUR = totalMAD / d.tauxMaroc;
-  // Paiements à Augustin via Bridgevale (EUR direct, hors Maroc — nouveau canal)
-  const bridgevaleEUR = sum(d.virementsBridgevale || [], 'eur');
+  // Paiements à Augustin via Bridgevale (EUR direct, hors Maroc — nouveau canal).
+  // Une facture AZCS reçue mais pas encore réglée (AZCS0015) vit dans le même tableau :
+  // elle est FACTURÉE, pas PAYÉE. Les sommer ensemble ferait croire qu'Augustin a déjà
+  // reçu l'argent et éteindrait la dette d'avance. D'où deux totaux, comme pour Majalis.
+  const bridgevaleLignes = d.virementsBridgevale || [];
+  const estPaye = (v) => !v.reglement || v.reglement.status === 'paid';
+  const bridgevaleEUR = sum(bridgevaleLignes.filter(estPaye), 'eur');
+  const bridgevaleEURFacture = sum(bridgevaleLignes, 'eur');
+  const bridgevaleEnAttente = bridgevaleEURFacture - bridgevaleEUR;
 
   // --- Divers : montant = PERSO (cash réel donné). Pro = montant / PERSO_FACTOR ---
   // Exception: proOrigin = true → montant IS Pro. Perso = montant × PERSO_FACTOR
@@ -372,11 +379,11 @@ function renderAugustin2026(embedded) {
   // Invoiced
   const invoicedRTL = d.rtl.filter(r => r.ref !== '—');
   const totalInvoiced = sum(invoicedRTL, 'montant');
-  const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced - bridgevaleEUR + d.report2025;
+  const deltaEntrepriseInvoiced = totalInvoiced - azcsRecuInvoiced - bridgevaleEURFacture + d.report2025;
   const deltaInvoicedPro = deltaEntrepriseInvoiced - virementsProEUR - diversPro;
 
   // Accrued
-  const deltaEntrepriseAccrued = totalFacture - azcsRecuAll - bridgevaleEUR + d.report2025;
+  const deltaEntrepriseAccrued = totalFacture - azcsRecuAll - bridgevaleEURFacture + d.report2025;
   const deltaAccruedPro = deltaEntrepriseAccrued - virementsProEUR - diversPro;
 
   let html = embedded ? '' : yearToggle3('Az', 2026);
@@ -435,7 +442,7 @@ function renderAugustin2026(embedded) {
   html += `<div class="summary-row" style="margin-bottom:8px">
     <div class="summary-item"><div class="sl">RTL reçu (Bairok)</div><div class="sv" style="color:var(--green)">${fmtPlain(rtlPaidHT)} €</div><div class="sd">HT = TTC (TVA 0%)</div></div>
     <div class="summary-item"><div class="sl">Majalis → AZCS (via Benoit)</div><div class="sv" style="color:var(--blue,#60a5fa)">${fmtPlain(azcsRecuPaid)} €</div><div class="sd">TTC : ${fmtPlain(azcsPaidTTC)}€ (21% TVA)</div></div>
-    ${bridgevaleEUR ? `<div class="summary-item"><div class="sl">Bridgevale → AZCS</div><div class="sv" style="color:var(--blue,#60a5fa)">${fmtPlain(bridgevaleEUR)} €</div><div class="sd">EUR B2B · TVA 0% (export)</div></div>` : ''}
+    ${bridgevaleEUR || bridgevaleEnAttente ? `<div class="summary-item"><div class="sl">Bridgevale → AZCS</div><div class="sv" style="color:var(--blue,#60a5fa)">${fmtPlain(bridgevaleEUR)} €</div><div class="sd">EUR B2B · TVA 0% (export)${bridgevaleEnAttente ? ` · <strong>${fmtPlain(bridgevaleEnAttente)} € facturés non réglés</strong>` : ''}</div></div>` : ''}
     <div class="summary-item"><div class="sl">Report 2025</div><div class="sv" style="color:var(--red)">${fmtSigned(d.report2025)}</div><div class="sd">Solde clôture 2025</div></div>
     <div class="summary-item"><div class="sl">En attente RTL</div><div class="sv" style="color:var(--yellow)">${fmtPlain(totalPending)} €</div><div class="sd">Pas encore payé</div></div>
   </div>`;

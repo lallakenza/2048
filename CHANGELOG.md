@@ -24,6 +24,40 @@ Mise à jour de données seule (pas de changement de version).
 
 ---
 
+## `v7.40` — 2026-11-27
+
+### Relevé du 26/11 : Wise, Attijarinet, mails Bairok et Bridgevale
+Relevés et boîtes mail dépouillés jusqu'au 26/11/2026. Six événements saisis, un
+seul changement de code.
+
+- **INVRTL021 encaissée** (14 450 €) : avis CLT-UFA « Payment Advice 04.11.2026 », reçu
+  le 30/10. Aucune ligne bancaire ne la confirme côté Bairok, donc la preuve reste l'avis
+  et le règlement est marqué « preuve/date non vérifiée », pas « vérifié ».
+- **INVRTL022 ajoutée** : 22 j × 850 € = 18 700 €, facture du 04/11, prestation du 14/09
+  au 16/10, échéance 04/12, PO 4500619649. Non encaissée. RTL 2026 : 149 600 € facturés,
+  130 900 € encaissés, 18 700 € en attente.
+- **AZCS0015 reçue, pas payée** : facture électronique AZCS → Bridgevale du
+  30/10 (XML UBL), 5 j × 400 € = 2 000 €, TVA 0 %, échéance 14/12. Aucun virement Wise à
+  AZCS depuis le 04/09.
+- **INZOR005 et INZOR006** (canal ZOR → Bridgevale) : 4 500 € (7,5 j × 600 €, facture du
+  06/10) encaissés le 26/10, et 7 500 € (12,5 j × 600 €, facture du 03/11) encaissés le
+  05/11, tous deux sur Wise avec leur référence.
+- **150 000 DH de virements** vers Augustin : 50 000 le 03/11 et deux fois 50 000 le
+  25/11, relevé Attijarinet. Imputation à Augustin confirmée par Amine.
+
+### Une facture reçue n'est pas une facture payée
+`virementsBridgevale` ne portait que des virements ; AZCS0015 y entre comme facture non
+réglée. Le total était sommé sans condition, dans la page **et** dans le calcul partagé
+que lit le pont Networth : Augustin serait passé pour payé six semaines avant de l'être,
+soit 20 520 DH d'écart. Les deux lisent désormais `reglement.status`, avec un total payé
+et un total facturé distincts — la correction a été faite dans `computeAugustinPosition`,
+la source commune, pas seulement là où ça se voyait.
+
+### Positions
+Augustin −881 → **+862 DH** (soldée : les 150 000 DH reversés effacent la position).
+Bob −92 376 → **−206 856 DH** (sa part sur INZOR005 et 006). Benoit inchangé.
+Net −168 110 → **−280 847 DH**.
+
 ## `v7.39` — 2026-10-11
 
 ### Delta du 11/10/2026 : RTL, Binance, virements en cours

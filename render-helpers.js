@@ -141,7 +141,7 @@ function computeAugustinPosition() {
   const az = (typeof DATA !== 'undefined') ? DATA.augustin2026 : null;
   const b26 = (typeof DATA !== 'undefined') ? DATA.benoit2026 : null;
   const PERSO_FACTOR = 0.95;
-  if (!az) return { rtlPaidHT: 0, azcsRecuPaid: 0, totalMAD: 0, virementsEUR: 0, bridgevaleEUR: 0,
+  if (!az) return { rtlPaidHT: 0, azcsRecuPaid: 0, totalMAD: 0, virementsEUR: 0, bridgevaleEUR: 0, bridgevaleEURFacture: 0,
                     diversPro: 0, diversPerso: 0, posEntreprise: 0, posNetPro: 0, posNetPerso: 0,
                     posNetMAD: 0, PERSO_FACTOR, tauxMaroc: 0, report2025: 0 };
   const rtlPaidHT = sum(az.rtl.filter(r => r.statut === 'ok'), 'montant');
@@ -149,7 +149,13 @@ function computeAugustinPosition() {
   const azcsRecuPaid = sum(azcsAll.filter(c => c.statut === 'ok'), 'htEUR');
   const totalMAD = sum(az.virementsMaroc, 'dh');
   const virementsEUR = totalMAD / az.tauxMaroc;
-  const bridgevaleEUR = sum(az.virementsBridgevale || [], 'eur');
+  // Le tableau Bridgevale porte deux natures de lignes : des VIREMENTS faits a Augustin
+  // et, depuis AZCS0015, une FACTURE recue qui n'est pas encore reglee. Seuls les
+  // reglements eteignent la position ; compter une facture non payee reviendrait a
+  // declarer Augustin paye avant qu'il ne le soit (ecart constate : 20 520 MAD).
+  const bridgevaleLignes = az.virementsBridgevale || [];
+  const bridgevaleEUR = sum(bridgevaleLignes.filter(v => !v.reglement || v.reglement.status === 'paid'), 'eur');
+  const bridgevaleEURFacture = sum(bridgevaleLignes, 'eur');
   const diversPerso = az.divers ? az.divers.reduce((s, x) => {
     if (x.proOrigin) return s + Math.round(x.montant * PERSO_FACTOR * 100) / 100;
     return s + x.montant;
@@ -162,7 +168,7 @@ function computeAugustinPosition() {
   const posNetPro = posEntreprise - virementsEUR - diversPro;
   const posNetPerso = posNetPro * PERSO_FACTOR;
   const posNetMAD = posNetPro * az.tauxMaroc;
-  return { rtlPaidHT, azcsRecuPaid, totalMAD, virementsEUR, bridgevaleEUR, diversPro, diversPerso,
+  return { rtlPaidHT, azcsRecuPaid, totalMAD, virementsEUR, bridgevaleEUR, bridgevaleEURFacture, diversPro, diversPerso,
            posEntreprise, posNetPro, posNetPerso, posNetMAD, PERSO_FACTOR,
            tauxMaroc: az.tauxMaroc, report2025: az.report2025 };
 }
